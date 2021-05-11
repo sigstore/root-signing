@@ -24,16 +24,14 @@ def get_yubikeys(products):
             d = os.path.join(products, dir_name)
             for f in os.listdir(d):
                 filename = os.path.join(d, f)
-                if filename.endswith('.pem'):
+                if filename.endswith('pubkey.pem'):
                     pem_file = open(filename, 'r')
                     pem = pem_file.read()
                     dir_pubkey = import_ecdsakey_from_pem(pem)
-                elif filename.endswith('hardware_attestation.der'):
+                elif filename.endswith('device_cert.pem'):
                     dir_hardware_cert = filename
-                elif filename.endswith('key_attestation.der'):
+                elif filename.endswith('key_cert.pem'):
                     dir_cert = filename
-            #dir_pubkey['keyval']['hardware_cert'] = dir_hardware_cert
-            #dir_pubkey['keyval']['key_cert'] = dir_cert
             keys.append(dir_pubkey)
             print(dir_pubkey)
     return keys
@@ -44,6 +42,7 @@ def get_targets(targets_dir):
 
 
 def main():
+    # TODO: Update this as you create a key.
     repository = create_new_repository("repository")
 
     # TODO: Assert that size of keys are 5 when complete.
@@ -54,7 +53,7 @@ def main():
     role_date = datetime.date.today() + role_delta
     role_expiration = datetime.datetime(role_date.year, role_date.month, role_date.day)
     # Key expiration.
-    # TODO: This info and the keyval info does not show up in the metadata
+    # TODO: This expiration and the attestation info does not show up in the metadata
     # ssl KEY_SCHEMA. Should we add it here?
     key_delta = datetime.timedelta(weeks=52)
     key_date = datetime.date.today() + key_delta

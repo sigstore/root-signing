@@ -9,6 +9,8 @@ This repository contains the steps and programs needed to create signed TUF meta
 pip3 install tuf
 ```
 
+Update the COSIGN paths in `provision.py` and `sign.py`
+
 1. Provision and add your keys with
 ```
 python3 provision.py

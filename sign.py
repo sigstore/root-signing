@@ -15,7 +15,6 @@ import base64
 Creates and appends a signature using cosign and your HSM.
 '''
 
-COSIGN="/home/asraa/git/cosign/cmd/cosign/cosign"
 YUBIKEY_DIRECTORY = 'ceremony/2021-05-03/ceremony-products'
 
 def get_key(serial_number):
@@ -28,7 +27,7 @@ def get_key(serial_number):
 def add_signature(key, path):
     tmp = tempfile.NamedTemporaryFile('w+t')
     tmp.write(str(encode_canonical(dump_signable_metadata(path)).encode()))
-    p = subprocess.run([COSIGN, "sign-blob", "-sk", str(tmp.name)], text=True, stdout=subprocess.PIPE)
+    p = subprocess.run(["cosign", "sign-blob", "-sk", str(tmp.name)], text=True, stdout=subprocess.PIPE)
     sig = base64.b64decode(p.stdout.rstrip()).hex()
     signature = Signature(key['keyid'], sig)
     append_signature({'keyid': key['keyid'], 'method': 'ecdsa-sha2-nistp256', 'sig': sig}, path)

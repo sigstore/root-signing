@@ -8,17 +8,16 @@ Provisions a Yubikey and writes public keys and certs to the appropriate folder.
 Note: You must have cosign installed and replace the COSIGN path below.
 '''
 
-COSIGN="/home/asraa/git/cosign/cmd/cosign/cosign"
 KEY_DIR = 'ceremony/2021-05-03/ceremony-products'
 
 class HSM(object):
     ''' HSM provisioned key object '''
     def __init__(self):
-        subprocess.run([COSIGN, "piv-tool", "reset"])
+        subprocess.run(["cosign", "piv-tool", "reset"])
         # TODO: I only want the prompts, not the attestation outputs.
         # TODO: Why does this create repeated prompts?
-        subprocess.run([COSIGN, "piv-tool", "generate-key", "--random-management-key"])
-        output = subprocess.Popen([COSIGN, "piv-tool", "attestation", "-output", "json"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        subprocess.run(["cosign", "piv-tool", "generate-key", "--random-management-key"])
+        output = subprocess.Popen(["cosign", "piv-tool", "attestation", "-output", "json"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         stdout, stderr = output.communicate()
         if stdout == None:
             raise 
@@ -26,7 +25,7 @@ class HSM(object):
         self.serial = str(key['KeyAttestation']['Serial'])
         self.device_cert = key['DeviceCertPem']
         self.key_cert = key['KeyCertPem']
-        output = subprocess.Popen([COSIGN, "public-key", "-sk"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        output = subprocess.Popen(["cosign", "public-key", "-sk"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         stdout, stderr = output.communicate()
         self.public_key = str(stdout)
 

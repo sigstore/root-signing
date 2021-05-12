@@ -6,10 +6,10 @@ This repository contains the steps and programs needed to create signed TUF meta
 
 0. Install TUF.
 ```
-pip3 install tuf
+pip3 install --user tuf
 ```
 
-Update the COSIGN paths in `provision.py` and `sign.py`
+Make sure cosign is on your system path.
 
 1. Provision and add your keys with
 ```

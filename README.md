@@ -11,13 +11,16 @@ pip3 install --user tuf
 
 Make sure cosign is on your system path.
 
-1. Provision and add your keys with
+1. Each keyholder should provision and add their keys with
 ```
 python3 provision.py
 ```
 Take note of your serial number.
 
-2. Wait until everyone has provisioned their keys. Generate should only be run after all keys are provisioned. This is a TODO right now.
+2. When everyone has completed generating their keys, run
+```
+python3 generate.py
+```
 
 3. Run 
 ```

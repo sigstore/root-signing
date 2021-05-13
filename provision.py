@@ -5,7 +5,13 @@ import os
 '''
 Provisions a Yubikey and writes public keys and certs to the appropriate folder.
 
-Note: You must have cosign installed and replace the COSIGN path below.
+Usage:
+python3 provision.py
+
+An XXXXXXXX_pubkey.pem, XXXXXXXX_device_cert.pem, and XXXXXXXX_key_cert.pem will be
+written to the KEY_DIR. 
+
+Later tools, generate.py, sign.py use these files as a prerequisite.
 '''
 
 KEY_DIR = 'ceremony/2021-05-03/ceremony-products'
@@ -30,7 +36,6 @@ class HSM(object):
         self.public_key = str(stdout)
 
     def write(self):
-        # Writes files
         directory = os.path.join(KEY_DIR, self.serial)
         try: 
             os.mkdir(directory)

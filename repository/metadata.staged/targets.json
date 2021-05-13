@@ -1,5 +1,11 @@
 {
- "signatures": [],
+ "signatures": [
+  {
+   "keyid": "ce384d8930b4f5449c99631b68b08e96555016262636866cae1fe12f91cfd460",
+   "method": "ecdsa-sha2-nistp256",
+   "sig": "3045022051ae763736e6727fbebf8fcc04d878bdeaf71b455f3147543bf75489dd18f1b6022100ecb23499c200f48ade1eeabad30b339b8dbb605a2023ea603560a566ad0e1b18"
+  }
+ ],
  "signed": {
   "_type": "targets",
   "delegations": {

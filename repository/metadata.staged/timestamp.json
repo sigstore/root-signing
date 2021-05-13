@@ -1,5 +1,11 @@
 {
- "signatures": [],
+ "signatures": [
+  {
+   "keyid": "ce384d8930b4f5449c99631b68b08e96555016262636866cae1fe12f91cfd460",
+   "method": "ecdsa-sha2-nistp256",
+   "sig": "3045022100ac9ba0fb9b5725f9b056900f29c27fb7b437b62804dfdda09071d4ce21c8247602204e6a6cb1542dde40fe8b69e70290760bb4769e6d08bc39ab1a7b2e5e98fcbf2e"
+  }
+ ],
  "signed": {
   "_type": "timestamp",
   "expires": "2021-09-02T00:00:00Z",

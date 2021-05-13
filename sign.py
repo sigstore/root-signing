@@ -21,6 +21,8 @@ python3 sign.py <SERIAL_NUMBER>
 
 Args:
   SERIAL_NUMBER: The 8 digit serial number associated with your Yubikey.
+
+TODO: Investiagate whether we can cache pins
 '''
 
 YUBIKEY_DIRECTORY = 'ceremony/2021-05-03/ceremony-products'

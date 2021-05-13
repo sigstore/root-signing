@@ -14,6 +14,7 @@ written to the KEY_DIR.
 Later tools, generate.py, sign.py use these files as a prerequisite.
 
 TODO: Deal with ceremony products directory correctly
+TODO: Make this request people change the PIN By default it is 123456
 '''
 
 KEY_DIR = 'ceremony/2021-05-03/ceremony-products'

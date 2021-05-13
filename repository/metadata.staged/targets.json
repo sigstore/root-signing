@@ -1,0 +1,22 @@
+{
+ "signatures": [],
+ "signed": {
+  "_type": "targets",
+  "delegations": {
+   "keys": {},
+   "roles": []
+  },
+  "expires": "2021-09-02T00:00:00Z",
+  "spec_version": "1.0.0",
+  "targets": {
+   "fulcio.crt.pem": {
+    "hashes": {
+     "sha256": "7586277a051e6a4eef920f296aad33cd2e8eff4eab102bb586b346d3464607b8",
+     "sha512": "100f563c94b14c09c61adbaa460e3caa49083662dfcc4ad0a07296e3e719d8b449a0c0ddad37775f32af69c3535629b83aa8c95286e32251ad99eed38fff69c3"
+    },
+    "length": 768
+   }
+  },
+  "version": 1
+ }
+}

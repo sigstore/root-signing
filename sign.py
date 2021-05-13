@@ -25,7 +25,7 @@ Args:
 
 YUBIKEY_DIRECTORY = 'ceremony/2021-05-03/ceremony-products'
 # Total number of keys we expect in the metadata before signing.
-TOTAL_KEYS = 1
+TOTAL_KEYS = 5
 
 def get_key(serial_number):
     # TODO: Handle errors
@@ -70,9 +70,7 @@ def main():
         print("Creating signature for %s" % role)
         add_signature(key, os.path.join('repository','metadata.staged', role + '.json'))
 
-    # Now if we have the threshold number of signatures, write and complete the metadata!
+    # If we have the right number of keys, move this to a metadata/ directory.
 
-
-    
 if __name__ == "__main__":
     main()

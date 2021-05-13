@@ -22,7 +22,7 @@ it is run.
 YUBIKEY_DIRECTORY = 'ceremony/2021-05-03/ceremony-products'
 # TODO: Add more targets to thie directory.
 TARGETS_DIR = 'targets/'
-THRESHOLD = 1
+THRESHOLD = 3
 
 
 # Import Yubikey files. ecdsa keys

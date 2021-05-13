@@ -19,6 +19,11 @@
    "keyid": "fb5185e51d30ff0f2a339de7c7a0ea5f4320c39d1d3284f07073abe76f44cbfa",
    "method": "ecdsa-sha2-nistp256",
    "sig": "3045022100965e35a0e7b241d352bc3352453aeab866a07e9c962a2417d2ccff9cc7f5cfa6022051b693cf00734c6b4f3bdbed5209b2eca3c443e9e3af1140809ef1cb04cd986e"
+  },
+  {
+   "keyid": "2fbf4d5f1865bc72facfc7629a7efffeb8760cfb9ddd75c8d5bfcce214301325",
+   "method": "ecdsa-sha2-nistp256",
+   "sig": "30440220718c11ab9f2f2a95e3281be00b664ed9aa2b8ffa6600d2b696811ef7153bc1b5022056cbd2011e5553d1332450cc90458e7d9f8a84b2ecc869bd5a9d2d3e826e8b1a"
   }
  ],
  "signed": {

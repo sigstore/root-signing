@@ -1,0 +1,19 @@
+{
+ "signatures": [],
+ "signed": {
+  "_type": "timestamp",
+  "expires": "2021-09-02T00:00:00Z",
+  "meta": {
+   "snapshot.json": {
+    "hashes": {
+     "sha256": "eefb990236c08516e3fbf8602ee2404cbea74f9cf73542de5f9abc7fb0d48039",
+     "sha512": "ffe237f52a7b6226c9c360f4e4762b6bf6033840f6c9c33dd7e5f8ebffbec61d6b90a1a12fc8f4830639737618d15120636fdc510098d7c3d55f1bbe4f9c3f96"
+    },
+    "length": 200,
+    "version": 1
+   }
+  },
+  "spec_version": "1.0.0",
+  "version": 1
+ }
+}

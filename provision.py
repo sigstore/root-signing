@@ -12,6 +12,8 @@ An XXXXXXXX_pubkey.pem, XXXXXXXX_device_cert.pem, and XXXXXXXX_key_cert.pem will
 written to the KEY_DIR. 
 
 Later tools, generate.py, sign.py use these files as a prerequisite.
+
+TODO: Deal with ceremony products directory correctly
 '''
 
 KEY_DIR = 'ceremony/2021-05-03/ceremony-products'

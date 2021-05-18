@@ -1,31 +1,6 @@
 # test-sigstore-root
 
-This repository contains the steps and programs needed to create signed TUF metadata for SigStore. 
+This repository contains the SigStore TUF metadata and the scripts needed to generate and verify it. 
 
-## Start
-
-0. Install TUF.
-```
-pip3 install --user tuf
-```
-
-Make sure cosign is on your system path.
-
-1. Each keyholder should provision and add their keys with
-```
-python3 provision.py
-```
-Take note of your serial number.
-
-2. When everyone has completed generating their keys, run
-```
-python3 generate.py
-```
-
-3. Run 
-```
-python3 sign.py <SERIAL_NUMBER>
-```
-
-
-
+The repository metadata will be located in `repository/metadata.staged` and the targets in `repository/targets`.
+It will be populated using the target files contained in `targets/` and the keys in the `ceremony/<YYYY-MM-DD>/keys`.

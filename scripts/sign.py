@@ -25,7 +25,7 @@ Args:
 TODO: Investiagate whether we can cache pins
 '''
 
-YUBIKEY_DIRECTORY = 'ceremony/2021-05-03/ceremony-products'
+YUBIKEY_DIRECTORY = '../ceremony/2021-05-03/keys'
 # Total number of keys we expect in the metadata before signing.
 TOTAL_KEYS = 5
 

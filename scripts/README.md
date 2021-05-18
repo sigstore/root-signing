@@ -19,7 +19,7 @@ python3 provision.py
 Take note of your serial number. Verify that you have added a pubkey, device cert, and key cert in a directory named `<SERIAL_NUMBER>`.
 Create a pull request with these files.
 
-Observers can verify the files with the verify CLI and the Yubico root CA 
+Observers can verify the files with the verify CLI in `cmd/verify` and the Yubico root CA 
 (located at https://developers.yubico.com/PIV/Introduction/piv-attestation-ca.pem).
 
 ```

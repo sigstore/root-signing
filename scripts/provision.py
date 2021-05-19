@@ -17,7 +17,7 @@ TODO: Deal with ceremony products directory correctly
 TODO: Make this request people change the PIN By default it is 123456
 '''
 
-KEY_DIR = 'ceremony/2021-05-03/ceremony-products'
+KEY_DIR = '../ceremony/2021-05-03/keys'
 
 class HSM(object):
     ''' HSM provisioned key object '''

@@ -19,9 +19,9 @@ To avoid creating multiple versions, this rewrites repository metadata each time
 it is run.
 '''
 
-YUBIKEY_DIRECTORY = 'ceremony/2021-05-03/ceremony-products'
-# TODO: Add more targets to thie directory.
-TARGETS_DIR = 'targets/'
+YUBIKEY_DIRECTORY = '../ceremony/2021-05-03/keys'
+# TODO: Add more targets to this directory.
+TARGETS_DIR = '../targets/'
 THRESHOLD = 3
 
 
@@ -38,6 +38,7 @@ def get_yubikeys(products):
                     pem_file = open(filename, 'r')
                     pem = pem_file.read()
                     pubkey = import_ecdsakey_from_pem(pem)
+                    # Will be removed with TUF fix.
                     pubkey['keytype'] = 'ecdsa-sha2-nistp256'
                 elif filename.endswith('device_cert.pem'):
                     dir_hardware_cert = filename
@@ -64,6 +65,7 @@ def main():
     # Key expiration.
     # TODO: This expiration and the attestation info does not show up in the metadata
     # ssl KEY_SCHEMA. Should we add it here?
+    # 
     key_delta = datetime.timedelta(weeks=52)
     key_date = datetime.date.today() + key_delta
     key_expiration = datetime.datetime(key_date.year, key_date.month, key_date.day)

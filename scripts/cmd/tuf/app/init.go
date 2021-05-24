@@ -120,7 +120,9 @@ func InitCmd(directory string, targets targetsFlag) error {
 	}
 
 	// After all this hack-ing, set the files with the updated root.
-	setMeta(store, "root.json", root)
+	if err := setMeta(store, "root.json", root); err != nil {
+		return err
+	}
 
 	// Add targets.
 	if err := repo.AddTargetsWithExpires(relativePaths, nil, expiration); err != nil {
@@ -132,16 +134,16 @@ func InitCmd(directory string, targets targetsFlag) error {
 	if err != nil {
 		return err
 	}
-	setMeta(store, "snapshot.json", snapshot)
+	if err := setMeta(store, "snapshot.json", snapshot); err != nil {
+		return err
+	}
 
 	// Create timestamp.json
 	timestamp, err := createNewTimestamp(store, expiration)
 	if err != nil {
 		return err
 	}
-	setMeta(store, "timestamp.json", timestamp)
-
-	return nil
+	return setMeta(store, "timestamp.json", timestamp)
 }
 
 func createNewSnapshot(store tuf.LocalStore, expires time.Time) (*data.Snapshot, error) {

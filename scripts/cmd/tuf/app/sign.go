@@ -228,6 +228,5 @@ func SignMeta(ctx context.Context, store tuf.LocalStore, name string, signer sig
 		})
 	}
 
-	setSignedMeta(store, name, s)
-	return nil
+	return setSignedMeta(store, name, s)
 }

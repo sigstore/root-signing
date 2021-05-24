@@ -98,9 +98,7 @@ func AddKeyCmd(ctx context.Context, directory string) error {
 		root.AddKey(keyAndAttestations.key)
 
 	}
-	setMeta(store, "root.json", root)
-
-	return nil
+	return setMeta(store, "root.json", root)
 }
 
 func WriteKeyData(keyAndAttestations *KeyAndAttestations, directory string) error {

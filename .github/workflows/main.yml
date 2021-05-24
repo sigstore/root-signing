@@ -7,14 +7,26 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
-    runs-on: ubuntu-20.04
+  golangci:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: deps
+        run: sudo apt-get update && sudo apt-get install -yq libpcsclite-dev
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v2
+        timeout-minutes: 5
 
+  test:
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2.3.4
       - uses: actions/setup-go@v2
         with:
           go-version: '1.16.4'
+      - name: deps
+        run: sudo apt-get update && sudo apt-get install -yq libpcsclite-dev
       - name: Test
         run: go test -v ./...
       - name: Ensure no files were modified as a result of the build

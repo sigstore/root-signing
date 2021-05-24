@@ -17,7 +17,10 @@ jobs:
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v2
         timeout-minutes: 5
-
+        with:
+          # Required: the version of golangci-lint is required and must be specified without patch version: we always use the latest patch version.
+          version: v1.39
+          
   test:
     runs-on: ubuntu-20.04
     steps:

@@ -19,8 +19,7 @@ import (
 	"github.com/theupdateframework/go-tuf/util"
 )
 
-// CHANGE THIS IN A REAL DEMO.
-var threshold = 1
+var threshold = 3
 
 type targetsFlag []string
 
@@ -49,7 +48,8 @@ func Init() *ffcli.Command {
 		ShortHelp:  "tuf init initializes a new TUF repository",
 		LongHelp: `tuf init initializes a new TUF repository to the 
 		specified repository directory. It will create unpopulated directories 
-		keys/, staged/, and staged/targets under the repository.
+		keys/, staged/, and staged/targets under the repository with threshold 3
+		and a 4 month expiration.
 		
 	EXAMPLES
 	# initialize repository at ceremony/YYYY-MM-DD
@@ -133,23 +133,13 @@ func InitCmd(directory string, targets targetsFlag) error {
 		return err
 	}
 	setMeta(store, "snapshot.json", snapshot)
+
 	// Create timestamp.json
 	timestamp, err := createNewTimestamp(store, expiration)
 	if err != nil {
 		return err
 	}
 	setMeta(store, "timestamp.json", timestamp)
-
-	// Go also does not support unhashed snapshot or timestamps without having the private keys in the
-	// repositories. Ignore these for now.
-	/*
-		if err := repo.SnapshotWithExpires(tuf.CompressionTypeNone, expiration); err != nil {
-			return fmt.Errorf("error adding snapshot %w", err)
-		}
-		if err := repo.TimestampWithExpires(expiration); err != nil {
-			return fmt.Errorf("error adding timestamp %w", err)
-		}
-	*/
 
 	return nil
 }
@@ -163,14 +153,11 @@ func createNewSnapshot(store tuf.LocalStore, expires time.Time) (*data.Snapshot,
 		return nil, err
 	}
 	for _, name := range []string{"root.json", "targets.json"} {
-		// Remove hashes, they include the signers and we can't do that unless we do many more rounds.
 		b := meta[name]
 		fileMeta, err := util.GenerateSnapshotFileMeta(bytes.NewReader(b))
 		if err != nil {
 			return nil, err
 		}
-		fileMeta.Length = 0
-		fileMeta.Hashes = nil
 		snapshot.Meta[name] = fileMeta
 	}
 	return snapshot, nil
@@ -184,14 +171,11 @@ func createNewTimestamp(store tuf.LocalStore, expires time.Time) (*data.Timestam
 	if err != nil {
 		return nil, err
 	}
-	// Remove hashes, they include the signers and we can't do that unless we do many more rounds.
 	b := meta["snapshot.json"]
 	fileMeta, err := util.GenerateTimestampFileMeta(bytes.NewReader(b))
 	if err != nil {
 		return nil, err
 	}
-	fileMeta.Length = 0
-	fileMeta.Hashes = nil
 	timestamp.Meta["snapshot.json"] = fileMeta
 
 	return timestamp, nil

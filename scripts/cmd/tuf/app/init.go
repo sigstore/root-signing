@@ -104,7 +104,7 @@ func InitCmd(directory string, targets targetsFlag) error {
 
 	// TODO: go-tuf does not support customizing root expiration. Hacked.
 	// We very hackishly by unmarshalling the JSON and do it manually.
-	root, err := getRootFromStore(store)
+	root, err := GetRootFromStore(store)
 	if err != nil {
 		return err
 	}
@@ -183,7 +183,7 @@ func createNewTimestamp(store tuf.LocalStore, expires time.Time) (*data.Timestam
 	return timestamp, nil
 }
 
-func getSignedMeta(store tuf.LocalStore, name string) (*data.Signed, error) {
+func GetSignedMeta(store tuf.LocalStore, name string) (*data.Signed, error) {
 	// Get name signed meta (name is of the form *.json)
 	meta, err := store.GetMeta()
 	if err != nil {
@@ -200,8 +200,8 @@ func getSignedMeta(store tuf.LocalStore, name string) (*data.Signed, error) {
 	return s, nil
 }
 
-func getRootFromStore(store tuf.LocalStore) (*data.Root, error) {
-	s, err := getSignedMeta(store, "root.json")
+func GetRootFromStore(store tuf.LocalStore) (*data.Root, error) {
+	s, err := GetSignedMeta(store, "root.json")
 	if err != nil {
 		return nil, err
 	}

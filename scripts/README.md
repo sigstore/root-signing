@@ -14,6 +14,12 @@ $ go build -o tuf ./cmd/tuf
 
 * Make sure cosign is on your system path.
 
+**Observers** should:
+* Build the verification application
+```
+$ go build -o verify ./cmd/verify
+```
+
 * Setup their environment with the repository path corresponding to the ceremony's date
 ```
 export REPO=/path/to/this/repository/ceremony/YYYY-MM-DD
@@ -25,7 +31,7 @@ export REPO=/path/to/this/repository/ceremony/YYYY-MM-DD
 
 1. **The conductor** should initialize the TUF repository and add the targets. From this directory:
 ```
-$ ./tuf init -repository $REPO [-targets $TARGET [$TARGET2 $TARGET3 $TARGET4]]
+$ ./tuf init -repository $REPO [-target $TARGET [$TARGET2 $TARGET3 $TARGET4]]
 TUF repository initialized at  $REPO
 Created target file at  $REPO/staged/targets/$TARGET
 ```
@@ -47,7 +53,31 @@ $REPO
 **The conductor** should create a PR.
 
 **Keyholders and observers** should verify that the expiration and threshold in each of the the unpopulated metadata files match their expectations (e.g. 4 month expiration and threshold 3).
-They should carefully check the target hashes that were added match theirs.
+They should carefully check the target hashes that were added match theirs. For example, verify that the hashes of the targets in `targets.json` match your local copy:
+
+```
+$ cat $REPO/staged/targets.json | jq
+{
+  "signatures": null,
+  "signed": {
+    "_type": "targets",
+    "expires": "2021-09-27T10:05:20-04:00",
+    "spec_version": "1.0",
+    "targets": {
+      "$TARGET": {
+        "hashes": {
+          "sha512": "100f563c94b14c09c61adbaa460e3caa49083662dfcc4ad0a07296e3e719d8b449a0c0ddad37775f32af69c3535629b83aa8c95286e32251ad99eed38fff69c3"
+        },
+        "length": 768
+      }
+    },
+    "version": 1
+  }
+}
+
+$ sha512sum /my/local/target
+100f563c94b14c09c61adbaa460e3caa49083662dfcc4ad0a07296e3e719d8b449a0c0ddad37775f32af69c3535629b83aa8c95286e32251ad99eed38fff69c3 /my/local/target
+```
 
 2. **Each keyholder** should pull the PR from step 1 and and provision their keys with
 ```
@@ -76,7 +106,6 @@ Create a pull request with these changes.
 **Observers** can verify the files with the verify CLI in `cmd/verify` and the Yubico root CA.
 
 ```
-$ go build -o verify ./cmd/verify
 $ wget https://developers.yubico.com/PIV/Introduction/piv-attestation-ca.pem
 $ ./verify --root piv-attestation-ca.pem --key-directory $REPO/keys
 
@@ -90,6 +119,11 @@ This verifies
 
 
 3. When everyone has completed provisioning their keys, **keyholders** should run three sequentual rounds to sign the metadata files. You will not be able to skip rounds. The script will verify that the previous step's metadata files were signed correctly (with the correct threshold and valid signatures).
+
+**Observers** may run the verification script to check signatures and state after each round:
+```
+$ ./verify --root piv-attestation-ca.pem --key-directory $REPO/keys --repository $REPO
+```
 
 a. Round one. Take turns signing root and targets: 
 

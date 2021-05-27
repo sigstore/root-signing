@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  golangci:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: deps
+        run: sudo apt-get update && sudo apt-get install -yq libpcsclite-dev
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v2
+        timeout-minutes: 5
+        with:
+          # Required: the version of golangci-lint is required and must be specified without patch version: we always use the latest patch version.
+          version: v1.39
+          
+  test:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2.3.4
+      - uses: actions/setup-go@v2
+        with:
+          go-version: '1.16.4'
+      - name: deps
+        run: sudo apt-get update && sudo apt-get install -yq libpcsclite-dev
+      - name: Test
+        run: go test -v ./...
+      - name: Ensure no files were modified as a result of the build
+        run: git update-index --refresh && git diff-index --quiet HEAD -- || git diff --exit-code

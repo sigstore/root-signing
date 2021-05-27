@@ -8,7 +8,6 @@ This directory contains programs needed to verify and generate the key artifacts
 
 * Install TUF and build the TUF application
 ```
-$ pip3 install --user tuf
 $ go get github.com/theupdateframework/go-tuf/cmd/tuf
 $ go build -o tuf ./cmd/tuf
 ```
@@ -22,7 +21,7 @@ export REPO=/path/to/this/repository/ceremony/YYYY-MM-DD
 
 * Gather the target materials to sign (e.g. rekor tlog key, ctfe tlog key, artifact signing key, and Fulcio CA certificate).
 
-* Designate one key holder as the **Conductor**.
+* Designate a participant (not necessarily a keyholder) as the **conductor**.
 
 1. **The conductor** should initialize the TUF repository and add the targets. From this directory:
 ```
@@ -90,7 +89,7 @@ This verifies
 * That the directory where they keys were added match the serial number from the cert (preventing a keyholder from using their key multiple times)
 
 
-3. When everyone has completed generating their keys, keyholders should run three sequentual rounds to sign the metadata files. You will not be able to skip rounds. The script will verify that the previous step's metadata files were signed correctly (with the correct threshold and valid signatures).
+3. When everyone has completed provisioning their keys, **keyholders** should run three sequentual rounds to sign the metadata files. You will not be able to skip rounds. The script will verify that the previous step's metadata files were signed correctly (with the correct threshold and valid signatures).
 
 a. Round one. Take turns signing root and targets: 
 
@@ -121,7 +120,7 @@ c. Round three:
 $ ./tuf sign -repository $REPO -roles timestamp
 ```
 
-4. Publish! Observers can fork to distribute the metadata in multiple locations!
+4. The **conductor** can publish the metadata! **Observers** can fork to distribute the metadata in multiple locations!
 
 ```
 $ ./tuf publish -repository $REPO
@@ -153,5 +152,3 @@ $REPO
 ### References
 
 * https://github.com/DataDog/integrations-core/tree/master/datadog_checks_downloader
-
-

@@ -62,9 +62,9 @@ func Sign() *ffcli.Command {
 	}
 }
 
-func createDb(store tuf.LocalStore) (*verify.DB, error) {
+func CreateDb(store tuf.LocalStore) (*verify.DB, error) {
 	db := verify.NewDB()
-	root, err := getRootFromStore(store)
+	root, err := GetRootFromStore(store)
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +85,7 @@ func createDb(store tuf.LocalStore) (*verify.DB, error) {
 }
 
 func checkAndUpdateMetaForRole(store tuf.LocalStore, role []string) error {
-	db, err := createDb(store)
+	db, err := CreateDb(store)
 	if err != nil {
 		return fmt.Errorf("error creating verification database: %w", err)
 	}
@@ -94,7 +94,7 @@ func checkAndUpdateMetaForRole(store tuf.LocalStore, role []string) error {
 		case "snapshot":
 			// Check that root and target are signed correctly
 			for _, manifest := range []string{"root", "targets"} {
-				s, err := getSignedMeta(store, manifest+".json")
+				s, err := GetSignedMeta(store, manifest+".json")
 				if err != nil {
 					return err
 				}
@@ -108,7 +108,7 @@ func checkAndUpdateMetaForRole(store tuf.LocalStore, role []string) error {
 			}
 		case "timestamp":
 			// Check that snapshot is signed
-			s, err := getSignedMeta(store, "snapshot.json")
+			s, err := GetSignedMeta(store, "snapshot.json")
 			if err != nil {
 				return err
 			}
@@ -181,7 +181,7 @@ func updateSnapshot(store tuf.LocalStore) error {
 }
 
 func updateTimestamp(store tuf.LocalStore) error {
-	s, err := getSignedMeta(store, "timestamp.json")
+	s, err := GetSignedMeta(store, "timestamp.json")
 	if err != nil {
 		return err
 	}
@@ -208,7 +208,7 @@ func updateTimestamp(store tuf.LocalStore) error {
 
 func SignMeta(ctx context.Context, store tuf.LocalStore, name string, signer signature.Signer, key *data.Key) error {
 	fmt.Printf("Signing metadata for %s... \n", name)
-	s, err := getSignedMeta(store, name)
+	s, err := GetSignedMeta(store, name)
 	if err != nil {
 		return err
 	}

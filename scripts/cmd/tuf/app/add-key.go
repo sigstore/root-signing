@@ -85,18 +85,20 @@ func AddKeyCmd(ctx context.Context, directory string) error {
 		return err
 	}
 
-	// Add keys to each target file.
 	store := tuf.FileSystemStore(directory, nil)
-	root, err := getRootFromStore(store)
+
+	// Add keys to root
+	root, err := GetRootFromStore(store)
 	if err != nil {
 		return err
 	}
+	root.AddKey(keyAndAttestations.key)
+
+	// Add keys to each metadata file.
 	roles := []string{"root", "targets", "timestamp", "snapshot"}
 	for _, roleName := range roles {
 		role := root.Roles[roleName]
 		role.AddKeyIDs(keyAndAttestations.key.IDs())
-		root.AddKey(keyAndAttestations.key)
-
 	}
 	return setMeta(store, "root.json", root)
 }

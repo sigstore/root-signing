@@ -1,3 +1,2 @@
-scripts/tuf
-scripts/verify
-
+/tuf
+/verify

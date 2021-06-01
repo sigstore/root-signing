@@ -107,7 +107,7 @@ func WriteKeyData(keyAndAttestations *KeyAndAttestations, directory string) erro
 	att := keyAndAttestations.attestations
 	serial := fmt.Sprint(att.KeyAttestation.Serial)
 	keyDir := filepath.Join(directory, "keys", serial)
-	if err := os.Mkdir(keyDir, 0755); err != nil {
+	if err := os.MkdirAll(keyDir, 0755); err != nil {
 		return err
 	}
 

@@ -3,8 +3,16 @@ name: CI
 on:
   push:
     branches: [ main ]
+    paths:
+      - 'cmd/*'
+      - 'pkg/*'
+      - 'tests/*'
   pull_request:
     branches: [ main ]
+    paths:
+      - 'cmd/*'
+      - 'pkg/*'
+      - 'tests/*'
 
 jobs:
   golangci:

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/asraa/sigstore-root/scripts/cmd/tuf/app"
+	"github.com/asraa/sigstore-root/cmd/tuf/app"
 	"github.com/peterbourgon/ff/v3/ffcli"
 )
 

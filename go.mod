@@ -1,4 +1,4 @@
-module github.com/asraa/sigstore-root
+module github.com/sigstore/root-signing
 
 go 1.16
 

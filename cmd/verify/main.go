@@ -13,8 +13,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/asraa/sigstore-root/cmd/tuf/app"
-	"github.com/asraa/sigstore-root/pkg/keys"
+	"github.com/sigstore/root-signing/cmd/tuf/app"
+	"github.com/sigstore/root-signing/pkg/keys"
 	"github.com/theupdateframework/go-tuf"
 	"github.com/theupdateframework/go-tuf/data"
 	"github.com/theupdateframework/go-tuf/verify"

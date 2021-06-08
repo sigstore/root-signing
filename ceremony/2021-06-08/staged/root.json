@@ -1,0 +1,1 @@
+{"signatures":null,"signed":{"_type":"root","consistent_snapshot":false,"expires":"2021-10-08T13:35:46.347748-04:00","keys":{},"roles":{"root":{"keyids":[],"threshold":3},"snapshot":{"keyids":[],"threshold":3},"targets":{"keyids":[],"threshold":3},"timestamp":{"keyids":[],"threshold":3}},"spec_version":"1.0","version":0}}

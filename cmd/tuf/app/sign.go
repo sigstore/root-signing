@@ -102,7 +102,7 @@ func checkAndUpdateMetaForRole(store tuf.LocalStore, role []string) error {
 					return fmt.Errorf("error verifying signatures for %s", manifest)
 				}
 			}
-
+			// At this point we have valid root and targets.
 			if err := updateSnapshot(store); err != nil {
 				return err
 			}
@@ -115,7 +115,7 @@ func checkAndUpdateMetaForRole(store tuf.LocalStore, role []string) error {
 			if err := db.Verify(s, "snapshot", 0); err != nil {
 				return errors.New("error verifying signatures for snapshot")
 			}
-
+			// At this point we have a valid snapshot.
 			if err := updateTimestamp(store); err != nil {
 				return err
 			}
@@ -155,6 +155,7 @@ func SignCmd(ctx context.Context, directory string, roles []string) error {
 }
 
 func updateSnapshot(store tuf.LocalStore) error {
+	// This assumes the root.json and targets.json are correctly signed.
 	meta, err := store.GetMeta()
 	if err != nil {
 		return err
@@ -169,15 +170,26 @@ func updateSnapshot(store tuf.LocalStore) error {
 		return err
 	}
 
+	changed := false
 	for _, name := range []string{"root.json", "targets.json"} {
 		b := meta[name]
-		snapshot.Meta[name], err = util.GenerateSnapshotFileMeta(bytes.NewReader(b))
+		meta, err := util.GenerateSnapshotFileMeta(bytes.NewReader(b))
 		if err != nil {
 			return err
 		}
+
+		if prev, ok := snapshot.Meta[name]; !ok || util.SnapshotFileMetaEqual(prev, meta) != nil {
+			snapshot.Meta[name] = meta
+			changed = true
+		}
 	}
 
-	return setMeta(store, "snapshot.json", snapshot)
+	if changed {
+		// We only setMeta if we needed to change the root or targets hashes. Otherwise, this
+		// removes old signatures.
+		return setMeta(store, "snapshot.json", snapshot)
+	}
+	return nil
 }
 
 func updateTimestamp(store tuf.LocalStore) error {
@@ -198,12 +210,20 @@ func updateTimestamp(store tuf.LocalStore) error {
 	if !ok {
 		return errors.New("missing metadata: snapshot.json")
 	}
-	timestamp.Meta["snapshot.json"], err = util.GenerateTimestampFileMeta(bytes.NewReader(b))
+
+	fileMeta, err := util.GenerateTimestampFileMeta(bytes.NewReader(b))
 	if err != nil {
 		return err
 	}
 
-	return setMeta(store, "timestamp.json", timestamp)
+	if prev, ok := timestamp.Meta["snapshot.json"]; !ok || util.TimestampFileMetaEqual(prev, fileMeta) != nil {
+		// We only setMeta if we needed to change the root or targets hashes. Otherwise, this
+		// removes old signatures.
+		timestamp.Meta["snapshot.json"] = fileMeta
+		return setMeta(store, "timestamp.json", timestamp)
+	}
+
+	return nil
 }
 
 func SignMeta(ctx context.Context, store tuf.LocalStore, name string, signer signature.Signer, key *data.Key) error {

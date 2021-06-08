@@ -1,0 +1,1 @@
+{"signatures":null,"signed":{"_type":"targets","expires":"2021-10-08T13:35:46-04:00","spec_version":"1.0","targets":{"fulcio.crt.pem":{"hashes":{"sha512":"100f563c94b14c09c61adbaa460e3caa49083662dfcc4ad0a07296e3e719d8b449a0c0ddad37775f32af69c3535629b83aa8c95286e32251ad99eed38fff69c3"},"length":768}},"version":2}}

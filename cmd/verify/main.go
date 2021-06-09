@@ -153,10 +153,13 @@ func verifyMetadata(repository string, keys KeyMap) error {
 		}
 		if err = db.VerifySignatures(signed, name); err != nil {
 			if _, ok := err.(verify.ErrRoleThreshold); ok {
-				// we may not have all the sig, allow partial sigs
+				// we may not have all the sig, allow partial sigs for success
 				log.Printf("\tContains %d/%d valid signatures", err.(verify.ErrRoleThreshold).Actual, role.Threshold)
+			} else if err.Error() == verify.ErrNoSignatures.Error() {
+				log.Printf("\tContains 0/%d valid signatures", role.Threshold)
 			} else {
 				log.Printf("\tError verifying: %s", err)
+				return err
 			}
 		} else {
 			log.Printf("\tSuccess! Signatures valid and threshold achieved")
@@ -170,9 +173,7 @@ func main() {
 	log.SetFlags(0)
 	var fileFlag file
 	flag.Var(&fileFlag, "root", "Yubico root certificate")
-	keyDir := flag.String("key-directory", "../../../ceremony/2021-05-03/keys", "Directory with key products")
 	repository := flag.String("repository", "", "path to repository")
-	// TODO: Add path to repository to verify metadata.
 	flag.Parse()
 
 	rootCA, err := toCert(string(fileFlag))
@@ -181,7 +182,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	keyMap, err := verifySigningKeys(*keyDir, rootCA)
+	keyMap, err := verifySigningKeys(*repository+"/keys", rootCA)
 	if err != nil {
 		log.Printf("error verifying signing keys: %s", err)
 		os.Exit(1)

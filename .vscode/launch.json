@@ -1,0 +1,16 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+
+      {
+        "name": "Launch",
+        "type": "go",
+        "request": "launch",
+        "mode": "auto",
+        "apiVersion": 2,
+        "cwd": "/home/asraa/git/root-signing",
+        "program": "${workspaceRoot}/cmd/tuf",
+        "args": ["sign", "-repository", "/home/asraa/git/root-signing/ceremony/2021-06-10", "-roles", "snapshot"]
+      }
+    ]
+  }

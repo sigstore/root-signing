@@ -12,6 +12,7 @@ import (
 	"github.com/peterbourgon/ff/v3/ffcli"
 	"github.com/sigstore/cosign/pkg/cosign/pivkey"
 	"github.com/sigstore/sigstore/pkg/signature"
+	cjson "github.com/tent/canonical-json-go"
 	"github.com/theupdateframework/go-tuf"
 	"github.com/theupdateframework/go-tuf/data"
 	"github.com/theupdateframework/go-tuf/util"
@@ -98,11 +99,12 @@ func checkAndUpdateMetaForRole(store tuf.LocalStore, role []string) error {
 				if err != nil {
 					return err
 				}
+
 				if err := db.Verify(s, manifest, 0); err != nil {
-					return fmt.Errorf("error verifying signatures for %s", manifest)
+					return fmt.Errorf("error verifying signatures for %s: %w", manifest, err)
 				}
 			}
-			// At this point we have valid root and targets.
+			// At this point we have valid root and targets. Maybe update hashes,
 			if err := updateSnapshot(store); err != nil {
 				return err
 			}
@@ -113,7 +115,7 @@ func checkAndUpdateMetaForRole(store tuf.LocalStore, role []string) error {
 				return err
 			}
 			if err := db.Verify(s, "snapshot", 0); err != nil {
-				return errors.New("error verifying signatures for snapshot")
+				return fmt.Errorf("error verifying signatures for snapshot: %w", err)
 			}
 			// At this point we have a valid snapshot.
 			if err := updateTimestamp(store); err != nil {
@@ -156,6 +158,7 @@ func SignCmd(ctx context.Context, directory string, roles []string) error {
 
 func updateSnapshot(store tuf.LocalStore) error {
 	// This assumes the root.json and targets.json are correctly signed.
+	// Check the snapshot metadata
 	meta, err := store.GetMeta()
 	if err != nil {
 		return err
@@ -187,7 +190,13 @@ func updateSnapshot(store tuf.LocalStore) error {
 	if changed {
 		// We only setMeta if we needed to change the root or targets hashes. Otherwise, this
 		// removes old signatures.
-		return setMeta(store, "snapshot.json", snapshot)
+		// Keep the initial set of empty sigs
+		signed, err := jsonMarshal(snapshot)
+		if err != nil {
+			return err
+		}
+		s.Signed = signed
+		return setSignedMeta(store, "snapshot.json", s)
 	}
 	return nil
 }
@@ -220,7 +229,12 @@ func updateTimestamp(store tuf.LocalStore) error {
 		// We only setMeta if we needed to change the root or targets hashes. Otherwise, this
 		// removes old signatures.
 		timestamp.Meta["snapshot.json"] = fileMeta
-		return setMeta(store, "timestamp.json", timestamp)
+		signed, err := jsonMarshal(timestamp)
+		if err != nil {
+			return err
+		}
+		s.Signed = signed
+		return setSignedMeta(store, "timestamp.json", s)
 	}
 
 	return nil
@@ -234,19 +248,41 @@ func SignMeta(ctx context.Context, store tuf.LocalStore, name string, signer sig
 	}
 
 	// Sign payload
-	sig, _, err := signer.Sign(ctx, s.Signed)
+	var decoded map[string]interface{}
+	if err := json.Unmarshal(s.Signed, &decoded); err != nil {
+		return err
+	}
+	msg, err := cjson.Marshal(decoded)
 	if err != nil {
 		return err
 	}
-	if s.Signatures == nil {
-		s.Signatures = make([]data.Signature, 0, 1)
-	}
-	for _, id := range key.IDs() {
-		s.Signatures = append(s.Signatures, data.Signature{
-			KeyID:     id,
-			Signature: sig,
-		})
+
+	sig, _, err := signer.Sign(ctx, msg)
+	if err != nil {
+		return err
 	}
 
-	return setSignedMeta(store, name, s)
+	if s.Signatures == nil {
+		// init-repo should have pre-populated these. don't lose them.
+		return errors.New("pre-entries not defined")
+	}
+	sigs := make([]data.Signature, 0, len(s.Signatures))
+
+	// Add it to your key entry
+	for _, id := range key.IDs() {
+		for _, entry := range s.Signatures {
+			if entry.KeyID == id {
+				sigs = append(sigs, data.Signature{
+					KeyID:     id,
+					Signature: sig,
+				})
+			} else {
+				sigs = append(sigs, data.Signature{
+					KeyID: id,
+				})
+			}
+		}
+	}
+
+	return setSignedMeta(store, name, &data.Signed{Signatures: sigs, Signed: s.Signed})
 }

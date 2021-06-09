@@ -1,0 +1,73 @@
+{
+	"signatures": [
+		{
+			"keyid": "0b06503f8d561760070293ef561efcfef70af20efc75e0f131ae8247a5b11422",
+			"sig": ""
+		},
+		{
+			"keyid": "488be4bb7f3db6dc3ded945da01eacc5ae06f17ca64df91dc2371a1a55a7c014",
+			"sig": ""
+		}
+	],
+	"signed": {
+		"_type": "root",
+		"consistent_snapshot": false,
+		"expires": "2021-10-09T14:50:11.147675-05:00",
+		"keys": {
+			"0b06503f8d561760070293ef561efcfef70af20efc75e0f131ae8247a5b11422": {
+				"keyid_hash_algorithms": [
+					"sha256",
+					"sha512"
+				],
+				"keytype": "ecdsa-sha2-nistp256",
+				"keyval": {
+					"public": "046aebed196bef41ee81ceed76468c7b3d472ab6ac840c5eb73db856d8693725b8b13b4f0eb5077283919c092922b19d469671ea13501212fa7d9d73eed3502ec6"
+				},
+				"scheme": "ecdsa-sha2-nistp256"
+			},
+			"488be4bb7f3db6dc3ded945da01eacc5ae06f17ca64df91dc2371a1a55a7c014": {
+				"keyid_hash_algorithms": [
+					"sha256",
+					"sha512"
+				],
+				"keytype": "ecdsa-sha2-nistp256",
+				"keyval": {
+					"public": "049916ad53bb198c5682326963044ae605b1bb561317f5b611b106e518673a2fb9527fed8874e207b5b3ab458876b8a08ebca6be9062ac7c59ea7d4ea9630fcf17"
+				},
+				"scheme": "ecdsa-sha2-nistp256"
+			}
+		},
+		"roles": {
+			"root": {
+				"keyids": [
+					"0b06503f8d561760070293ef561efcfef70af20efc75e0f131ae8247a5b11422",
+					"488be4bb7f3db6dc3ded945da01eacc5ae06f17ca64df91dc2371a1a55a7c014"
+				],
+				"threshold": 2
+			},
+			"snapshot": {
+				"keyids": [
+					"0b06503f8d561760070293ef561efcfef70af20efc75e0f131ae8247a5b11422",
+					"488be4bb7f3db6dc3ded945da01eacc5ae06f17ca64df91dc2371a1a55a7c014"
+				],
+				"threshold": 2
+			},
+			"targets": {
+				"keyids": [
+					"0b06503f8d561760070293ef561efcfef70af20efc75e0f131ae8247a5b11422",
+					"488be4bb7f3db6dc3ded945da01eacc5ae06f17ca64df91dc2371a1a55a7c014"
+				],
+				"threshold": 2
+			},
+			"timestamp": {
+				"keyids": [
+					"0b06503f8d561760070293ef561efcfef70af20efc75e0f131ae8247a5b11422",
+					"488be4bb7f3db6dc3ded945da01eacc5ae06f17ca64df91dc2371a1a55a7c014"
+				],
+				"threshold": 2
+			}
+		},
+		"spec_version": "1.0",
+		"version": 0
+	}
+}

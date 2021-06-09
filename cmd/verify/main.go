@@ -1,22 +1,17 @@
 package main
 
 import (
-	"crypto/elliptic"
 	"crypto/x509"
 	"errors"
 	"flag"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
-	"strconv"
-	"strings"
 
 	"github.com/sigstore/root-signing/cmd/tuf/app"
 	"github.com/sigstore/root-signing/pkg/keys"
 	"github.com/theupdateframework/go-tuf"
-	"github.com/theupdateframework/go-tuf/data"
 	"github.com/theupdateframework/go-tuf/verify"
 )
 
@@ -49,57 +44,11 @@ func toCert(filename string) (*x509.Certificate, error) {
 type KeyMap map[string]*keys.SigningKey
 
 func getKeyID(key keys.SigningKey) (*string, error) {
-	pub := key.PublicKey
-	pk := &data.Key{
-		Type:       data.KeyTypeECDSA_SHA2_P256,
-		Scheme:     data.KeySchemeECDSA_SHA2_P256,
-		Algorithms: data.KeyAlgorithms,
-		Value:      data.KeyValue{Public: elliptic.Marshal(pub.Curve, pub.X, pub.Y)},
-	}
+	pk := keys.ToTufKey(key)
 	if len(pk.IDs()) == 0 {
 		return nil, errors.New("error getting key ID")
 	}
 	return &pk.IDs()[0], nil
-}
-
-func signingKeyFromDir(dirname string) (*keys.SigningKey, error) {
-	// Expect *_device_cert.pem, *_key_cert.pem, *_pubkey.pem in each key directory.
-	serialStr := filepath.Base(dirname)
-	serial, err := strconv.Atoi(serialStr)
-	if err != nil {
-		return nil, fmt.Errorf("invalid key directory name %s: %s", dirname, err)
-	}
-
-	var pubKey []byte
-	var deviceCert []byte
-	var keyCert []byte
-	err = filepath.Walk(dirname, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			fmt.Printf("panic accessing path %q: %v\n", path, err)
-			return err
-		}
-		if strings.HasSuffix(info.Name(), "_pubkey.pem") {
-			pubKey, err = ioutil.ReadFile(path)
-			if err != nil {
-				return err
-			}
-		} else if strings.HasSuffix(info.Name(), "_key_cert.pem") {
-			keyCert, err = ioutil.ReadFile(path)
-			if err != nil {
-				return err
-			}
-		} else if strings.HasSuffix(info.Name(), "_device_cert.pem") {
-			deviceCert, err = ioutil.ReadFile(path)
-			if err != nil {
-				return err
-			}
-		}
-		return nil
-	})
-	if err != nil {
-		return nil, err
-	}
-	return keys.ToSigningKey(serial, pubKey, deviceCert, keyCert)
 }
 
 func verifySigningKeys(dirname string, rootCA *x509.Certificate) (*KeyMap, error) {
@@ -111,7 +60,7 @@ func verifySigningKeys(dirname string, rootCA *x509.Certificate) (*KeyMap, error
 	keyMap := make(KeyMap)
 	for _, file := range files {
 		if file.IsDir() {
-			key, err := signingKeyFromDir(filepath.Join(dirname, file.Name()))
+			key, err := keys.SigningKeyFromDir(filepath.Join(dirname, file.Name()))
 			if err != nil {
 				return nil, err
 			}

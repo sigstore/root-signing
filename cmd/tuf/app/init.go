@@ -7,19 +7,21 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/peterbourgon/ff/v3/ffcli"
+	pkeys "github.com/sigstore/root-signing/pkg/keys"
 	cjson "github.com/tent/canonical-json-go"
 	"github.com/theupdateframework/go-tuf"
 	"github.com/theupdateframework/go-tuf/data"
 	"github.com/theupdateframework/go-tuf/util"
 )
 
-var threshold = 3
+var threshold = 2
 
 type targetsFlag []string
 
@@ -76,14 +78,41 @@ func InitCmd(directory string, targets targetsFlag) error {
 	}
 	fmt.Fprintln(os.Stderr, "TUF repository initialized at ", directory)
 
-	// Add top-level targets with threshold and expiration.
-	expiration := time.Now().AddDate(0, 4, 0)
-	relativePaths := []string{}
+	// Get the root.json file and initialize it with the expirations and thresholds
+	root, err := GetRootFromStore(store)
 	if err != nil {
 		return err
 	}
+	expiration := time.Now().AddDate(0, 4, 0)
+	relativePaths := []string{}
+	root.Expires = expiration
+	// Add the keys we just provisioned to each role
+	keys, err := getKeysFromDir(directory + "/keys")
+	if err != nil {
+		return err
+	}
+
+	roles := []string{"root", "targets", "timestamp", "snapshot"}
+	for _, tufKey := range keys {
+		root.AddKey(tufKey)
+		for _, roleName := range roles {
+			role, ok := root.Roles[roleName]
+			if !ok {
+				role = &data.Role{KeyIDs: []string{}, Threshold: threshold}
+				root.Roles[roleName] = role
+			}
+			role.AddKeyIDs(tufKey.IDs())
+		}
+
+	}
+
+	// After all this root metadata setting, set the files with the updated root
+	if err := setMetaWithSigKeyIDs(store, "root.json", root, keys); err != nil {
+		return err
+	}
+
+	// Add targets (copy them into the repository and add them to the targets.json)
 	for _, target := range targets {
-		// Copy target into directory/staged/targets
 		from, err := os.Open(target)
 		if err != nil {
 			return err
@@ -102,31 +131,17 @@ func InitCmd(directory string, targets targetsFlag) error {
 		relativePaths = append(relativePaths, base)
 	}
 
-	// TODO: go-tuf does not support customizing root expiration. Hacked.
-	// We very hackishly by unmarshalling the JSON and do it manually.
-	root, err := GetRootFromStore(store)
+	if err := repo.AddTargetsWithExpires(relativePaths, nil, expiration); err != nil {
+		return fmt.Errorf("error adding targets %w", err)
+	}
+
+	// Add blank signatures
+	t, err := GetTargetsFromStore(store)
 	if err != nil {
 		return err
 	}
-	root.Expires = expiration
-	// TODO: go-tuf also does not support modifying thresholds.
-	roles := []string{"root", "targets", "timestamp", "snapshot"}
-	for _, roleName := range roles {
-		_, ok := root.Roles[roleName]
-		if !ok {
-			role := &data.Role{KeyIDs: []string{}, Threshold: threshold}
-			root.Roles[roleName] = role
-		}
-	}
-
-	// After all this hack-ing, set the files with the updated root.
-	if err := setMeta(store, "root.json", root); err != nil {
+	if err := setMetaWithSigKeyIDs(store, "targets.json", t, keys); err != nil {
 		return err
-	}
-
-	// Add targets.
-	if err := repo.AddTargetsWithExpires(relativePaths, nil, expiration); err != nil {
-		return fmt.Errorf("error adding targets %w", err)
 	}
 
 	// Create snapshot.json
@@ -134,7 +149,7 @@ func InitCmd(directory string, targets targetsFlag) error {
 	if err != nil {
 		return err
 	}
-	if err := setMeta(store, "snapshot.json", snapshot); err != nil {
+	if err := setMetaWithSigKeyIDs(store, "snapshot.json", snapshot, keys); err != nil {
 		return err
 	}
 
@@ -143,7 +158,7 @@ func InitCmd(directory string, targets targetsFlag) error {
 	if err != nil {
 		return err
 	}
-	return setMeta(store, "timestamp.json", timestamp)
+	return setMetaWithSigKeyIDs(store, "timestamp.json", timestamp, keys)
 }
 
 func createNewSnapshot(store tuf.LocalStore, expires time.Time) (*data.Snapshot, error) {
@@ -212,6 +227,18 @@ func GetRootFromStore(store tuf.LocalStore) (*data.Root, error) {
 	return root, nil
 }
 
+func GetTargetsFromStore(store tuf.LocalStore) (*data.Targets, error) {
+	s, err := GetSignedMeta(store, "targets.json")
+	if err != nil {
+		return nil, err
+	}
+	t := &data.Targets{}
+	if err := json.Unmarshal(s.Signed, t); err != nil {
+		return nil, err
+	}
+	return t, nil
+}
+
 func setMeta(store tuf.LocalStore, role string, meta interface{}) error {
 	signed, err := jsonMarshal(meta)
 	if err != nil {
@@ -229,10 +256,54 @@ func setSignedMeta(store tuf.LocalStore, role string, s *data.Signed) error {
 	return store.SetMeta(role, b)
 }
 
+func setMetaWithSigKeyIDs(store tuf.LocalStore, role string, meta interface{}, keys []*data.Key) error {
+	signed, err := jsonMarshal(meta)
+	if err != nil {
+		return err
+	}
+
+	// Add empty sigs
+	emptySigs := make([]data.Signature, 0, 1)
+
+	for _, key := range keys {
+		for _, id := range key.IDs() {
+			emptySigs = append(emptySigs, data.Signature{
+				KeyID: id,
+			})
+		}
+	}
+
+	return setSignedMeta(store, role, &data.Signed{Signatures: emptySigs, Signed: signed})
+}
+
 func jsonMarshal(v interface{}) ([]byte, error) {
-	signed, err := cjson.Marshal(v)
+	b, err := cjson.Marshal(v)
 	if err != nil {
 		return nil, err
 	}
-	return signed, nil
+
+	var out bytes.Buffer
+	if err := json.Indent(&out, b, "", "\t"); err != nil {
+		return nil, err
+	}
+
+	return out.Bytes(), nil
+}
+
+func getKeysFromDir(dir string) ([]*data.Key, error) {
+	files, err := ioutil.ReadDir(dir)
+	if err != nil {
+		return nil, err
+	}
+	var tufKeys []*data.Key
+	for _, file := range files {
+		if file.IsDir() {
+			key, err := pkeys.SigningKeyFromDir(filepath.Join(dir, file.Name()))
+			if err != nil {
+				return nil, err
+			}
+			tufKeys = append(tufKeys, pkeys.ToTufKey(*key))
+		}
+	}
+	return tufKeys, err
 }

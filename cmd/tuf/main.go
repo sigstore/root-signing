@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/sigstore/root-signing/cmd/tuf/app"
 	"github.com/peterbourgon/ff/v3/ffcli"
+	"github.com/sigstore/root-signing/cmd/tuf/app"
 )
 
 var (

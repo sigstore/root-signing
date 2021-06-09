@@ -14,7 +14,6 @@ import (
 
 	"github.com/peterbourgon/ff/v3/ffcli"
 	"github.com/sigstore/cosign/cmd/cosign/cli/pivcli"
-	"github.com/theupdateframework/go-tuf"
 	"github.com/theupdateframework/go-tuf/data"
 )
 
@@ -81,26 +80,7 @@ func AddKeyCmd(ctx context.Context, directory string) error {
 	}
 
 	// Write to repository/keys/SERIAL_NUM/SERIAL_NUM_pubkey.pem, etc
-	if err := WriteKeyData(keyAndAttestations, directory); err != nil {
-		return err
-	}
-
-	store := tuf.FileSystemStore(directory, nil)
-
-	// Add keys to root
-	root, err := GetRootFromStore(store)
-	if err != nil {
-		return err
-	}
-	root.AddKey(keyAndAttestations.key)
-
-	// Add keys to each metadata file.
-	roles := []string{"root", "targets", "timestamp", "snapshot"}
-	for _, roleName := range roles {
-		role := root.Roles[roleName]
-		role.AddKeyIDs(keyAndAttestations.key.IDs())
-	}
-	return setMeta(store, "root.json", root)
+	return WriteKeyData(keyAndAttestations, directory)
 }
 
 func WriteKeyData(keyAndAttestations *KeyAndAttestations, directory string) error {

@@ -25,6 +25,7 @@ git status
 ./tuf sign -repository $REPO -roles snapshot
 
 git checkout -b sign-snapshot
+git add ceremony/
 git commit -s -a -m "Signing snapshot for ${GITHUB_USER}"
 git push -f origin sign-snapshot
 

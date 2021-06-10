@@ -25,6 +25,7 @@ git status
 ./tuf publish -repository $REPO
 
 git checkout -b publish
+git add ceremony/
 git commit -s -a -m "Publishing for ${GITHUB_USER}!"
 git push -f origin publish
 

@@ -25,7 +25,8 @@ git status
 ./tuf sign -repository $REPO -roles root -roles targets
 
 git checkout -b sign-targets
-git commit -s -a -m "Signing targets for ${GITHUB_USER}"
+git add ceremony/
+git commit -s -m "Signing targets for ${GITHUB_USER}"
 git push -f origin sign-targets
 
 # Open the browser

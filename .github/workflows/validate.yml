@@ -1,0 +1,29 @@
+name: CI Validate
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'ceremony/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'ceremony/**'
+
+jobs:  
+  validate:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2.3.4
+        with:
+          fetch-depth: 0
+      - run: echo "REPO=$(git diff --name-only ${{ github.event.before }}..${{ github.event.after }} | grep .json | cut -d/ -f 1-2)" >> $GITHUB_ENV
+      - uses: actions/setup-go@v2
+        with:
+          go-version: '1.16.4'
+      - name: root
+        run: wget https://developers.yubico.com/PIV/Introduction/piv-attestation-ca.pem
+      - name: build
+        run: go build -o verify ./cmd/verify/
+      - name: verify
+        run: ./verify --root piv-attestation-ca.pem --repository $REPO

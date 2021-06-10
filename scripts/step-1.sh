@@ -20,6 +20,7 @@ git remote -v
 ./tuf add-key -repository $REPO
 git status
 git checkout -b add-key
+git add ceremony/
 git commit -s -a -m "Adding initial key for ${GITHUB_USER}"
 git push -f origin add-key
 

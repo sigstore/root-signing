@@ -239,15 +239,6 @@ func GetTargetsFromStore(store tuf.LocalStore) (*data.Targets, error) {
 	return t, nil
 }
 
-func setMeta(store tuf.LocalStore, role string, meta interface{}) error {
-	signed, err := jsonMarshal(meta)
-	if err != nil {
-		return err
-	}
-
-	return setSignedMeta(store, role, &data.Signed{Signed: signed})
-}
-
 func setSignedMeta(store tuf.LocalStore, role string, s *data.Signed) error {
 	b, err := jsonMarshal(s)
 	if err != nil {

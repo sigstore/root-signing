@@ -16,8 +16,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: deps
-        run: sudo apt-get update && sudo apt-get install -yq libpcsclite-dev
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v2
         timeout-minutes: 5
@@ -32,8 +30,6 @@ jobs:
       - uses: actions/setup-go@v2
         with:
           go-version: '1.16.4'
-      - name: deps
-        run: sudo apt-get update && sudo apt-get install -yq libpcsclite-dev
       - name: Test
         run: go test -v ./...
       - name: Ensure no files were modified as a result of the build

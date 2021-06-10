@@ -1,3 +1,5 @@
+// +build pivkey
+
 package main
 
 import (

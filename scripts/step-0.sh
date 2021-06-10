@@ -19,10 +19,19 @@ git remote rm origin
 git remote add origin git@github.com:"$GITHUB_USER"/root-signing.git
 git remote -v
 
+
+# Cleanup branches
+git branch -D setup-root || true
+git branch -D add-key || true
+git branch -D sign-targets || true
+git branch -D sign-snapshot || true
+git branch -D sign-timestamp || true
+git branch -D publish || true
+
 git clean -d -f
 git checkout main
 git pull upstream main
 git rev-parse HEAD
 
 # build the tuf binary
-go build -o tuf ./cmd/tuf
+go build -o tuf -tags=pivkey ./cmd/tuf

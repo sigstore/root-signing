@@ -25,6 +25,7 @@ git status
 ./tuf init -repository $REPO -target targets/fulcio.crt.pem
 
 git checkout -b setup-root
+git add ceremony/
 git commit -s -a -m "Setting up root for ${GITHUB_USER}"
 git push -f origin setup-root
 

@@ -25,6 +25,7 @@ git status
 ./tuf sign -repository $REPO -roles timestamp
 
 git checkout -b sign-timestamp
+git add ceremony/
 git commit -s -a -m "Signing timestamp for ${GITHUB_USER}"
 git push -f origin sign-timestamp
 

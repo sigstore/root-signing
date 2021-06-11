@@ -279,9 +279,7 @@ func SignMeta(ctx context.Context, store tuf.LocalStore, name string, signer sig
 					Signature: sig,
 				})
 			} else {
-				sigs = append(sigs, data.Signature{
-					KeyID: entry.KeyID,
-				})
+				sigs = append(sigs, entry)
 			}
 		}
 	}

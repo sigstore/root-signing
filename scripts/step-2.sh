@@ -30,4 +30,4 @@ git commit -s -m "Signing targets for ${GITHUB_USER}"
 git push -f origin sign-targets
 
 # Open the browser
-open "https://github.com/${GITHUB_USER}/root-signing/pull/new/sign-targets"
+open "https://github.com/${GITHUB_USER}/root-signing/pull/new/sign-targets" || xdg-open "https://github.com/${GITHUB_USER}/root-signing/pull/new/sign-targets"

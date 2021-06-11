@@ -30,4 +30,4 @@ git commit -s -a -m "Signing snapshot for ${GITHUB_USER}"
 git push -f origin sign-snapshot
 
 # Open the browser
-open "https://github.com/${GITHUB_USER}/root-signing/pull/new/sign-snapshot"
+open "https://github.com/${GITHUB_USER}/root-signing/pull/new/sign-snapshot" || xdg-open "https://github.com/${GITHUB_USER}/root-signing/pull/new/sign-snapshot"

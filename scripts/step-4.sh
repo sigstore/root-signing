@@ -30,4 +30,4 @@ git commit -s -a -m "Signing timestamp for ${GITHUB_USER}"
 git push -f origin sign-timestamp
 
 # Open the browser
-open "https://github.com/${GITHUB_USER}/root-signing/pull/new/sign-timestamp"
+open "https://github.com/${GITHUB_USER}/root-signing/pull/new/sign-timestamp" || xdg-open "https://github.com/${GITHUB_USER}/root-signing/pull/new/sign-timestamp"

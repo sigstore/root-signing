@@ -30,4 +30,5 @@ git commit -s -a -m "Setting up root for ${GITHUB_USER}"
 git push -f origin setup-root
 
 # Open the browser
-open "https://github.com/${GITHUB_USER}/root-signing/pull/new/setup-root"
+open "https://github.com/${GITHUB_USER}/root-signing/pull/new/setup-root" || xdg-open "https://github.com/${GITHUB_USER}/root-signing/pull/new/setup-root"
+

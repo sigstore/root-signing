@@ -25,4 +25,4 @@ git commit -s -a -m "Adding initial key for ${GITHUB_USER}"
 git push -f origin add-key
 
 # Open the browser
-open "https://github.com/${GITHUB_USER}/root-signing/pull/new/add-key"
+open "https://github.com/${GITHUB_USER}/root-signing/pull/new/add-key" || xdg-open "https://github.com/${GITHUB_USER}/root-signing/pull/new/add-key"

@@ -30,4 +30,4 @@ git commit -s -a -m "Publishing for ${GITHUB_USER}!"
 git push -f origin publish
 
 # Open the browser
-open "https://github.com/${GITHUB_USER}/root-signing/pull/new/publish"
+open "https://github.com/${GITHUB_USER}/root-signing/pull/new/publish" || xdg-open "https://github.com/${GITHUB_USER}/root-signing/pull/new/publish"

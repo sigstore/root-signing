@@ -1,0 +1,30 @@
+{
+	"signatures": [
+		{
+			"keyid": "61a26810937d41566b981bc790c186724b5cf34f53e10a8aab291cbab6ee7f1d",
+			"sig": ""
+		},
+		{
+			"keyid": "57833f087c3827a2fb6492a8c4eebb98c83de5e6d7bf3ef41bc767af8d008145",
+			"sig": ""
+		},
+		{
+			"keyid": "cd1e5bb650150f15031661478ed3b92de4fd8d14e91ea99407d50742b53ee8ec",
+			"sig": ""
+		}
+	],
+	"signed": {
+		"_type": "targets",
+		"expires": "2021-10-11T14:08:43-05:00",
+		"spec_version": "1.0",
+		"targets": {
+			"fulcio.crt.pem": {
+				"hashes": {
+					"sha512": "100f563c94b14c09c61adbaa460e3caa49083662dfcc4ad0a07296e3e719d8b449a0c0ddad37775f32af69c3535629b83aa8c95286e32251ad99eed38fff69c3"
+				},
+				"length": 768
+			}
+		},
+		"version": 1
+	}
+}

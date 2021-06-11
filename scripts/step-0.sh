@@ -13,9 +13,9 @@ git status
 git remote -v
 
 # Setup forks
-git remote rm upstream
+git remote rm upstream || true
 git remote add upstream git@github.com:sigstore/root-signing.git
-git remote rm origin
+git remote rm origin || true
 git remote add origin git@github.com:"$GITHUB_USER"/root-signing.git
 git remote -v
 

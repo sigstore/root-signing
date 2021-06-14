@@ -17,13 +17,14 @@ import (
 
 	"github.com/peterbourgon/ff/v3/ffcli"
 	pkeys "github.com/sigstore/root-signing/pkg/keys"
+	prepo "github.com/sigstore/root-signing/pkg/repo"
 	cjson "github.com/tent/canonical-json-go"
 	"github.com/theupdateframework/go-tuf"
 	"github.com/theupdateframework/go-tuf/data"
 	"github.com/theupdateframework/go-tuf/util"
 )
 
-var threshold = 2
+var threshold = 3
 
 type targetsFlag []string
 
@@ -81,7 +82,7 @@ func InitCmd(directory string, targets targetsFlag) error {
 	fmt.Fprintln(os.Stderr, "TUF repository initialized at ", directory)
 
 	// Get the root.json file and initialize it with the expirations and thresholds
-	root, err := GetRootFromStore(store)
+	root, err := prepo.GetRootFromStore(store)
 	if err != nil {
 		return err
 	}
@@ -138,7 +139,7 @@ func InitCmd(directory string, targets targetsFlag) error {
 	}
 
 	// Add blank signatures
-	t, err := GetTargetsFromStore(store)
+	t, err := prepo.GetTargetsFromStore(store)
 	if err != nil {
 		return err
 	}
@@ -198,47 +199,6 @@ func createNewTimestamp(store tuf.LocalStore, expires time.Time) (*data.Timestam
 	timestamp.Meta["snapshot.json"] = fileMeta
 
 	return timestamp, nil
-}
-
-func GetSignedMeta(store tuf.LocalStore, name string) (*data.Signed, error) {
-	// Get name signed meta (name is of the form *.json)
-	meta, err := store.GetMeta()
-	if err != nil {
-		return nil, err
-	}
-	signedJSON, ok := meta[name]
-	if !ok {
-		return nil, fmt.Errorf("missing metadata %s", name)
-	}
-	s := &data.Signed{}
-	if err := json.Unmarshal(signedJSON, s); err != nil {
-		return nil, err
-	}
-	return s, nil
-}
-
-func GetRootFromStore(store tuf.LocalStore) (*data.Root, error) {
-	s, err := GetSignedMeta(store, "root.json")
-	if err != nil {
-		return nil, err
-	}
-	root := &data.Root{}
-	if err := json.Unmarshal(s.Signed, root); err != nil {
-		return nil, err
-	}
-	return root, nil
-}
-
-func GetTargetsFromStore(store tuf.LocalStore) (*data.Targets, error) {
-	s, err := GetSignedMeta(store, "targets.json")
-	if err != nil {
-		return nil, err
-	}
-	t := &data.Targets{}
-	if err := json.Unmarshal(s.Signed, t); err != nil {
-		return nil, err
-	}
-	return t, nil
 }
 
 func setSignedMeta(store tuf.LocalStore, role string, s *data.Signed) error {

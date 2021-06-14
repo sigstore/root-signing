@@ -13,12 +13,12 @@ import (
 
 	"github.com/peterbourgon/ff/v3/ffcli"
 	"github.com/sigstore/cosign/pkg/cosign/pivkey"
+	"github.com/sigstore/root-signing/pkg/repo"
 	"github.com/sigstore/sigstore/pkg/signature"
 	cjson "github.com/tent/canonical-json-go"
 	"github.com/theupdateframework/go-tuf"
 	"github.com/theupdateframework/go-tuf/data"
 	"github.com/theupdateframework/go-tuf/util"
-	"github.com/theupdateframework/go-tuf/verify"
 )
 
 var roles = map[string]bool{"root": true, "targets": true, "timestamp": true, "snapshot": true}
@@ -65,30 +65,8 @@ func Sign() *ffcli.Command {
 	}
 }
 
-func CreateDb(store tuf.LocalStore) (*verify.DB, error) {
-	db := verify.NewDB()
-	root, err := GetRootFromStore(store)
-	if err != nil {
-		return nil, err
-	}
-	for id, k := range root.Keys {
-		if err := db.AddKey(id, k); err != nil {
-			// ignore ErrWrongID errors by TAP-12
-			if _, ok := err.(verify.ErrWrongID); !ok {
-				return nil, err
-			}
-		}
-	}
-	for name, role := range root.Roles {
-		if err := db.AddRole(name, role); err != nil {
-			return nil, err
-		}
-	}
-	return db, nil
-}
-
 func checkAndUpdateMetaForRole(store tuf.LocalStore, role []string) error {
-	db, err := CreateDb(store)
+	db, err := repo.CreateDb(store)
 	if err != nil {
 		return fmt.Errorf("error creating verification database: %w", err)
 	}
@@ -97,7 +75,7 @@ func checkAndUpdateMetaForRole(store tuf.LocalStore, role []string) error {
 		case "snapshot":
 			// Check that root and target are signed correctly
 			for _, manifest := range []string{"root", "targets"} {
-				s, err := GetSignedMeta(store, manifest+".json")
+				s, err := repo.GetSignedMeta(store, manifest+".json")
 				if err != nil {
 					return err
 				}
@@ -112,7 +90,7 @@ func checkAndUpdateMetaForRole(store tuf.LocalStore, role []string) error {
 			}
 		case "timestamp":
 			// Check that snapshot is signed
-			s, err := GetSignedMeta(store, "snapshot.json")
+			s, err := repo.GetSignedMeta(store, "snapshot.json")
 			if err != nil {
 				return err
 			}
@@ -204,7 +182,7 @@ func updateSnapshot(store tuf.LocalStore) error {
 }
 
 func updateTimestamp(store tuf.LocalStore) error {
-	s, err := GetSignedMeta(store, "timestamp.json")
+	s, err := repo.GetSignedMeta(store, "timestamp.json")
 	if err != nil {
 		return err
 	}
@@ -244,7 +222,7 @@ func updateTimestamp(store tuf.LocalStore) error {
 
 func SignMeta(ctx context.Context, store tuf.LocalStore, name string, signer signature.Signer, key *data.Key) error {
 	fmt.Printf("Signing metadata for %s... \n", name)
-	s, err := GetSignedMeta(store, name)
+	s, err := repo.GetSignedMeta(store, name)
 	if err != nil {
 		return err
 	}

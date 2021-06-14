@@ -17,6 +17,7 @@ import (
 	"github.com/peterbourgon/ff/v3/ffcli"
 	"github.com/sigstore/cosign/cmd/cosign/cli/pivcli"
 	"github.com/theupdateframework/go-tuf/data"
+	"golang.org/x/term"
 )
 
 func AddKey() *ffcli.Command {
@@ -73,6 +74,16 @@ func AddKeyCmd(ctx context.Context, directory string) error {
 	}
 
 	if err := pivcli.GenerateKeyCmd(ctx, "" /*randomKey=*/, true); err != nil {
+		return err
+	}
+
+	fmt.Fprintf(os.Stderr, "Resetting PIN. Enter a new PIN between 6 and 8 characters: ")
+	pin, err := term.ReadPassword(0)
+	if err != nil {
+		return err
+	}
+	fmt.Println(os.Stderr)
+	if err := pivcli.SetPinCmd(ctx, "", string(pin)); err != nil {
 		return err
 	}
 

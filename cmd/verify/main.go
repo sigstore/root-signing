@@ -148,10 +148,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	if *repository != "" {
-		if err := verifyMetadata(*repository, *keyMap); err != nil {
-			log.Printf("error verifying signing keys: %s", err)
-			os.Exit(1)
-		}
+	if _, err := os.Stat(*repository); os.IsNotExist(err) {
+		log.Printf("repository not initialized yet")
+		return
 	}
+	if err := verifyMetadata(*repository, *keyMap); err != nil {
+		log.Printf("error verifying signing keys: %s", err)
+		os.Exit(1)
+	}
+
 }

@@ -28,11 +28,11 @@ git remote -v
 
 # build the verification binary
 go build -o verify ./cmd/verify
+[ -f piv-attestation-ca.pem ] || wget https://developers.yubico.com/PIV/Introduction/piv-attestation-ca.pem
 
 # Fetch the pull request and verify
 git fetch upstream pull/$1/head:VERIFY
 git checkout VERIFY
-wget https://developers.yubico.com/PIV/Introduction/piv-attestation-ca.pem
 ./verify --root piv-attestation-ca.pem --repository $REPO
 git checkout main
 

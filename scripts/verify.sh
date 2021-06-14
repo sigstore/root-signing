@@ -34,5 +34,8 @@ go build -o verify ./cmd/verify
 git fetch upstream pull/$1/head:VERIFY
 git checkout VERIFY
 ./verify --root piv-attestation-ca.pem --repository $REPO
+
+# cleanup
 git checkout main
+git branch -D VERIFY
 

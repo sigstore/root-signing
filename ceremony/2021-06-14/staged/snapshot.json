@@ -10,7 +10,7 @@
 		},
 		{
 			"keyid": "fe1190643008385b105282277be95a2fcd045b613934bf3248dbf1f9a673452b",
-			"sig": ""
+			"sig": "304502210089b7fd3cecb7fe6c02b6a921d1748ad2b3a482195c42795ba72d3e5eecbb5ae302202e13e35d1c53d1ea91262b851d6d25057028a79a6b154736b6dfb9d21fe31b96"
 		}
 	],
 	"signed": {
@@ -19,16 +19,16 @@
 		"meta": {
 			"root.json": {
 				"hashes": {
-					"sha512": "ca2e4a0b8bc733c1d263bd39f9936d24d40b7010c88ef12986ab34120cf568c420d197f0515cd819ae685ab0b8147e31eb869ee214e4156d10aae85420a2a017"
+					"sha512": "396a328cae4d670a561a9dcbf39fd3f3a7e7e123d063d2743ebbefe103cf98bab3d241e5e51b64b7c572ffd4fc59a4bb403b61357f680afb0157ceaed354cac6"
 				},
-				"length": 2822,
+				"length": 3248,
 				"version": 0
 			},
 			"targets.json": {
 				"hashes": {
-					"sha512": "367056e02be83788b13a17ee0006b7052f96e5344e2b60b850b4171f0789367b54f46d85ef6691b7cb003e56f89d5bc5e85e8e8cf4758ea8cd71a161a7e50e17"
+					"sha512": "52912f6e73fcf0df686505f0a3ed047cb3b5a0f9e55be0b38a8af41b0032c3a2459ac7596bd6f88db029ff25b800dfd2dd9cddcccc5d4f2c15952f1cd16f03f3"
 				},
-				"length": 684,
+				"length": 1110,
 				"version": 1
 			}
 		},

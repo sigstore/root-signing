@@ -1,5 +1,3 @@
-// +build pivkey
-
 package main
 
 import (
@@ -11,9 +9,10 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/sigstore/root-signing/cmd/tuf/app"
 	"github.com/sigstore/root-signing/pkg/keys"
+	"github.com/sigstore/root-signing/pkg/repo"
 	"github.com/theupdateframework/go-tuf"
+	"github.com/theupdateframework/go-tuf/data"
 	"github.com/theupdateframework/go-tuf/verify"
 )
 
@@ -87,21 +86,31 @@ func verifyMetadata(repository string, keys KeyMap) error {
 	// logs the state of each metadata file, including number of signatures to achieve threshold
 	// and verifies the signatures in each file.
 	store := tuf.FileSystemStore(repository, nil)
-	db, err := app.CreateDb(store)
+	db, err := repo.CreateDb(store)
 	if err != nil {
 		return err
 	}
-	root, err := app.GetRootFromStore(store)
+	root, err := repo.GetRootFromStore(store)
 	if err != nil {
 		return err
 	}
 
 	for name, role := range root.Roles {
 		log.Printf("\nVerifying %s...", name)
-		signed, err := app.GetSignedMeta(store, name+".json")
+		signed, err := repo.GetSignedMeta(store, name+".json")
 		if err != nil {
 			return err
 		}
+
+		// Rremove the empty placeholder signatures
+		var sigs []data.Signature
+		for _, sig := range signed.Signatures {
+			if len(sig.Signature) != 0 {
+				sigs = append(sigs, sig)
+			}
+		}
+		signed.Signatures = sigs
+
 		if err = db.VerifySignatures(signed, name); err != nil {
 			if _, ok := err.(verify.ErrRoleThreshold); ok {
 				// we may not have all the sig, allow partial sigs for success

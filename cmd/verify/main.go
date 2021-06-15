@@ -54,6 +54,8 @@ func getKeyID(key keys.SigningKey) (*string, error) {
 
 func verifySigningKeys(dirname string, rootCA *x509.Certificate) (*KeyMap, error) {
 	// Get all signing keys in the directory.
+	log.Printf("\nOutputting key verification and OpenSSL commands...\n")
+
 	files, err := ioutil.ReadDir(dirname)
 	if err != nil {
 		return nil, err
@@ -68,14 +70,19 @@ func verifySigningKeys(dirname string, rootCA *x509.Certificate) (*KeyMap, error
 			if err = key.Verify(rootCA); err != nil {
 				log.Printf("error verifying key %d: %s", key.SerialNumber, err)
 				return nil, err
-			} else {
-				log.Printf("verified key %d", key.SerialNumber)
 			}
-
 			id, err := getKeyID(*key)
 			if err != nil {
 				return nil, err
 			}
+
+			log.Printf("\nVERIFIED KEY %d\n", key.SerialNumber)
+			deviceCert := filepath.Join(dirname, file.Name(), file.Name()+"_device_cert.pem")
+			keyCert := filepath.Join(dirname, file.Name(), file.Name()+"_key_cert.pem")
+			log.Printf("\n\t# Verify the chain")
+			log.Printf("\topenssl verify -verbose -x509_strict -CAfile <(cat piv-attestation-ca.pem %s) %s\n", deviceCert, keyCert)
+			log.Printf("\n\t# Extract the public key")
+			log.Printf("\topenssl x509 -in %s -pubkey -noout", keyCert)
 			keyMap[*id] = key
 		}
 	}
@@ -83,6 +90,8 @@ func verifySigningKeys(dirname string, rootCA *x509.Certificate) (*KeyMap, error
 }
 
 func verifyMetadata(repository string, keys KeyMap) error {
+	log.Printf("\nOutputting metadata verification...\n")
+
 	// logs the state of each metadata file, including number of signatures to achieve threshold
 	// and verifies the signatures in each file.
 	store := tuf.FileSystemStore(repository, nil)
@@ -114,15 +123,15 @@ func verifyMetadata(repository string, keys KeyMap) error {
 		if err = db.VerifySignatures(signed, name); err != nil {
 			if _, ok := err.(verify.ErrRoleThreshold); ok {
 				// we may not have all the sig, allow partial sigs for success
-				log.Printf("\tContains %d/%d valid signatures", err.(verify.ErrRoleThreshold).Actual, role.Threshold)
+				log.Printf("\tContains %d/%d valid signatures\n", err.(verify.ErrRoleThreshold).Actual, role.Threshold)
 			} else if err.Error() == verify.ErrNoSignatures.Error() {
-				log.Printf("\tContains 0/%d valid signatures", role.Threshold)
+				log.Printf("\tContains 0/%d valid signatures\n", role.Threshold)
 			} else {
-				log.Printf("\tError verifying: %s", err)
+				log.Printf("\tError verifying: %s\n", err)
 				return err
 			}
 		} else {
-			log.Printf("\tSuccess! Signatures valid and threshold achieved")
+			log.Printf("\tSuccess! Signatures valid and threshold achieved\n")
 		}
 	}
 

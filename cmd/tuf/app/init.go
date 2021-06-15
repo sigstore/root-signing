@@ -86,7 +86,7 @@ func InitCmd(directory string, targets targetsFlag) error {
 	if err != nil {
 		return err
 	}
-	expiration := time.Now().AddDate(0, 4, 0)
+	expiration := time.Now().AddDate(0, 6, 0)
 	relativePaths := []string{}
 	root.Expires = expiration
 	// Add the keys we just provisioned to each role

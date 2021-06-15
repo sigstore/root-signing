@@ -45,7 +45,7 @@ $REPO
     └── timestamp.json
 ```
 
-Each metadata file will be populated with a 4 month expiration and placeholder empty signatures corresponding to the KEY_IDs generated in step 1. The ``root.json` will specify all 5 keys for each top-level role with a threshold of 3. 
+Each metadata file will be populated with a 4 month expiration and placeholder empty signatures corresponding to the KEY_IDs generated in step 1. The `root.json` will specify all 5 keys for each top-level role with a threshold of 3. 
 
 2. Signing root and targets: each **keyholder** should sign the root and targets file by running:
 ```

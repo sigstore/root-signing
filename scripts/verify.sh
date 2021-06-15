@@ -10,6 +10,7 @@ fi
 export REPO=$(pwd)/ceremony/$(date '+%Y-%m-%d')
 
 # Dump the git state
+git checkout main
 git status
 git remote -v
 
@@ -28,13 +29,12 @@ go build -o verify ./cmd/verify
 if [[ ! -z "$1" ]]; then
     # Pull request to verify. If not supplied, use main
     echo "Pull Request: $1"
+    git branch -D VERIFY || true
     git fetch upstream pull/$1/head:VERIFY
     git checkout VERIFY
 fi
 
 ./verify --root piv-attestation-ca.pem --repository $REPO
 
-# cleanup
-git checkout main
-git branch -D VERIFY || true
+# stay on the branch for manual verification
 

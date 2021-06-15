@@ -4,7 +4,6 @@ At any point, a verifier can run a script to verify each incoming PR and verify 
 
 ```
 export GITHUB_USER=${YOUR_GITHUB_USER}
-export REPO=$(pwd)/ceremony/YYYY-MM-DD
 ```
 
 1. To verify a PR, run the script with the pull request ID to verify:

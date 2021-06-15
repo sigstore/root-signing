@@ -3,14 +3,11 @@
 # Print all commands and stop on errors
 set -ex
 
-if [ -z "$REPO" ]; then
-    echo "Set REPO"
-    exit
-fi
 if [ -z "$GITHUB_USER" ]; then
     echo "Set GITHUB_USER"
     exit
 fi
+export REPO=$(pwd)/ceremony/$(date '+%Y-%m-%d')
 
 # Pull request to verify
 echo "Pull Request: $1"

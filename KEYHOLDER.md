@@ -15,7 +15,6 @@ You may need to install `libpcslite` to support hardware tokens. See [`go-piv`'s
 1. **Each keyholder** should run
 
 ```
-export REPO=ceremony/YYYY-MM-DD
 ./scripts/step-1.sh
 ```
 

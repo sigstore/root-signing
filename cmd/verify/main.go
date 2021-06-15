@@ -90,9 +90,9 @@ func verifySigningKeys(dirname string, rootCA *x509.Certificate) (*KeyMap, error
 			if err != nil {
 				return nil, err
 			}
-			log.Printf("\n\t# Verify the chain")
+			log.Printf("\n\t# Manually verify the chain")
 			log.Printf("\topenssl verify -verbose -x509_strict -CAfile <(cat piv-attestation-ca.pem %s) %s\n", deviceCert, keyCert)
-			log.Printf("\n\t# Extract the public key")
+			log.Printf("\n\t# Manually extract the public key")
 			log.Printf("\topenssl x509 -in %s -pubkey -noout", keyCert)
 			keyMap[*id] = key
 		}

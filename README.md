@@ -10,9 +10,9 @@ Before starting the root key ceremony, the community should:
 * Elect one participant (not necessarily a keyholder) as the **conductor**
 * Identify the targets to sign and update the `targets/` directory (these may include Fulcio's CA certificate, the rekor transparency log key, the CTFE key, and SigStore's artifact signing key)
 
-If you are a keyholder or ceremony conductor, follow instructions (KEYHOLDER.md)[KEYHOLDER.md].
+If you are a keyholder or ceremony conductor, follow instructions [KEYHOLDER.md](KEYHOLDER.md).
 
-If you are a verifier, follow instructions at (VERIFIER.md)[VERIFIER.md].
+If you are a verifier, follow instructions at [VERIFIER.md](VERIFIER.md).
 
 ### Acknowledgements
 Special thanks to Dan Lorenc, Trishank Kuppusamy, Marina Moore, Santiago Torres-Arias, and the whole SigStore community! 

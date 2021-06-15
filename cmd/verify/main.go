@@ -76,9 +76,20 @@ func verifySigningKeys(dirname string, rootCA *x509.Certificate) (*KeyMap, error
 				return nil, err
 			}
 
+			// Note we use relative path here to simplify things.
+			wd, err := os.Getwd()
+			if err != nil {
+				return nil, err
+			}
 			log.Printf("\nVERIFIED KEY %d\n", key.SerialNumber)
-			deviceCert := filepath.Join(dirname, file.Name(), file.Name()+"_device_cert.pem")
-			keyCert := filepath.Join(dirname, file.Name(), file.Name()+"_key_cert.pem")
+			deviceCert, err := filepath.Rel(wd, filepath.Join(dirname, file.Name(), file.Name()+"_device_cert.pem"))
+			if err != nil {
+				return nil, err
+			}
+			keyCert, err := filepath.Rel(wd, filepath.Join(dirname, file.Name(), file.Name()+"_key_cert.pem"))
+			if err != nil {
+				return nil, err
+			}
 			log.Printf("\n\t# Verify the chain")
 			log.Printf("\topenssl verify -verbose -x509_strict -CAfile <(cat piv-attestation-ca.pem %s) %s\n", deviceCert, keyCert)
 			log.Printf("\n\t# Extract the public key")

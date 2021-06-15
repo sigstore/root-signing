@@ -3,14 +3,11 @@
 # Print all commands and stop on errors
 set -ex
 
-if [ -z "$REPO" ]; then
-    echo "Set REPO"
-    exit
-fi
 if [ -z "$GITHUB_USER" ]; then
     echo "Set GITHUB_USER"
     exit
 fi
+export REPO=$(pwd)/ceremony/$(date '+%Y-%m-%d')
 
 # Dump the git state
 git status
@@ -22,7 +19,7 @@ git pull upstream main
 git status
 
 # Setup the root
-./tuf init -repository $REPO -target targets/fulcio.crt.pem
+./tuf init -repository $REPO -target targets/fulcio.crt.pem -target targets/rekor.pub
 
 git checkout -b setup-root
 git add ceremony/

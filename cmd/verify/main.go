@@ -142,16 +142,27 @@ func main() {
 		os.Exit(1)
 	}
 
+	if _, err := os.Stat(*repository + "/keys"); os.IsNotExist(err) {
+		log.Printf("keys not initialized yet")
+		return
+	}
+
 	keyMap, err := verifySigningKeys(*repository+"/keys", rootCA)
 	if err != nil {
 		log.Printf("error verifying signing keys: %s", err)
 		os.Exit(1)
 	}
 
-	if *repository != "" {
-		if err := verifyMetadata(*repository, *keyMap); err != nil {
-			log.Printf("error verifying signing keys: %s", err)
-			os.Exit(1)
+	if _, err := os.Stat(*repository + "/staged"); os.IsNotExist(err) {
+		if _, err := os.Stat(*repository + "/repository"); os.IsNotExist(err) {
+			log.Printf("repository not initialized yet")
+			return
 		}
 	}
+
+	if err := verifyMetadata(*repository, *keyMap); err != nil {
+		log.Printf("error verifying signing keys: %s", err)
+		os.Exit(1)
+	}
+
 }

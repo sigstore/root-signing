@@ -1,0 +1,40 @@
+{
+	"signatures": [
+		{
+			"keyid": "a7627403b059d348d5609f266bebf55291d2ddeb83c598b13281f2e842a7eac4",
+			"sig": "3045022031ff10cdb9e861168321161e96b6f230253f0b5b36cf15cab420ce955437c0d7022100f3eb8f0337e5b3aa973040dcb15313175c39406feaf85d60c539c9edc41bf983"
+		},
+		{
+			"keyid": "1d089b57e89c3e2ae2389a772d6fb5c1a7b324b9b1bc7666b772e184e9fd6cd1",
+			"sig": "304502200f5e3d35bdf35eb9dcd9d94c2fca4f86d76c5a62b22c07b46167507659af7ffc022100dc2cbfbfaecba7672c4e0513f73470463a7cd2d099d80cc139680bdfbc638650"
+		},
+		{
+			"keyid": "06d2acb8f4c9ce1ff119e945bc964136e04f7d033f2fddaeaeb909ed1b3772a5",
+			"sig": "30440220415bef57c7b1056df6138409603be06923695c3304679c3abb0afa5fee571b6a02205cf165f80d8dd57539d7ccef767c1de2319868c66c788b584a3c8c4a41a92253"
+		},
+		{
+			"keyid": "4bc4e9b64e7c945c52a9f192be9fdbd657a51e6941c6c92f6d5c1d6e2ad821d1",
+			"sig": "304402203c631a6bcefc37c73adf4618281d1ac54ccd03c349d6faf7e1cf5c959051f9fa02203fa02e0788f02e7d84586ead447a0b0a709b10b2bbd3e935e09b14b0a89b8777"
+		}
+	],
+	"signed": {
+		"_type": "targets",
+		"expires": "2021-12-16T09:18:56-05:00",
+		"spec_version": "1.0",
+		"targets": {
+			"fulcio.crt.pem": {
+				"hashes": {
+					"sha512": "100f563c94b14c09c61adbaa460e3caa49083662dfcc4ad0a07296e3e719d8b449a0c0ddad37775f32af69c3535629b83aa8c95286e32251ad99eed38fff69c3"
+				},
+				"length": 768
+			},
+			"rekor.pub": {
+				"hashes": {
+					"sha512": "0ae7705e02db33e814329746a4a0e5603c5bdcd91c96d072158d71011a2695788866565a2fec0fe363eb72cbcaeda39e54c5fe8d416daf9f3101fdba4217ef35"
+				},
+				"length": 178
+			}
+		},
+		"version": 1
+	}
+}

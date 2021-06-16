@@ -89,6 +89,7 @@ func InitCmd(directory string, targets targetsFlag) error {
 	expiration := time.Now().AddDate(0, 6, 0)
 	relativePaths := []string{}
 	root.Expires = expiration
+	root.Version++
 	// Add the keys we just provisioned to each role
 	keys, err := getKeysFromDir(directory + "/keys")
 	if err != nil {
@@ -106,7 +107,6 @@ func InitCmd(directory string, targets targetsFlag) error {
 			}
 			role.AddKeyIDs(tufKey.IDs())
 		}
-
 	}
 
 	// After all this root metadata setting, set the files with the updated root
@@ -143,6 +143,7 @@ func InitCmd(directory string, targets targetsFlag) error {
 	if err != nil {
 		return err
 	}
+	t.Version = root.Version
 	if err := setMetaWithSigKeyIDs(store, "targets.json", t, keys); err != nil {
 		return err
 	}
@@ -152,6 +153,7 @@ func InitCmd(directory string, targets targetsFlag) error {
 	if err != nil {
 		return err
 	}
+	snapshot.Version = root.Version
 	if err := setMetaWithSigKeyIDs(store, "snapshot.json", snapshot, keys); err != nil {
 		return err
 	}
@@ -161,6 +163,7 @@ func InitCmd(directory string, targets targetsFlag) error {
 	if err != nil {
 		return err
 	}
+	timestamp.Version = root.Version
 	return setMetaWithSigKeyIDs(store, "timestamp.json", timestamp, keys)
 }
 

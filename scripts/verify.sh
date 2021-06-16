@@ -34,7 +34,7 @@ if [[ ! -z "$1" ]]; then
     git checkout VERIFY
 fi
 
-./verify --root piv-attestation-ca.pem --repository $REPO
+./verify --root piv-attestation-ca.pem --repository $REPO --tuf-root $REPO/repository/1.root.json
 
 # stay on the branch for manual verification
 

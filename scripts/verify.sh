@@ -23,7 +23,7 @@ git remote -v
 
 # build the verification binary
 go build -o verify ./cmd/verify
-[ -f piv-attestation-ca.pem ] || wget https://developers.yubico.com/PIV/Introduction/piv-attestation-ca.pem
+[ -f piv-attestation-ca.pem ] || curl -fsO https://developers.yubico.com/PIV/Introduction/piv-attestation-ca.pem
 
 # Fetch the pull request if specified and verify
 if [[ ! -z "$1" ]]; then

@@ -1,15 +1,11 @@
 At any point, a verifier can run a script to verify each incoming PR and verify the hashes of the targets files.
 
-0. **Verifiers** should fork [this](https://github.com/sigstore/root-signing) git repository by clicking the "fork" button on GitHub. Then, set your `${GITHUB_USER}` with your GitHub username:
+0. **Verifiers** should fork [this](https://github.com/sigstore/root-signing) git repository by clicking the "fork" button on GitHub.
+
+1. To verify a PR, run the script with the pull request ID to verify, where `YOUR_GITHUB_USERNAME` is your GitHub username:
 
 ```
-export GITHUB_USER=${YOUR_GITHUB_USER}
-```
-
-1. To verify a PR, run the script with the pull request ID to verify:
-
-```
-./scripts/verify.sh ${PULL_REQUEST_ID}
+GITHUB_USER=${YOUR_GITHUB_USERNAME} ./scripts/verify.sh ${PULL_REQUEST_ID}
 ```
 
 This will download the Yubico root CA. For each key added, it will verify:

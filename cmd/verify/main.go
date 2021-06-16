@@ -1,9 +1,13 @@
 package main
 
 import (
+	"bytes"
 	"crypto/x509"
+	"encoding/json"
 	"errors"
 	"flag"
+	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -12,6 +16,7 @@ import (
 	"github.com/sigstore/root-signing/pkg/keys"
 	"github.com/sigstore/root-signing/pkg/repo"
 	"github.com/theupdateframework/go-tuf"
+	"github.com/theupdateframework/go-tuf/client"
 	"github.com/theupdateframework/go-tuf/data"
 	"github.com/theupdateframework/go-tuf/verify"
 )
@@ -154,6 +159,7 @@ func main() {
 	var fileFlag file
 	flag.Var(&fileFlag, "root", "Yubico root certificate")
 	repository := flag.String("repository", "", "path to repository")
+	tufRoot := flag.String("tuf-root", "", "path to a trusted root to verify")
 	flag.Parse()
 
 	rootCA, err := toCert(string(fileFlag))
@@ -167,12 +173,14 @@ func main() {
 		return
 	}
 
+	// Verify signing keys
 	keyMap, err := verifySigningKeys(*repository+"/keys", rootCA)
 	if err != nil {
 		log.Printf("error verifying signing keys: %s", err)
 		os.Exit(1)
 	}
 
+	// Verify signatures in the repository
 	if _, err := os.Stat(*repository + "/staged"); os.IsNotExist(err) {
 		if _, err := os.Stat(*repository + "/repository"); os.IsNotExist(err) {
 			log.Printf("repository not initialized yet")
@@ -185,4 +193,79 @@ func main() {
 		os.Exit(1)
 	}
 
+	// If we have a finalized "/repository", test that go-tuf client accepts this
+	if _, err := os.Stat(*repository + "/repository"); err == nil {
+		if *tufRoot != "" {
+			// set up a local and remote store
+			rootMeta, err := ioutil.ReadFile(*tufRoot)
+			if err != nil {
+				log.Printf("error reading trusted TUF root: %s", *tufRoot)
+				return
+			}
+			meta := map[string]json.RawMessage{"root.json": rootMeta}
+			local := tuf.MemoryStore(meta, nil)
+			repo, err := tuf.NewRepo(local)
+			if err != nil {
+				log.Printf("error reading trusted TUF local: %s", *tufRoot)
+				return
+			}
+			rootKeys, err := repo.RootKeys()
+			if err != nil {
+				log.Printf("error reading trusted TUF local: %s", *tufRoot)
+				return
+			}
+
+			remote, err := FileRemoteStore(*repository)
+			if err != nil {
+				log.Printf("error reading trusted TUF remote: %s", *repository)
+				return
+			}
+
+			c := client.NewClient(local, remote)
+
+			if err := c.Init(rootKeys, 3); err != nil {
+				log.Printf("error initializing client: %s", err)
+				return
+			}
+			_, err = c.Update()
+			if err != nil {
+				log.Printf("error initializing client: %s", err)
+				return
+			}
+		}
+	}
+
+}
+
+type fileRemoteStore struct {
+	Repo string
+	Meta map[string]json.RawMessage
+}
+
+func FileRemoteStore(repo string) (client.RemoteStore, error) {
+	// Load all the metadata from well-known.tuf
+	// Get the well-known.tuf blob from the repository
+	store := tuf.FileSystemStore(repo, nil)
+	meta, err := store.GetMeta()
+	if err != nil {
+		return nil, err
+	}
+
+	return fileRemoteStore{Repo: repo, Meta: meta}, nil
+}
+
+func (r fileRemoteStore) GetMeta(name string) (io.ReadCloser, int64, error) {
+	meta, ok := r.Meta[name]
+	if !ok {
+		return nil, 0, fmt.Errorf("did not find metadata")
+	}
+	return ioutil.NopCloser(bytes.NewReader(meta)), int64(len(meta)), nil
+}
+
+func (r fileRemoteStore) GetTarget(target string) (io.ReadCloser, int64, error) {
+	payload, err := ioutil.ReadFile(filepath.Join(r.Repo, "targets", target))
+	if err != nil {
+		return nil, 0, err
+	}
+	return ioutil.NopCloser(bytes.NewReader(payload)), int64(len(payload)), nil
 }

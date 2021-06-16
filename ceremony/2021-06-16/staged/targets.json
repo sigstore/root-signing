@@ -1,0 +1,40 @@
+{
+	"signatures": [
+		{
+			"keyid": "a7627403b059d348d5609f266bebf55291d2ddeb83c598b13281f2e842a7eac4",
+			"sig": ""
+		},
+		{
+			"keyid": "1d089b57e89c3e2ae2389a772d6fb5c1a7b324b9b1bc7666b772e184e9fd6cd1",
+			"sig": ""
+		},
+		{
+			"keyid": "06d2acb8f4c9ce1ff119e945bc964136e04f7d033f2fddaeaeb909ed1b3772a5",
+			"sig": ""
+		},
+		{
+			"keyid": "4bc4e9b64e7c945c52a9f192be9fdbd657a51e6941c6c92f6d5c1d6e2ad821d1",
+			"sig": ""
+		}
+	],
+	"signed": {
+		"_type": "targets",
+		"expires": "2021-12-16T09:18:56-05:00",
+		"spec_version": "1.0",
+		"targets": {
+			"fulcio.crt.pem": {
+				"hashes": {
+					"sha512": "100f563c94b14c09c61adbaa460e3caa49083662dfcc4ad0a07296e3e719d8b449a0c0ddad37775f32af69c3535629b83aa8c95286e32251ad99eed38fff69c3"
+				},
+				"length": 768
+			},
+			"rekor.pub": {
+				"hashes": {
+					"sha512": "0ae7705e02db33e814329746a4a0e5603c5bdcd91c96d072158d71011a2695788866565a2fec0fe363eb72cbcaeda39e54c5fe8d416daf9f3101fdba4217ef35"
+				},
+				"length": 178
+			}
+		},
+		"version": 1
+	}
+}

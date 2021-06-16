@@ -169,6 +169,7 @@ func main() {
 	}
 
 	if _, err := os.Stat(*repository + "/keys"); os.IsNotExist(err) {
+		// Fail gracefully here in case you run verification before keys are added
 		log.Printf("keys not initialized yet")
 		return
 	}
@@ -196,50 +197,49 @@ func main() {
 			rootMeta, err := ioutil.ReadFile(*tufRoot)
 			if err != nil {
 				log.Printf("error reading trusted TUF root: %s", *tufRoot)
-				return
+				os.Exit(1)
 			}
 			meta := map[string]json.RawMessage{"root.json": rootMeta}
 			local := tuf.MemoryStore(meta, nil)
 			repo, err := tuf.NewRepo(local)
 			if err != nil {
-				log.Printf("error reading trusted TUF local: %s", *tufRoot)
-				return
+				log.Printf("error reading trusted TUF local: %s", err)
+				os.Exit(1)
 			}
 			rootKeys, err := repo.RootKeys()
 			if err != nil {
-				log.Printf("error reading trusted TUF local: %s", *tufRoot)
-				return
+				log.Printf("error getting TUF local root keys : %s", err)
+				os.Exit(1)
 			}
 
 			// set up a remote store from github local file store
 			remote, err := FileRemoteStore(*repository)
 			if err != nil {
-				log.Printf("error reading trusted TUF remote: %s", *repository)
-				return
+				log.Printf("error reading trusted TUF remote: %s", err)
+				os.Exit(1)
 			}
 
 			c := client.NewClient(local, remote)
 
 			if err := c.Init(rootKeys, 3); err != nil {
 				log.Printf("error initializing client: %s", err)
-				return
+				os.Exit(1)
 			}
 
 			log.Printf("Client successfully initialized, downloading targets...")
 			targetFiles, err := c.Update()
 			if err != nil {
-				log.Printf("error initializing client: %s", err)
-				return
+				log.Printf("error updating client: %s", err)
+				os.Exit(1)
 			}
 			for name := range targetFiles {
 				var dest bufferDestination
 				if err := c.Download(name, &dest); err != nil {
 					log.Printf("error downloading target: %s", err)
-					return
+					os.Exit(1)
 				}
 				log.Printf("\nRetrieved target %s...", name)
 				log.Printf("%s", dest.Bytes())
-
 			}
 		}
 	}

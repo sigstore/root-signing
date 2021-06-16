@@ -180,23 +180,19 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Verify signatures in the repository
-	if _, err := os.Stat(*repository + "/staged"); os.IsNotExist(err) {
-		if _, err := os.Stat(*repository + "/repository"); os.IsNotExist(err) {
-			log.Printf("repository not initialized yet")
-			return
+	// Verify staged metadata in the repository
+	if _, err := os.Stat(*repository + "/staged"); err == nil {
+		if err := verifyMetadata(*repository, *keyMap); err != nil {
+			log.Printf("error verifying signing keys: %s", err)
+			os.Exit(1)
 		}
-	}
-
-	if err := verifyMetadata(*repository, *keyMap); err != nil {
-		log.Printf("error verifying signing keys: %s", err)
-		os.Exit(1)
 	}
 
 	// If we have a finalized "/repository", test that go-tuf client accepts this
 	if _, err := os.Stat(*repository + "/repository"); err == nil {
+		log.Printf("\nValidating completed metadata and retrieving targets...")
 		if *tufRoot != "" {
-			// set up a local and remote store
+			// set up a local with out initial root trust
 			rootMeta, err := ioutil.ReadFile(*tufRoot)
 			if err != nil {
 				log.Printf("error reading trusted TUF root: %s", *tufRoot)
@@ -215,6 +211,7 @@ func main() {
 				return
 			}
 
+			// set up a remote store from github local file store
 			remote, err := FileRemoteStore(*repository)
 			if err != nil {
 				log.Printf("error reading trusted TUF remote: %s", *repository)
@@ -227,14 +224,35 @@ func main() {
 				log.Printf("error initializing client: %s", err)
 				return
 			}
-			_, err = c.Update()
+
+			log.Printf("Client successfully initialized, downloading targets...")
+			targetFiles, err := c.Update()
 			if err != nil {
 				log.Printf("error initializing client: %s", err)
 				return
 			}
+			for name, _ := range targetFiles {
+				var dest bufferDestination
+				if err := c.Download(name, &dest); err != nil {
+					log.Printf("error downloading target: %s", err)
+					return
+				}
+				log.Printf("\nRetrieved target %s...", name)
+				log.Printf("%s", dest.Bytes())
+
+			}
 		}
 	}
+}
 
+type bufferDestination struct {
+	bytes.Buffer
+	deleted bool
+}
+
+func (t *bufferDestination) Delete() error {
+	t.deleted = true
+	return nil
 }
 
 type fileRemoteStore struct {
@@ -263,7 +281,7 @@ func (r fileRemoteStore) GetMeta(name string) (io.ReadCloser, int64, error) {
 }
 
 func (r fileRemoteStore) GetTarget(target string) (io.ReadCloser, int64, error) {
-	payload, err := ioutil.ReadFile(filepath.Join(r.Repo, "targets", target))
+	payload, err := ioutil.ReadFile(filepath.Join(r.Repo, "repository", "targets", target))
 	if err != nil {
 		return nil, 0, err
 	}

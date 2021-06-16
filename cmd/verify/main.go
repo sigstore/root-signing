@@ -231,7 +231,7 @@ func main() {
 				log.Printf("error initializing client: %s", err)
 				return
 			}
-			for name, _ := range targetFiles {
+			for name := range targetFiles {
 				var dest bufferDestination
 				if err := c.Download(name, &dest); err != nil {
 					log.Printf("error downloading target: %s", err)

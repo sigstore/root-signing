@@ -12,7 +12,7 @@ This will setup your fork and build the TUF binary to use for metadata generatio
 You may need to install `libpcslite` to support hardware tokens. See [`go-piv`'s installation instructions for your platform.](https://github.com/go-piv/piv-go#installation).
 
 
-1. **Each keyholder** should run
+1. **Each keyholder** should insert their hardware token and run
 
 ```
 ./scripts/step-1.sh
@@ -22,8 +22,10 @@ You will be prompted to reset your hardware key and set a PIN. Choose a PIN betw
 
 This will output three files (a public key, device certificate, and hardware certificate) in a directory named with your serial number `ceremony/YYYY-MM-DD/keys/${SERIAL_NUM}`.
 
+**Keyholders** should remove their hardware token.
 
-1.5. After all keys are erged, **the conductor** should initialize the TUF repository and add the targets. From this directory:
+
+1.5. After all keys are merged, **the conductor** should initialize the TUF repository and add the targets. From this directory:
 ```
 ./scripts/step-1.5.sh
 TUF repository initialized at  $REPO
@@ -44,9 +46,9 @@ $REPO
     └── timestamp.json
 ```
 
-Each metadata file will be populated with a 4 month expiration and placeholder empty signatures corresponding to the KEY_IDs generated in step 1. The `root.json` will specify all 5 keys for each top-level role with a threshold of 3. 
+Each metadata file will be populated with a 6 month expiration and placeholder empty signatures corresponding to the KEY_IDs generated in step 1. The `root.json` will specify all 5 keys for each top-level role with a threshold of 3. 
 
-2. Signing root and targets: each **keyholder** should sign the root and targets file by running:
+2. Signing root and targets: each **keyholder** should insert their hardware token and sign the root and targets file by running:
 ```
 ./scripts/step-2.sh
 ```
@@ -65,20 +67,25 @@ This will prompt your for your PIN twice to sign `root.json` and `targets.json`.
 }
 ```
 
-3. Sign snapshot: after all PRs from step 2 are merged, each **keyholder** should sign the snapshot file by running:
+**Keyholders** should remove their hardware token.
+
+3. Sign snapshot: after all PRs from step 2 are merged, each **keyholder** should insert their hardware token and sign the snapshot file by running:
 ```
 ./scripts/step-3.sh
 ```
 
 This will prompt your for your PIN to sign `snapshot.json`. This will update the file lengths and hashes for `root.json` and `targets.json` and populate a signature for your key id in the `signatures` section for `snapshot.json`.
 
-4. Sign timestamp: after all PRs from step 3 are merged, each **keyholder** should sign the timestamp file by running:
+**Keyholders** should remove their hardware token.
+
+4. Sign timestamp: after all PRs from step 3 are merged, each **keyholder** should insert their hardware token and sign the timestamp file by running:
 ```
 ./scripts/step-4.sh
 ```
 
 This will prompt your for your PIN to sign `timestamp.json`. This will update the file lengths and hashes for `snapshot.json` and populate a signature for your key id in the `signatures` section for `timestamp.json`.
 
+**Keyholders** should remove their hardware token.
 
 5. After all PRs are merged, the **conductor** can verify and publish the metadata!
 

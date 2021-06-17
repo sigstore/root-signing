@@ -19,7 +19,7 @@ git pull upstream main
 git status
 
 # Setup the root
-./tuf init -repository $REPO -target targets/fulcio.crt.pem -target targets/rekor.pub
+./tuf init -repository $REPO -target targets/fulcio.crt.pem -target targets/rekor.pub -target targets/ctfe.pub -target targets/artifact.pub
 
 git checkout -b setup-root
 git add ceremony/

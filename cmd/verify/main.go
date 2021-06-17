@@ -189,8 +189,8 @@ func main() {
 		}
 	}
 
-	// If we have a finalized "/repository", test that go-tuf client accepts this
-	if _, err := os.Stat(*repository + "/repository"); err == nil {
+	// If we have a finalized "/repository/1.root.json", test that go-tuf client accepts this
+	if _, err := os.Stat(*repository + "/repository/1.root.json"); err == nil {
 		log.Printf("\nValidating completed metadata and retrieving targets...")
 		if *tufRoot != "" {
 			// set up a local with out initial root trust

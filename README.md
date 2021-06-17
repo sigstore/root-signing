@@ -1,10 +1,21 @@
-This directory contains programs needed to verify and generate the key artifacts and the TUF metadata. 
-* The metadata generation go implementation is located in `cmd/metadata`.
-* The verification CLI is located in `cmd/verify`.
+This directory contains the programs needed to generate and verify SigStore root keys and create signed TUF metadata. 
 
-At the end of the ceremony, new repository metadata will be written to a `ceremony/YYYY-MM-DD/repository` directory 
-and override the current metadata in the `repository/` directory.
+### Ceremony Overview
+At the end of the ceremony, new repository metadata will be written to a `ceremony/YYYY-MM-DD/repository` directory.
 
+The ceremony will be completed in four rounds:
+
+![image](https://user-images.githubusercontent.com/5194569/122459506-ffd65e80-cf7e-11eb-8915-e10ac6b50594.png)
+
+* Round 1: Add Key
+* Round 2: Sign Root & Targets
+* Round 3: Sign Snapshot
+* Round 4: Sign Timestamp
+
+There will be an interim step 1.5 to initialize the TUF metadata and a final step 5 to publish it.
+
+
+### Ceremony Instructions
 Before starting the root key ceremony, the community should:
 * Designate the 5 root **keyholders**
 * Elect one participant (not necessarily a keyholder) as the **conductor**

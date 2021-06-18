@@ -10,7 +10,7 @@
 		},
 		{
 			"keyid": "eaf22372f417dd618a46f6c627dbc276e9fd30a004fc94f9be946e73f8bd090b",
-			"sig": ""
+			"sig": "3045022042c6b4003deee27db7db6f5aebb29ac89625fd7389dfff434fa93c65cf8aed5f022100fe6cbd036b5fce1169d7392ecfaf76e01f05fdc6c81cf9bae8c9227fc09c65d9"
 		},
 		{
 			"keyid": "f40f32044071a9365505da3d1e3be6561f6f22d0e60cf51df783999f6c3429cb",
@@ -27,9 +27,9 @@
 		"meta": {
 			"snapshot.json": {
 				"hashes": {
-					"sha512": "f766c1af951c1b908152f9c0730c25b12f78e6be2c22a9af9a37f025fb031bd2cf1572977fa5bab527d8bc897751e1693e3f28eb4952787842dab07e8112ae81"
+					"sha512": "9103503c18f7da2098dce04892948ad240c1b9965048c4ab4da0c32248f3491652d91d76fe9022be2cf15a99e68b3a3ddd1034e5293c8aac86d0446c4354716d"
 				},
-				"length": 1139,
+				"length": 1849,
 				"version": 1
 			}
 		},

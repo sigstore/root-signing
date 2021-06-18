@@ -28,6 +28,7 @@ If you are a verifier, follow instructions at [VERIFIER.md](VERIFIER.md).
 ### Acknowledgements
 Special thanks to Dan Lorenc, Trishank Kuppusamy, Marina Moore, Santiago Torres-Arias, and the whole SigStore community! 
 
+A video recording of the signing ceremony is at <a target="_blank" href="https://www.twitch.tv/videos/1060206516">https://www.twitch.tv/videos/1060206516</a>.
 
 
 

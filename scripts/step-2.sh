@@ -18,13 +18,13 @@ git checkout main
 git pull upstream main
 git status
 
-# Sign the root and targets
-./tuf sign -repository $REPO -roles root -roles targets
+# Sign the root and targets with hardware key
+./tuf sign -repository $REPO -roles root -roles targets -sk
 
 git checkout -b sign-targets
 git add ceremony/
-git commit -s -m "Signing targets for ${GITHUB_USER}"
+git commit -s -m "Signing root and targets for ${GITHUB_USER}"
 git push -f origin sign-targets
 
 # Open the browser
-open "https://github.com/${GITHUB_USER}/root-signing/pull/new/sign-targets" || xdg-open "https://github.com/${GITHUB_USER}/root-signing/pull/new/sign-targets"
+open "https://github.com/${GITHUB_USER}/root-signing/pull/new/sign-root-targets" || xdg-open "https://github.com/${GITHUB_USER}/root-signing/pull/new/sign-targets"

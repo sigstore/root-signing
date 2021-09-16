@@ -21,10 +21,9 @@ import (
 	cjson "github.com/tent/canonical-json-go"
 	"github.com/theupdateframework/go-tuf"
 	"github.com/theupdateframework/go-tuf/data"
-	"github.com/theupdateframework/go-tuf/util"
 )
 
-var threshold = 3
+var threshold = 1
 
 type targetsFlag []string
 
@@ -44,6 +43,9 @@ func Init() *ffcli.Command {
 	var (
 		flagset    = flag.NewFlagSet("tuf init", flag.ExitOnError)
 		repository = flagset.String("repository", "", "path to initialize the staged repository")
+		previous   = flagset.String("previous", "", "path to the previous repository")
+		snapshot   = flagset.String("snapshot", "", "reference to an online snapshot signer")
+		timestamp  = flagset.String("timestamp", "", "reference to an online timestamp signer")
 		targets    = targetsFlag{}
 	)
 	flagset.Var(&targets, "target", "path to target to add")
@@ -64,49 +66,65 @@ func Init() *ffcli.Command {
 			if *repository == "" {
 				return flag.ErrHelp
 			}
-			return InitCmd(*repository, targets)
+			if *snapshot == "" {
+				return flag.ErrHelp
+			}
+			if *timestamp == "" {
+				return flag.ErrHelp
+			}
+			return InitCmd(ctx, *repository, *previous, targets, *snapshot, *timestamp)
 		},
 	}
 }
 
-func InitCmd(directory string, targets targetsFlag) error {
+func InitCmd(ctx context.Context, directory, previous string, targets targetsFlag, snapshotRef string, timestampRef string) error {
 	// TODO: Validate directory is a good path.
 	store := tuf.FileSystemStore(directory, nil)
 	repo, err := tuf.NewRepo(store)
 	if err != nil {
 		return err
 	}
-	if err := repo.Init(false); err != nil {
-		return err
+	if previous == "" {
+		// Only initialize if no previous specified.
+		if err := repo.Init(false); err != nil {
+			return err
+		}
+		fmt.Fprintln(os.Stderr, "TUF repository initialized at ", directory)
 	}
-	fmt.Fprintln(os.Stderr, "TUF repository initialized at ", directory)
 
 	// Get the root.json file and initialize it with the expirations and thresholds
-	root, err := prepo.GetRootFromStore(store)
+	expiration := time.Now().AddDate(0, 6, 0).UTC()
+	curRootVersion, err := repo.RootVersion()
 	if err != nil {
 		return err
 	}
-	expiration := time.Now().AddDate(0, 6, 0).UTC()
-	relativePaths := []string{}
 
-	// Add the keys we just provisioned to each role
+	// Add the keys we just provisioned to root and targets
 	keys, err := getKeysFromDir(directory + "/keys")
 	if err != nil {
 		return err
 	}
-	roles := []string{"root", "targets", "timestamp", "snapshot"}
-	for _, roleName := range roles {
-		for _, tufKey := range keys {
-			repo.AddVerificationKeyWithExpiration(roleName, tufKey, expiration)
+	for _, tufKey := range keys {
+		for _, role := range []string{"root", "targets"} {
+			if err := repo.AddVerificationKeyWithExpiration(role, tufKey, expiration); err != nil {
+				return err
+			}
 		}
 	}
 
-	// After all this root metadata setting, set the files with the updated root
-	if err := setMetaWithSigKeyIDs(store, "root.json", root, keys); err != nil {
-		return err
+	// Add online snapshot and timestamp keys with a shorter expiration.
+	for role, keyRef := range map[string]string{"snapshot": snapshotRef, "timestamp": timestampRef} {
+		signerKey, err := pkeys.GetKmsSigningKey(ctx, keyRef)
+		if err != nil {
+			return err
+		}
+		if err := repo.AddVerificationKeyWithExpiration(role, signerKey.Key, expiration); err != nil {
+			return err
+		}
 	}
 
 	// Add targets (copy them into the repository and add them to the targets.json)
+	relativePaths := []string{}
 	for _, target := range targets {
 		from, err := os.Open(target)
 		if err != nil {
@@ -130,70 +148,23 @@ func InitCmd(directory string, targets targetsFlag) error {
 		return fmt.Errorf("error adding targets %w", err)
 	}
 
-	// Add blank signatures
+	// Add blank signatures to root and targets
 	t, err := prepo.GetTargetsFromStore(store)
 	if err != nil {
 		return err
 	}
-	t.Version = root.Version
 	if err := setMetaWithSigKeyIDs(store, "targets.json", t, keys); err != nil {
 		return err
 	}
 
-	// Create snapshot.json
-	snapshot, err := createNewSnapshot(store, expiration)
+	// We manually increment the root version in case adding the verification keys did not
+	// increment the root version (because of no change).
+	root, err := prepo.GetRootFromStore(store)
 	if err != nil {
 		return err
 	}
-	snapshot.Version = root.Version
-	if err := setMetaWithSigKeyIDs(store, "snapshot.json", snapshot, keys); err != nil {
-		return err
-	}
-
-	// Create timestamp.json
-	timestamp, err := createNewTimestamp(store, expiration)
-	if err != nil {
-		return err
-	}
-	timestamp.Version = root.Version
-	return setMetaWithSigKeyIDs(store, "timestamp.json", timestamp, keys)
-}
-
-func createNewSnapshot(store tuf.LocalStore, expires time.Time) (*data.Snapshot, error) {
-	snapshot := data.NewSnapshot()
-	snapshot.Expires = expires
-	// The go implementation also includes root.json
-	meta, err := store.GetMeta()
-	if err != nil {
-		return nil, err
-	}
-	for _, name := range []string{"root.json", "targets.json"} {
-		b := meta[name]
-		fileMeta, err := util.GenerateSnapshotFileMeta(bytes.NewReader(b))
-		if err != nil {
-			return nil, err
-		}
-		snapshot.Meta[name] = fileMeta
-	}
-	return snapshot, nil
-}
-
-func createNewTimestamp(store tuf.LocalStore, expires time.Time) (*data.Timestamp, error) {
-	timestamp := data.NewTimestamp()
-	timestamp.Expires = expires
-
-	meta, err := store.GetMeta()
-	if err != nil {
-		return nil, err
-	}
-	b := meta["snapshot.json"]
-	fileMeta, err := util.GenerateTimestampFileMeta(bytes.NewReader(b))
-	if err != nil {
-		return nil, err
-	}
-	timestamp.Meta["snapshot.json"] = fileMeta
-
-	return timestamp, nil
+	root.Version = curRootVersion + 1
+	return setMetaWithSigKeyIDs(store, "root.json", root, keys)
 }
 
 func setSignedMeta(store tuf.LocalStore, role string, s *data.Signed) error {

@@ -18,13 +18,13 @@ git checkout main
 git pull upstream main
 git status
 
-# Sign the timestamp
-./tuf sign -repository $REPO -roles timestamp
+# Sign the root and targets
+./tuf publish -repository $REPO
 
-git checkout -b sign-timestamp
+git checkout -b publish
 git add ceremony/
-git commit -s -a -m "Signing timestamp for ${GITHUB_USER}"
-git push -f origin sign-timestamp
+git commit -s -a -m "Publishing for ${GITHUB_USER}!"
+git push -f origin publish
 
 # Open the browser
-open "https://github.com/${GITHUB_USER}/root-signing/pull/new/sign-timestamp" || xdg-open "https://github.com/${GITHUB_USER}/root-signing/pull/new/sign-timestamp"
+open "https://github.com/${GITHUB_USER}/root-signing/pull/new/publish" || xdg-open "https://github.com/${GITHUB_USER}/root-signing/pull/new/publish"

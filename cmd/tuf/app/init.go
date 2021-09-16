@@ -1,5 +1,3 @@
-// +build pivkey
-
 package app
 
 import (
@@ -23,7 +21,7 @@ import (
 	"github.com/theupdateframework/go-tuf/data"
 )
 
-var threshold = 1
+var threshold = 3
 
 type targetsFlag []string
 
@@ -104,11 +102,14 @@ func InitCmd(ctx context.Context, directory, previous string, targets targetsFla
 	if err != nil {
 		return err
 	}
-	for _, tufKey := range keys {
-		for _, role := range []string{"root", "targets"} {
+	for _, role := range []string{"root", "targets"} {
+		for _, tufKey := range keys {
 			if err := repo.AddVerificationKeyWithExpiration(role, tufKey, expiration); err != nil {
 				return err
 			}
+		}
+		if err := repo.SetThreshold("root", threshold); err != nil {
+			return err
 		}
 	}
 
@@ -118,7 +119,7 @@ func InitCmd(ctx context.Context, directory, previous string, targets targetsFla
 		if err != nil {
 			return err
 		}
-		if err := repo.AddVerificationKeyWithExpiration(role, signerKey.Key, expiration); err != nil {
+		if err := repo.AddVerificationKeyWithExpiration(role, signerKey.Key, time.Now().AddDate(0, 0, 14).UTC()); err != nil {
 			return err
 		}
 	}

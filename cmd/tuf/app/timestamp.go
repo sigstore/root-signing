@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"flag"
+	"time"
 
 	"github.com/peterbourgon/ff/v3/ffcli"
 	"github.com/theupdateframework/go-tuf"
@@ -40,5 +41,5 @@ func TimestampCmd(ctx context.Context, directory string) error {
 	if err != nil {
 		return err
 	}
-	return repo.Timestamp()
+	return repo.TimestampWithExpires(time.Now().AddDate(0, 0, 14).UTC())
 }

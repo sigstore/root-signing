@@ -77,7 +77,7 @@ This will prompt your for your PIN twice to sign `root.json` and `targets.json`.
 
 3. The **conductor** should initiate the scripts to sign snapshot and timestamp with the online keys after all PRs from step 2 are merged:
 ```
-./scripts/step-4.sh
+./scripts/step-3.sh
 ```
 
 4. After all PRs are merged, the **conductor** can verify and publish the metadata!

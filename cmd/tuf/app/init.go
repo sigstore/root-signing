@@ -86,26 +86,18 @@ func InitCmd(directory string, targets targetsFlag) error {
 	if err != nil {
 		return err
 	}
-	expiration := time.Now().AddDate(0, 6, 0)
+	expiration := time.Now().AddDate(0, 6, 0).UTC()
 	relativePaths := []string{}
-	root.Expires = expiration
-	root.Version++
+
 	// Add the keys we just provisioned to each role
 	keys, err := getKeysFromDir(directory + "/keys")
 	if err != nil {
 		return err
 	}
-
 	roles := []string{"root", "targets", "timestamp", "snapshot"}
-	for _, tufKey := range keys {
-		root.AddKey(tufKey)
-		for _, roleName := range roles {
-			role, ok := root.Roles[roleName]
-			if !ok {
-				role = &data.Role{KeyIDs: []string{}, Threshold: threshold}
-				root.Roles[roleName] = role
-			}
-			role.AddKeyIDs(tufKey.IDs())
+	for _, roleName := range roles {
+		for _, tufKey := range keys {
+			repo.AddVerificationKeyWithExpiration(roleName, tufKey, expiration)
 		}
 	}
 

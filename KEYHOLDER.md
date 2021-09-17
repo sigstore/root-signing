@@ -7,6 +7,14 @@ export GITHUB_USER=${YOUR_GITHUB_USER}
 ./scripts/step-0.sh
 ```
 
+The conductor should also set the online snapshot and timestamp keys, and the previous repository if it exists. The key references should have the a go-cloud style URI like `gcpkms://<some key>`.
+
+```
+export PREV_REPO=${PREVIOUS CEREMONY REPO}
+export SNAPSHOT_KEY=${SNAPSHOT_KEY_REFERENCE}
+export TIMESTAMP_KEY=${TIMESTAM_KEY_REFERENCE}
+```
+
 This will setup your fork and build the TUF binary to use for metadata generation.
 
 You may need to install `libpcslite` to support hardware tokens. See [`go-piv`'s installation instructions for your platform.](https://github.com/go-piv/piv-go#installation).
@@ -39,11 +47,9 @@ $REPO
 ├── repository
 └── staged
     ├── root.json
-    ├── snapshot.json
     ├── targets
     │   └── $TARGET
     ├── targets.json
-    └── timestamp.json
 ```
 
 Each metadata file will be populated with a 6 month expiration and placeholder empty signatures corresponding to the KEY_IDs generated in step 1. The `root.json` will specify all 5 keys for each top-level role with a threshold of 3. 
@@ -69,28 +75,15 @@ This will prompt your for your PIN twice to sign `root.json` and `targets.json`.
 
 **Keyholders** should remove their hardware token.
 
-3. Sign snapshot: after all PRs from step 2 are merged, each **keyholder** should insert their hardware token and sign the snapshot file by running:
+3. The **conductor** should initiate the scripts to sign snapshot and timestamp with the online keys after all PRs from step 2 are merged:
 ```
 ./scripts/step-3.sh
 ```
 
-This will prompt your for your PIN to sign `snapshot.json`. This will update the file lengths and hashes for `root.json` and `targets.json` and populate a signature for your key id in the `signatures` section for `snapshot.json`.
-
-**Keyholders** should remove their hardware token.
-
-4. Sign timestamp: after all PRs from step 3 are merged, each **keyholder** should insert their hardware token and sign the timestamp file by running:
-```
-./scripts/step-4.sh
-```
-
-This will prompt your for your PIN to sign `timestamp.json`. This will update the file lengths and hashes for `snapshot.json` and populate a signature for your key id in the `signatures` section for `timestamp.json`.
-
-**Keyholders** should remove their hardware token.
-
-5. After all PRs are merged, the **conductor** can verify and publish the metadata!
+4. After all PRs are merged, the **conductor** can verify and publish the metadata!
 
 ```
-$ ./scripts/step-5.sh
+$ ./scripts/step-4.sh
 Metadata successfully validated!
 ```
 

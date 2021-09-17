@@ -7,6 +7,14 @@ if [ -z "$GITHUB_USER" ]; then
     echo "Set GITHUB_USER"
     exit
 fi
+if [ -z "$TIMESTAMP_KEY" ]; then
+    echo "Set TIMESTAMP_KEY"
+    exit
+fi
+if [ -z "$SNAPSHOT_KEY" ]; then
+    echo "Set SNAPSHOT_KEY"
+    exit
+fi
 export REPO=$(pwd)/ceremony/$(date '+%Y-%m-%d')
 
 # Dump the git state
@@ -18,8 +26,13 @@ git checkout main
 git pull upstream main
 git status
 
-# Sign the snapshot
-./tuf sign -repository $REPO -roles snapshot
+# Snapshot and sign the snapshot with snapshot kms key
+./tuf snapshot -repository $REPO
+./tuf sign -repository $REPO -roles snapshot -key ${SNAPSHOT_KEY}
+
+# Timestamp and sign the timestamp with timestamp kms key
+./tuf timestamp -repository $REPO
+./tuf sign -repository $REPO -roles timestamp -key ${TIMESTMAP_KEY}
 
 git checkout -b sign-snapshot
 git add ceremony/

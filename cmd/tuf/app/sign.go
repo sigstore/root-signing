@@ -13,12 +13,13 @@ import (
 
 	"github.com/peterbourgon/ff/v3/ffcli"
 	"github.com/sigstore/cosign/pkg/cosign/pivkey"
+	"github.com/sigstore/root-signing/pkg/keys"
 	"github.com/sigstore/root-signing/pkg/repo"
 	"github.com/sigstore/sigstore/pkg/signature"
+	"github.com/sigstore/sigstore/pkg/signature/options"
 	cjson "github.com/tent/canonical-json-go"
 	"github.com/theupdateframework/go-tuf"
 	"github.com/theupdateframework/go-tuf/data"
-	"github.com/theupdateframework/go-tuf/util"
 )
 
 var roles = map[string]bool{"root": true, "targets": true, "timestamp": true, "snapshot": true}
@@ -42,6 +43,8 @@ func Sign() *ffcli.Command {
 		flagset    = flag.NewFlagSet("tuf sign", flag.ExitOnError)
 		roles      = roleFlag{}
 		repository = flagset.String("repository", "", "path to the staged repository")
+		sk         = flagset.Bool("sk", false, "indicates use of a hardware key for signing")
+		key        = flagset.String("key", "", "reference to an onine signer for signing")
 	)
 	flagset.Var(&roles, "roles", "role(s) to sign")
 	return &ffcli.Command{
@@ -51,6 +54,7 @@ func Sign() *ffcli.Command {
 		LongHelp: `tuf signs the top-level metadata for role in the given repository.
 		Signing a lower level, e.g. snapshot or timestamp, before signing the root and target
 		will trigger a warning. 
+		One of sk or a key reference must be provided.
 		
 	EXAMPLES
 	# sign staged repository at ceremony/YYYY-MM-DD
@@ -60,12 +64,19 @@ func Sign() *ffcli.Command {
 			if *repository == "" || len(roles) == 0 {
 				return flag.ErrHelp
 			}
-			return SignCmd(ctx, *repository, roles)
+			if !*sk && *key == "" {
+				return flag.ErrHelp
+			}
+			signerAndKey, err := getSigner(ctx, *sk, *key)
+			if err != nil {
+				return err
+			}
+			return SignCmd(ctx, *repository, roles, signerAndKey)
 		},
 	}
 }
 
-func checkAndUpdateMetaForRole(store tuf.LocalStore, role []string) error {
+func checkMetaForRole(store tuf.LocalStore, role []string) error {
 	db, err := repo.CreateDb(store)
 	if err != nil {
 		return fmt.Errorf("error creating verification database: %w", err)
@@ -84,10 +95,6 @@ func checkAndUpdateMetaForRole(store tuf.LocalStore, role []string) error {
 					return fmt.Errorf("error verifying signatures for %s: %w", manifest, err)
 				}
 			}
-			// At this point we have valid root and targets. Maybe update hashes,
-			if err := updateSnapshot(store); err != nil {
-				return err
-			}
 		case "timestamp":
 			// Check that snapshot is signed
 			s, err := repo.GetSignedMeta(store, "snapshot.json")
@@ -97,10 +104,6 @@ func checkAndUpdateMetaForRole(store tuf.LocalStore, role []string) error {
 			if err := db.Verify(s, "snapshot", 0); err != nil {
 				return fmt.Errorf("error verifying signatures for snapshot: %w", err)
 			}
-			// At this point we have a valid snapshot.
-			if err := updateTimestamp(store); err != nil {
-				return err
-			}
 		case "default":
 			// No pre-requisites for signing root and target
 			continue
@@ -109,112 +112,38 @@ func checkAndUpdateMetaForRole(store tuf.LocalStore, role []string) error {
 	return nil
 }
 
-func SignCmd(ctx context.Context, directory string, roles []string) error {
+func getSigner(ctx context.Context, sk bool, keyRef string) (*keys.SignerAndTufKey, error) {
+	if sk {
+		// This will give us the data.Key with the correct id.
+		keyAndAttestations, err := GetKeyAndAttestation(ctx)
+		if err != nil {
+			return nil, err
+		}
+		pivKey, err := pivkey.GetKeyWithSlot("signature")
+		if err != nil {
+			return nil, err
+		}
+		signer, err := pivKey.SignerVerifier()
+		if err != nil {
+			return nil, err
+		}
+		return &keys.SignerAndTufKey{Signer: signer, Key: keyAndAttestations.key}, nil
+	}
+	// A key reference was provided.
+	return keys.GetKmsSigningKey(ctx, keyRef)
+}
+
+func SignCmd(ctx context.Context, directory string, roles []string, signer *keys.SignerAndTufKey) error {
 	store := tuf.FileSystemStore(directory, nil)
 
-	if err := checkAndUpdateMetaForRole(store, roles); err != nil {
+	if err := checkMetaForRole(store, roles); err != nil {
 		return fmt.Errorf("signing pre-requisites failed: %w", err)
 	}
 
-	// This will give us the data.Key with the correct id.
-	keyAndAttestations, err := GetKeyAndAttestation(ctx)
-	if err != nil {
-		return err
-	}
-
-	signer, err := pivkey.NewSignerVerifier()
-	if err != nil {
-		return err
-	}
-
 	for _, name := range roles {
-		if err := SignMeta(ctx, store, name+".json", signer, keyAndAttestations.key); err != nil {
+		if err := SignMeta(ctx, store, name+".json", signer.Signer, signer.Key); err != nil {
 			return err
 		}
-	}
-
-	return nil
-}
-
-func updateSnapshot(store tuf.LocalStore) error {
-	// This assumes the root.json and targets.json are correctly signed.
-	// Check the snapshot metadata
-	meta, err := store.GetMeta()
-	if err != nil {
-		return err
-	}
-	snapshotJSON := meta["snapshot.json"]
-	s := &data.Signed{}
-	if err := json.Unmarshal(snapshotJSON, s); err != nil {
-		return err
-	}
-	snapshot := &data.Snapshot{}
-	if err := json.Unmarshal(s.Signed, snapshot); err != nil {
-		return err
-	}
-
-	changed := false
-	for _, name := range []string{"root.json", "targets.json"} {
-		b := meta[name]
-		meta, err := util.GenerateSnapshotFileMeta(bytes.NewReader(b))
-		if err != nil {
-			return err
-		}
-
-		if prev, ok := snapshot.Meta[name]; !ok || util.SnapshotFileMetaEqual(prev, meta) != nil {
-			snapshot.Meta[name] = meta
-			changed = true
-		}
-	}
-
-	if changed {
-		// We only setMeta if we needed to change the root or targets hashes. Otherwise, this
-		// removes old signatures.
-		// Keep the initial set of empty sigs
-		signed, err := jsonMarshal(snapshot)
-		if err != nil {
-			return err
-		}
-		s.Signed = signed
-		return setSignedMeta(store, "snapshot.json", s)
-	}
-	return nil
-}
-
-func updateTimestamp(store tuf.LocalStore) error {
-	s, err := repo.GetSignedMeta(store, "timestamp.json")
-	if err != nil {
-		return err
-	}
-	timestamp := &data.Timestamp{}
-	if err := json.Unmarshal(s.Signed, timestamp); err != nil {
-		return err
-	}
-
-	meta, err := store.GetMeta()
-	if err != nil {
-		return err
-	}
-	b, ok := meta["snapshot.json"]
-	if !ok {
-		return errors.New("missing metadata: snapshot.json")
-	}
-
-	fileMeta, err := util.GenerateTimestampFileMeta(bytes.NewReader(b))
-	if err != nil {
-		return err
-	}
-
-	if prev, ok := timestamp.Meta["snapshot.json"]; !ok || util.TimestampFileMetaEqual(prev, fileMeta) != nil {
-		// We only setMeta if we needed to change the root or targets hashes. Otherwise, this
-		// removes old signatures.
-		timestamp.Meta["snapshot.json"] = fileMeta
-		signed, err := jsonMarshal(timestamp)
-		if err != nil {
-			return err
-		}
-		s.Signed = signed
-		return setSignedMeta(store, "timestamp.json", s)
 	}
 
 	return nil
@@ -225,6 +154,10 @@ func SignMeta(ctx context.Context, store tuf.LocalStore, name string, signer sig
 	s, err := repo.GetSignedMeta(store, name)
 	if err != nil {
 		return err
+	}
+	if name == "root" || name == "targets" && s.Signatures == nil {
+		// init-repo should have pre-populated these. don't lose them.
+		return errors.New("pre-entries not defined")
 	}
 
 	// Sign payload
@@ -237,30 +170,23 @@ func SignMeta(ctx context.Context, store tuf.LocalStore, name string, signer sig
 		return err
 	}
 
-	sig, _, err := signer.Sign(ctx, msg)
+	sig, err := signer.SignMessage(bytes.NewReader(msg), options.WithContext(ctx))
 	if err != nil {
 		return err
 	}
 
-	if s.Signatures == nil {
-		// init-repo should have pre-populated these. don't lose them.
-		return errors.New("pre-entries not defined")
+	r, err := tuf.NewRepoIndent(store, "", "\t")
+	if err != nil {
+		return err
 	}
-	sigs := make([]data.Signature, 0, len(s.Signatures))
-
 	// Add it to your key entry
 	for _, id := range key.IDs() {
-		for _, entry := range s.Signatures {
-			if entry.KeyID == id {
-				sigs = append(sigs, data.Signature{
-					KeyID:     id,
-					Signature: sig,
-				})
-			} else {
-				sigs = append(sigs, entry)
-			}
+		if err := r.AddOrUpdateSignature(name, data.Signature{
+			KeyID:     id,
+			Signature: sig}); err != nil {
+			return err
 		}
 	}
 
-	return setSignedMeta(store, name, &data.Signed{Signatures: sigs, Signed: s.Signed})
+	return nil
 }

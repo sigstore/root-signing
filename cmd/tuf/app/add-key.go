@@ -30,7 +30,7 @@ func AddKey() *ffcli.Command {
 		ShortUsage: "tuf add-key adds a new root key to the given repository",
 		ShortHelp:  "tuf add-key adds a new root key to the given repository",
 		LongHelp: `tuf add-key adds a new root key to the given repository.
-		It adds them to all four top-level roles. 
+		It adds them to the {root, targets} top-level roles. 
 		TODO: When keyval supports a custom JSON, add it certs to the JSON.
 		
 	EXAMPLES
@@ -52,7 +52,7 @@ type KeyAndAttestations struct {
 }
 
 func GetKeyAndAttestation(ctx context.Context) (*KeyAndAttestations, error) {
-	attestations, err := pivcli.AttestationCmd(ctx)
+	attestations, err := pivcli.AttestationCmd(ctx, "signature")
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +73,7 @@ func AddKeyCmd(ctx context.Context, directory string) error {
 		return err
 	}
 
-	if err := pivcli.GenerateKeyCmd(ctx, "" /*randomKey=*/, true); err != nil {
+	if err := pivcli.GenerateKeyCmd(ctx, "", true, "signature", "always", "always"); err != nil {
 		return err
 	}
 

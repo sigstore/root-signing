@@ -1,8 +1,11 @@
 package keys
 
 import (
+	"context"
+	"crypto"
 	"crypto/ecdsa"
 	"crypto/elliptic"
+	"crypto/rsa"
 	"crypto/x509"
 	"encoding/asn1"
 	"encoding/pem"
@@ -14,6 +17,9 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/sigstore/sigstore/pkg/signature"
+	"github.com/sigstore/sigstore/pkg/signature/kms"
+	"github.com/sigstore/sigstore/pkg/signature/options"
 	"github.com/theupdateframework/go-tuf/data"
 )
 
@@ -26,6 +32,11 @@ type SigningKey struct {
 	PublicKey    *ecdsa.PublicKey
 	DeviceCert   *x509.Certificate
 	KeyCert      *x509.Certificate
+}
+
+type SignerAndTufKey struct {
+	Signer signature.Signer
+	Key    *data.Key
 }
 
 func toPubKey(pemBytes []byte) (*ecdsa.PublicKey, error) {
@@ -162,4 +173,29 @@ func (key SigningKey) Verify(root *x509.Certificate) error {
 		return fmt.Errorf("serial number does not match certificate for key expected %d, got %d", key.SerialNumber, *serialNumber)
 	}
 	return nil
+}
+
+func GetKmsSigningKey(ctx context.Context, keyRef string) (*SignerAndTufKey, error) {
+	kmsKey, err := kms.Get(ctx, keyRef, crypto.SHA256)
+	if err != nil {
+		return nil, err
+	}
+	// KMS specified
+	pub, err := kmsKey.PublicKey(options.WithContext(ctx))
+	if err != nil {
+		return nil, err
+	}
+	switch kt := pub.(type) {
+	case *ecdsa.PublicKey:
+		return &SignerAndTufKey{Key: &data.Key{
+			Type:       data.KeyTypeECDSA_SHA2_P256,
+			Scheme:     data.KeySchemeECDSA_SHA2_P256,
+			Algorithms: data.KeyAlgorithms,
+			Value:      data.KeyValue{Public: elliptic.Marshal(kt.Curve, kt.X, kt.Y)},
+		}, Signer: kmsKey}, nil
+	case *rsa.PublicKey:
+		return nil, errors.New("RSA keys not supported")
+
+	}
+	return nil, errors.New("not an ecdsa or rsa key")
 }

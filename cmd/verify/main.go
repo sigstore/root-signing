@@ -211,6 +211,11 @@ func main() {
 				log.Printf("error getting TUF local root keys : %s", err)
 				os.Exit(1)
 			}
+			threshold, err := repo.GetThreshold("root")
+			if err != nil {
+				log.Printf("error getting threshold from root : %s", err)
+				os.Exit(1)
+			}
 
 			// set up a remote store from github local file store
 			remote, err := FileRemoteStore(*repository)
@@ -221,7 +226,7 @@ func main() {
 
 			c := client.NewClient(local, remote)
 
-			if err := c.Init(rootKeys, 3); err != nil {
+			if err := c.Init(rootKeys, threshold); err != nil {
 				log.Printf("error initializing client: %s", err)
 				os.Exit(1)
 			}

@@ -23,7 +23,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: setup
-      - run: |
+        run: |
           echo "REPO=$(pwd)/repository/" >> $GITHUB_ENV
           echo "SNAPSHOT_KEY=gcpkms://projects/project-rekor/locations/global/keyRings/sigstore-root/cryptoKeys/snapshot" >> $GITHUB_ENV
           echo "TIMESTAMP_KEY=gcpkms://projects/project-rekor/locations/global/keyRings/sigstore-root/cryptoKeys/snapshot" >> $GITHUB_ENV

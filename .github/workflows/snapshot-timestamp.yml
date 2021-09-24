@@ -6,6 +6,10 @@ on:
   # Enable cron when repository published with these keys. 
   # schedule:
   #   cron: '0 0 */14 * *' # every 14 days
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'repository/**'
   push:
     branches: [ main ]
     paths:

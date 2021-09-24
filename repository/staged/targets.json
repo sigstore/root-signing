@@ -2,12 +2,12 @@
 	"signatures": [
 		{
 			"keyid": "d46cef9ebf636d51610f3b24e95b9feca90d555bbdf03c39b9024838997fc626",
-			"sig": "304502210097406539da830225a0b075b7a111511c4d80ecc045e53aaab5db040c270e5d5b02207b7572f620d355b649e4dd5c53d7f9e68865c404aa35aededed62ff3012e7590"
+			"sig": ""
 		}
 	],
 	"signed": {
 		"_type": "targets",
-		"expires": "2022-03-24T13:55:33Z",
+		"expires": "2022-03-24T14:11:56Z",
 		"spec_version": "1.0",
 		"targets": {
 			"artifact.pub": {

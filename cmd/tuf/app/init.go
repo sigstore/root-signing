@@ -21,7 +21,7 @@ import (
 	"github.com/theupdateframework/go-tuf/data"
 )
 
-var threshold = 3
+var threshold = 1
 
 type targetsFlag []string
 
@@ -147,6 +147,9 @@ func InitCmd(ctx context.Context, directory, previous string, targets targetsFla
 
 	if err := repo.AddTargetsWithExpires(relativePaths, nil, expiration); err != nil {
 		return fmt.Errorf("error adding targets %w", err)
+	}
+	if err := repo.SetThreshold("targets", threshold); err != nil {
+		return err
 	}
 
 	// Add blank signatures to root and targets

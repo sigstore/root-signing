@@ -18,6 +18,8 @@ on:
 jobs:  
   validate:
     runs-on: ubuntu-20.04
+    permissions:
+      id-token: 'write'
     steps:
       - uses: actions/checkout@v2.3.4
         with:
@@ -32,11 +34,12 @@ jobs:
           go-version: 1.17.x
       - uses: 'google-github-actions/setup-gcloud@v0.2.1'
         with:
-          project_id: asra-ali
+          project_id: project-rekor
       # Setup OIDC->SA auth
       - uses: 'google-github-actions/auth@v0.3.0'
         id: auth
         with:
+          token_format: 'access_token'
           workload_identity_provider: 'projects/237800849078/locations/global/workloadIdentityPools/root-signing-pool/providers/sigstore-root'
           service_account: 'sigstore-root-signing@project-rekor.iam.gserviceaccount.com'
           create_credentials_file: true

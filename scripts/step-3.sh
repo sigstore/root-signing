@@ -32,7 +32,7 @@ git status
 
 # Timestamp and sign the timestamp with timestamp kms key
 ./tuf timestamp -repository $REPO
-./tuf sign -repository $REPO -roles timestamp -key ${TIMESTMAP_KEY}
+./tuf sign -repository $REPO -roles timestamp -key ${TIMESTAMP_KEY}
 
 git checkout -b sign-snapshot
 git add ceremony/

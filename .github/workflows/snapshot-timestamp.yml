@@ -1,0 +1,87 @@
+name: Snapshot and Timestamp
+
+# Execute this as a biweekly cron job and on changes to repository/ 
+# when new published metadata is submitted.
+on:
+  # Enable cron when repository published with these keys. 
+  # schedule:
+  #   cron: '0 0 */14 * *' # every 14 days
+  workflow_dispatch:
+
+jobs:  
+  snapshot_and_timestamp:
+    runs-on: ubuntu-20.04
+    permissions:
+      id-token: 'write'
+    steps:
+      - uses: actions/checkout@v2.3.4
+        with:
+          fetch-depth: 0
+      - name: setup
+        run: |
+          echo "REPO=$(pwd)/repository/" >> $GITHUB_ENV
+          echo "SNAPSHOT_KEY=gcpkms://projects/project-rekor/locations/global/keyRings/sigstore-root/cryptoKeys/snapshot" >> $GITHUB_ENV
+          echo "TIMESTAMP_KEY=gcpkms://projects/project-rekor/locations/global/keyRings/sigstore-root/cryptoKeys/timestamp" >> $GITHUB_ENV
+      - uses: actions/setup-go@v2
+        with:
+          go-version: 1.17.x
+      - uses: 'google-github-actions/setup-gcloud@v0.2.1'
+        with:
+          project_id: project-rekor
+      # Setup OIDC->SA auth
+      - uses: 'google-github-actions/auth@v0.3.0'
+        id: auth
+        with:
+          token_format: 'access_token'
+          workload_identity_provider: 'projects/237800849078/locations/global/workloadIdentityPools/root-signing-pool/providers/sigstore-root'
+          service_account: 'sigstore-root-signing@project-rekor.iam.gserviceaccount.com'
+          create_credentials_file: true
+      - name: Login
+        run: |
+          gcloud auth login --brief --cred-file="${{ steps.auth.outputs.credentials_file_path }}"
+          gcloud auth list
+
+      # Snapshot and timestamp    
+      - name: build
+        run: |
+          sudo apt-get install libpcsclite-dev
+          go build -o tuf -tags=pivkey ./cmd/tuf/
+      - name: snapshot
+        run: |
+          ./tuf snapshot -repository $REPO
+          ./tuf sign -repository $REPO -roles snapshot -key ${SNAPSHOT_KEY}
+          ./tuf timestamp -repository $REPO
+          ./tuf sign -repository $REPO -roles timestamp -key ${TIMESTAMP_KEY}
+      - name: publish
+        run: |
+          ./tuf publish -repository $REPO
+          ls $REPO/repository/
+      - name: Upload snapshot and timestamp
+        uses: 'actions/upload-artifact@v2'
+        with:
+          name: snapshot-and-timestamp
+          path: repository/repository/
+          retention-days: 5
+
+
+  push:
+    needs: snapshot_and_timestamp
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2.3.4
+        with:
+          fetch-depth: 0
+      - uses: 'actions/download-artifact@v2'
+        with:
+          name: snapshot-and-timestamp
+          path: repository/repository/
+      # Open pull request changes
+      - name: create pull request
+        uses: 'peter-evans/create-pull-request@v3'
+        with:
+          commit-message: update snapshot and timestamp
+          title: Update Snapshot and Timestamp
+          body: Sign snapshot and timestamp files
+          branch: update-snapshot-timestamp
+          signoff: true
+           

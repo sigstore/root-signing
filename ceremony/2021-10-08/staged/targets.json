@@ -1,0 +1,80 @@
+{
+	"signatures": null,
+	"signed": {
+		"_type": "targets",
+		"delegations": {
+			"keys": {
+				"b6710623a30c010738e64c5209d367df1c0a18cf90e6ab5292fb01680f83453d": {
+					"keyid_hash_algorithms": [
+						"sha256",
+						"sha512"
+					],
+					"keytype": "ecdsa-sha2-nistp256",
+					"keyval": {
+						"public": "04fa1a3e42f2300cd3c5487a61509348feb1e936920fef2f83b7cd5dbe7ba045f538725ab8f18a666e6233edb7e0db8766c8dc336633449c5e1bbe0c182b02df0b"
+					},
+					"scheme": "ecdsa-sha2-nistp256"
+				}
+			},
+			"roles": [
+				{
+					"keyids": [
+						"ae0c689c6347ada7359df48934991f4e013193d6ddf3482a5ffb293f74f3b217"
+					],
+					"name": "rekor",
+					"paths": [
+						"rekor.*.pub"
+					],
+					"terminating": false,
+					"threshold": 1
+				},
+				{
+					"keyids": [
+						"b6710623a30c010738e64c5209d367df1c0a18cf90e6ab5292fb01680f83453d"
+					],
+					"name": "staging",
+					"paths": [
+						"*"
+					],
+					"terminating": false,
+					"threshold": 1
+				}
+			]
+		},
+		"expires": "2022-04-08T16:57:25Z",
+		"spec_version": "1.0",
+		"targets": {
+			"artifact.pub": {
+				"hashes": {
+					"sha512": "308fd1d1d95d7f80aa33b837795251cc3e886792982275e062409e13e4e236ffc34d676682aa96fdc751414de99c864bf132dde71581fa651c6343905e3bf988"
+				},
+				"length": 177
+			},
+			"ctfe.pub": {
+				"hashes": {
+					"sha512": "4b20747d1afe2544238ad38cc0cc3010921b177d60ac743767e0ef675b915489bd01a36606c0ff83c06448622d7160f0d866c83d20f0c0f44653dcc3f9aa0bd4"
+				},
+				"length": 177
+			},
+			"fulcio.crt.pem": {
+				"hashes": {
+					"sha512": "100f563c94b14c09c61adbaa460e3caa49083662dfcc4ad0a07296e3e719d8b449a0c0ddad37775f32af69c3535629b83aa8c95286e32251ad99eed38fff69c3"
+				},
+				"length": 768
+			},
+			"fulcio_v1.crt.pem": {
+				"hashes": {
+					"sha512": "f2e33a6dc208cee1f51d33bbea675ab0f0ced269617497985f9a0680689ee7073e4b6f8fef64c91bda590d30c129b3070dddce824c05bc165ac9802f0705cab6"
+				},
+				"length": 740
+			},
+			"rekor.pub": {
+				"hashes": {
+					"sha512": "0ae7705e02db33e814329746a4a0e5603c5bdcd91c96d072158d71011a2695788866565a2fec0fe363eb72cbcaeda39e54c5fe8d416daf9f3101fdba4217ef35"
+				},
+				"length": 178
+			}
+		},
+		"version": 2
+	}
+}

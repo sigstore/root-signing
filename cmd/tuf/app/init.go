@@ -168,6 +168,7 @@ func InitCmd(ctx context.Context, directory, previous string, targets targetsFla
 		return err
 	}
 	root.Version = curRootVersion + 1
+	root.Expires = expiration
 	return setMetaWithSigKeyIDs(store, "root.json", root, keys)
 }
 

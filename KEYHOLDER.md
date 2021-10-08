@@ -33,7 +33,7 @@ This will output three files (a public key, device certificate, and hardware cer
 **Keyholders** should remove their hardware token.
 
 
-1.5. After all keys are merged, **the conductor** should initialize the TUF repository and add the targets. From this directory:
+1.5. After all keys are merged, **the conductor** should initialize the TUF repository and add the targets file (including delegations). From this directory:
 ```
 ./scripts/step-1.5.sh
 TUF repository initialized at  $REPO
@@ -73,17 +73,22 @@ This will prompt your for your PIN twice to sign `root.json` and `targets.json`.
 }
 ```
 
-**Keyholders** should remove their hardware token.
+**Keyholders** should remove their hardware token. At this point, keyholders no longer need to sign any metadata.
 
-3. The **conductor** should initiate the scripts to sign snapshot and timestamp with the online keys after all PRs from step 2 are merged:
+3. The **conductor** should sign the delegation metadata.
 ```
 ./scripts/step-3.sh
 ```
 
-4. After all PRs are merged, the **conductor** can verify and publish the metadata!
+4. The **conductor** should initiate the scripts to sign snapshot and timestamp with the online keys after all PRs from step 2 are merged:
+```
+./scripts/step-4.sh
+```
+
+5. After all PRs are merged, the **conductor** can verify and publish the metadata!
 
 ```
-$ ./scripts/step-4.sh
+$ ./scripts/step-5.sh
 Metadata successfully validated!
 ```
 

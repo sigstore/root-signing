@@ -7,6 +7,14 @@ if [ -z "$GITHUB_USER" ]; then
     echo "Set GITHUB_USER"
     exit
 fi
+if [ -z "$TIMESTAMP_KEY" ]; then
+    echo "Set TIMESTAMP_KEY"
+    exit
+fi
+if [ -z "$SNAPSHOT_KEY" ]; then
+    echo "Set SNAPSHOT_KEY"
+    exit
+fi
 export REPO=$(pwd)/ceremony/$(date '+%Y-%m-%d')
 
 # Dump the git state
@@ -18,13 +26,18 @@ git checkout main
 git pull upstream main
 git status
 
-# Sign the root and targets
-./tuf publish -repository $REPO
+# Snapshot and sign the snapshot with snapshot kms key
+./tuf snapshot -repository $REPO
+./tuf sign -repository $REPO -roles snapshot -key ${SNAPSHOT_KEY}
 
-git checkout -b publish
+# Timestamp and sign the timestamp with timestamp kms key
+./tuf timestamp -repository $REPO
+./tuf sign -repository $REPO -roles timestamp -key ${TIMESTAMP_KEY}
+
+git checkout -b sign-snapshot
 git add ceremony/
-git commit -s -a -m "Publishing for ${GITHUB_USER}!"
-git push -f origin publish
+git commit -s -a -m "Signing snapshot for ${GITHUB_USER}"
+git push -f origin sign-snapshot
 
 # Open the browser
-open "https://github.com/${GITHUB_USER}/root-signing/pull/new/publish" || xdg-open "https://github.com/${GITHUB_USER}/root-signing/pull/new/publish"
+open "https://github.com/${GITHUB_USER}/root-signing/pull/new/sign-snapshot" || xdg-open "https://github.com/${GITHUB_USER}/root-signing/pull/new/sign-snapshot"

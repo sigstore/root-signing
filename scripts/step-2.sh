@@ -24,7 +24,7 @@ git status
 git checkout -b sign-targets
 git add ceremony/
 git commit -s -m "Signing root and targets for ${GITHUB_USER}"
-git push -f origin sign-targets
+git push -f origin sign-root-targets
 
 # Open the browser
-open "https://github.com/${GITHUB_USER}/root-signing/pull/new/sign-root-targets" || xdg-open "https://github.com/${GITHUB_USER}/root-signing/pull/new/sign-targets"
+open "https://github.com/${GITHUB_USER}/root-signing/pull/new/sign-root-targets" || xdg-open "https://github.com/${GITHUB_USER}/root-signing/pull/new/sign-root-targets"

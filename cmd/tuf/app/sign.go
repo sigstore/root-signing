@@ -22,8 +22,6 @@ import (
 	"github.com/theupdateframework/go-tuf/data"
 )
 
-var roles = map[string]bool{"root": true, "targets": true, "timestamp": true, "snapshot": true}
-
 type roleFlag []string
 
 func (f *roleFlag) String() string {
@@ -31,9 +29,6 @@ func (f *roleFlag) String() string {
 }
 
 func (f *roleFlag) Set(value string) error {
-	if !roles[value] {
-		return fmt.Errorf("%s not a valid role", value)
-	}
 	*f = append(*f, value)
 	return nil
 }

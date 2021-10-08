@@ -20,7 +20,7 @@ func main() {
 	root := &ffcli.Command{
 		ShortUsage:  "tuf [flags] <subcommand>",
 		FlagSet:     rootFlagSet,
-		Subcommands: []*ffcli.Command{app.Init(), app.AddKey(), app.Snapshot(), app.Timestamp(), app.Sign(), app.Publish()},
+		Subcommands: []*ffcli.Command{app.Init(), app.AddKey(), app.Snapshot(), app.AddDelegation(), app.Timestamp(), app.Sign(), app.Publish()},
 		Exec: func(context.Context, []string) error {
 			return flag.ErrHelp
 		},

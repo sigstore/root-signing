@@ -22,3 +22,5 @@ require (
 	golang.org/x/sys v0.0.0-20210910150752-751e447fb3d0 // indirect
 	golang.org/x/term v0.0.0-20210615171337-6886f2dfbf5b
 )
+
+replace github.com/theupdateframework/go-tuf => github.com/asraa/go-tuf v0.0.0-20211008150546-c069b270edc5

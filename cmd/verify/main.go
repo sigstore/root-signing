@@ -187,6 +187,7 @@ func main() {
 			log.Printf("error verifying signing keys: %s", err)
 			os.Exit(1)
 		}
+		return
 	}
 
 	// If we have a finalized "/repository/1.root.json", test that go-tuf client accepts this

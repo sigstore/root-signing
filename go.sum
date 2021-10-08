@@ -215,6 +215,8 @@ github.com/asaskevich/govalidator v0.0.0-20200907205600-7a23bdc65eef/go.mod h1:W
 github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d/go.mod h1:WaHUgvxTVq04UNunO+XhnAqY/wQc+bxr74GqbsZ/Jqw=
 github.com/asraa/go-tuf v0.0.0-20211008150546-c069b270edc5 h1:sd+S5P4jCl5KNlkGkNg6TV93ipZ7g4DkTz3YD6k5lBE=
 github.com/asraa/go-tuf v0.0.0-20211008150546-c069b270edc5/go.mod h1:BeoQvv7b+dWjjIWXghwBzUPEY5FZZua52JVbC6/maiw=
+github.com/asraa/go-tuf v0.0.0-20211008162054-6bdeb1d1d9ba h1:MKnVvFnsRdDLO+cM94BIJd766c5xLZZ55Jgdzj1eAug=
+github.com/asraa/go-tuf v0.0.0-20211008162054-6bdeb1d1d9ba/go.mod h1:BeoQvv7b+dWjjIWXghwBzUPEY5FZZua52JVbC6/maiw=
 github.com/aws/aws-lambda-go v1.13.3/go.mod h1:4UKl9IzQMoD+QF79YdCuzCwp8VbmG4VAQwij/eHl5CU=
 github.com/aws/aws-sdk-go v1.15.11/go.mod h1:mFuSZ37Z9YOHbQEwBWztmVzqXrEkub65tZoCYDt7FT0=
 github.com/aws/aws-sdk-go v1.15.27/go.mod h1:mFuSZ37Z9YOHbQEwBWztmVzqXrEkub65tZoCYDt7FT0=

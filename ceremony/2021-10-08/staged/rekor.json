@@ -2,7 +2,7 @@
 	"signatures": null,
 	"signed": {
 		"_type": "targets",
-		"expires": "2022-04-08T16:57:18Z",
+		"expires": "2022-04-08T18:27:29Z",
 		"spec_version": "1.0",
 		"targets": {
 			"rekor.0.pub": {

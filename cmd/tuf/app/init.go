@@ -122,6 +122,9 @@ func InitCmd(ctx context.Context, directory, previous string, targets targetsFla
 		if err := repo.AddVerificationKeyWithExpiration(role, signerKey.Key, time.Now().AddDate(0, 0, 14).UTC()); err != nil {
 			return err
 		}
+		if err := repo.SetThreshold(role, 1); err != nil {
+			return err
+		}
 	}
 
 	// Add targets (copy them into the repository and add them to the targets.json)

@@ -7,7 +7,10 @@ if [ -z "$GITHUB_USER" ]; then
     echo "Set GITHUB_USER"
     exit
 fi
-export REPO=$(pwd)/ceremony/$(date '+%Y-%m-%d')
+if [ -z "$CEREMONY_DATE" ]; then
+    CEREMONY_DATE=$(date '%Y-%m-%d')
+fi
+export REPO=$(pwd)/ceremony/$CEREMONY_DATE
 
 # Dump the git state
 git status

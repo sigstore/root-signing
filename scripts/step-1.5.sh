@@ -27,7 +27,10 @@ if [ -z "$PREV_REPO" ]; then
     echo "Set PREV_REPO"
     exit
 fi
-export REPO=$(pwd)/ceremony/$(date '+%Y-%m-%d')
+if [ -z "$CEREMONY_DATE" ]; then
+    CEREMONY_DATE=$(date '+%Y-%m-%d')
+fi
+export REPO=$(pwd)/ceremony/$CEREMONY_DATE
 
 # Copy the previous keys and repository into the new repository.
 cp -r ${PREV_REPO}/* ${REPO}

@@ -170,18 +170,25 @@ func SignMeta(ctx context.Context, store tuf.LocalStore, name string, signer sig
 		return err
 	}
 
-	r, err := tuf.NewRepoIndent(store, "", "\t")
-	if err != nil {
-		return err
+	if s.Signatures == nil {
+		// init-repo should have pre-populated these. don't lose them.
+		return errors.New("pre-entries not defined")
 	}
+	sigs := make([]data.Signature, 0, len(s.Signatures))
+
 	// Add it to your key entry
 	for _, id := range key.IDs() {
-		if err := r.AddOrUpdateSignature(name, data.Signature{
-			KeyID:     id,
-			Signature: sig}); err != nil {
-			return err
+		for _, entry := range s.Signatures {
+			if entry.KeyID == id {
+				sigs = append(sigs, data.Signature{
+					KeyID:     id,
+					Signature: sig,
+				})
+			} else {
+				sigs = append(sigs, entry)
+			}
 		}
 	}
 
-	return nil
+	return setSignedMeta(store, name, &data.Signed{Signatures: sigs, Signed: s.Signed})
 }

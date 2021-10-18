@@ -217,6 +217,10 @@ github.com/asraa/go-tuf v0.0.0-20211008150546-c069b270edc5 h1:sd+S5P4jCl5KNlkGkN
 github.com/asraa/go-tuf v0.0.0-20211008150546-c069b270edc5/go.mod h1:BeoQvv7b+dWjjIWXghwBzUPEY5FZZua52JVbC6/maiw=
 github.com/asraa/go-tuf v0.0.0-20211008162054-6bdeb1d1d9ba h1:MKnVvFnsRdDLO+cM94BIJd766c5xLZZ55Jgdzj1eAug=
 github.com/asraa/go-tuf v0.0.0-20211008162054-6bdeb1d1d9ba/go.mod h1:BeoQvv7b+dWjjIWXghwBzUPEY5FZZua52JVbC6/maiw=
+github.com/asraa/go-tuf v0.0.0-20211018143521-52829c8e1649 h1:/KxzEglcm5qF1h0saXE4Ks8y9+NIZLHBdHYsfVCpwuk=
+github.com/asraa/go-tuf v0.0.0-20211018143521-52829c8e1649/go.mod h1:BeoQvv7b+dWjjIWXghwBzUPEY5FZZua52JVbC6/maiw=
+github.com/asraa/go-tuf v0.0.0-20211018154110-b7b6ddad25b5 h1:1AUNRzQMlJV/rvCViSUrgTycbhdN0uitkclLAVNw6q8=
+github.com/asraa/go-tuf v0.0.0-20211018154110-b7b6ddad25b5/go.mod h1:BeoQvv7b+dWjjIWXghwBzUPEY5FZZua52JVbC6/maiw=
 github.com/aws/aws-lambda-go v1.13.3/go.mod h1:4UKl9IzQMoD+QF79YdCuzCwp8VbmG4VAQwij/eHl5CU=
 github.com/aws/aws-sdk-go v1.15.11/go.mod h1:mFuSZ37Z9YOHbQEwBWztmVzqXrEkub65tZoCYDt7FT0=
 github.com/aws/aws-sdk-go v1.15.27/go.mod h1:mFuSZ37Z9YOHbQEwBWztmVzqXrEkub65tZoCYDt7FT0=

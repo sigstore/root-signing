@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/peterbourgon/ff/v3/ffcli"
+	"github.com/pkg/errors"
 	pkeys "github.com/sigstore/root-signing/pkg/keys"
 	prepo "github.com/sigstore/root-signing/pkg/repo"
 	cjson "github.com/tent/canonical-json-go"
@@ -108,18 +109,35 @@ func InitCmd(ctx context.Context, directory, previous string, targets targetsFla
 				return err
 			}
 		}
-		if err := repo.SetThreshold("root", threshold); err != nil {
+		if err := repo.SetThreshold(role, threshold); err != nil {
 			return err
 		}
 	}
 
-	// Add online snapshot and timestamp keys with a shorter expiration.
+	// Revoke old root keys used for snapshot and timestamp and roles.
+	for _, role := range []string{"snapshot", "timestamp"} {
+		for _, tufKey := range keys {
+			// Revoke the offline root keys used in root signing v1 for snapshot and timestamp role.
+			// Revocation is done by specifying one of it's key IDs.
+			// The snapshot and timestamp roles in v2+ will be based on online signers on GCP KMS to
+			// facilitate staging project delegations between root signing events..
+			if err := repo.RevokeKey(role, tufKey.IDs()[0]); err != nil {
+				return errors.Wrap(err, "error revoking key")
+			}
+		}
+		if err := repo.SetThreshold(role, 1); err != nil {
+			return err
+		}
+	}
+	// Add online snapshot and timestamp keys with a shorter expiration of three weeks.
 	for role, keyRef := range map[string]string{"snapshot": snapshotRef, "timestamp": timestampRef} {
+		// Add new online keys
 		signerKey, err := pkeys.GetKmsSigningKey(ctx, keyRef)
 		if err != nil {
 			return err
 		}
-		if err := repo.AddVerificationKeyWithExpiration(role, signerKey.Key, time.Now().AddDate(0, 0, 14).UTC()); err != nil {
+		// Sets a three week (21 days) expiration.
+		if err := repo.AddVerificationKeyWithExpiration(role, signerKey.Key, time.Now().AddDate(0, 0, 21).UTC()); err != nil {
 			return err
 		}
 	}

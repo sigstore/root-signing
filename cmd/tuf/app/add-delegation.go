@@ -10,7 +10,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/pkg/errors"
 	pkeys "github.com/sigstore/root-signing/pkg/keys"
+	prepo "github.com/sigstore/root-signing/pkg/repo"
 	"github.com/theupdateframework/go-tuf/data"
 
 	"github.com/peterbourgon/ff/v3/ffcli"
@@ -77,6 +79,13 @@ func DelegationCmd(ctx context.Context, directory, name, path string, keyRefs ke
 		path = name
 	}
 
+	// Store signature placeholders
+	s, err := prepo.GetSignedMeta(store, "targets.json")
+	if err != nil {
+		return err
+	}
+	sigs := s.Signatures
+
 	keys := []*data.Key{}
 	ids := []string{}
 	for _, keyRef := range keyRefs {
@@ -100,7 +109,7 @@ func DelegationCmd(ctx context.Context, directory, name, path string, keyRefs ke
 		Paths:     []string{path},
 		Threshold: 1,
 	}, keys, expiration); err != nil {
-		return err
+		return errors.Wrap(err, "adding targets delegation")
 	}
 	relativePaths := []string{}
 	for _, target := range targets {
@@ -126,5 +135,18 @@ func DelegationCmd(ctx context.Context, directory, name, path string, keyRefs ke
 			return fmt.Errorf("error adding targets %w", err)
 		}
 	}
-	return repo.SetTargetsVersion(version)
+	if err := repo.SetTargetsVersion(version); err != nil {
+		return err
+	}
+
+	// Recover the blank signatures on targets
+	t, err := prepo.GetTargetsFromStore(store)
+	if err != nil {
+		return err
+	}
+	signed, err := jsonMarshal(t)
+	if err != nil {
+		return err
+	}
+	return setSignedMeta(store, "targets.json", &data.Signed{Signatures: sigs, Signed: signed})
 }

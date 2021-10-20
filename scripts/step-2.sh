@@ -24,7 +24,7 @@ git status
 # Sign the root and targets with hardware key
 ./tuf sign -repository $REPO -roles root -roles targets -sk
 
-git checkout -b sign-targets
+git checkout -b sign-root-targets
 git add ceremony/
 git commit -s -m "Signing root and targets for ${GITHUB_USER}"
 git push -f origin sign-root-targets

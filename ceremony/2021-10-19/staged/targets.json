@@ -4,14 +4,25 @@
 		"_type": "targets",
 		"delegations": {
 			"keys": {
-				"b6710623a30c010738e64c5209d367df1c0a18cf90e6ab5292fb01680f83453d": {
+				"ae0c689c6347ada7359df48934991f4e013193d6ddf3482a5ffb293f74f3b217": {
 					"keyid_hash_algorithms": [
 						"sha256",
 						"sha512"
 					],
 					"keytype": "ecdsa-sha2-nistp256",
 					"keyval": {
-						"public": "04fa1a3e42f2300cd3c5487a61509348feb1e936920fef2f83b7cd5dbe7ba045f538725ab8f18a666e6233edb7e0db8766c8dc336633449c5e1bbe0c182b02df0b"
+						"public": "043463588ae9df33a419d1099761245af52aaf7e638b2047bc0f739a62de9808c50a21ea8a1a273799f857f31a1bcb66e6661dd9d5ac7ac3ca260b0b8130c3fed8"
+					},
+					"scheme": "ecdsa-sha2-nistp256"
+				},
+				"b811bd53f2d7adcf5d93e6bb4a8ed2e0ca0f83d454a3e51f105c8e8376bc80d4": {
+					"keyid_hash_algorithms": [
+						"sha256",
+						"sha512"
+					],
+					"keytype": "ecdsa-sha2-nistp256",
+					"keyval": {
+						"public": "041b4b13a6e7110292d284c0dbfc3962a12d2a779a800c99aff59c6afe779296943c75d84aa5bad0be28e4061cf93e0cd3d372d9b2f75ea9f29b907cbccd82006f"
 					},
 					"scheme": "ecdsa-sha2-nistp256"
 				}
@@ -25,12 +36,12 @@
 					"paths": [
 						"rekor.*.pub"
 					],
-					"terminating": false,
+					"terminating": true,
 					"threshold": 1
 				},
 				{
 					"keyids": [
-						"b6710623a30c010738e64c5209d367df1c0a18cf90e6ab5292fb01680f83453d"
+						"b811bd53f2d7adcf5d93e6bb4a8ed2e0ca0f83d454a3e51f105c8e8376bc80d4"
 					],
 					"name": "staging",
 					"paths": [
@@ -41,7 +52,7 @@
 				}
 			]
 		},
-		"expires": "2022-04-08T16:57:25Z",
+		"expires": "2022-04-19T20:19:56Z",
 		"spec_version": "1.0",
 		"targets": {
 			"artifact.pub": {

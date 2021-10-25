@@ -3,9 +3,15 @@ name: Snapshot and Timestamp
 # Execute this as a biweekly cron job and on changes to repository/ 
 # when new published metadata is submitted.
 on:
-  # Enable cron when repository published with these keys. 
-  # schedule:
-  #   cron: '0 0 */14 * *' # every 14 days
+  # Enable cron for re-signing snapshot and timestamp every 2 weeks
+  schedule:
+     cron: '0 0 */14 * *' # every 14 days
+  # When a new root is staged
+  push:
+    branches:
+      - main
+    paths:
+      - 'repository/staged/root.json'
   workflow_dispatch:
 
 jobs:  
@@ -46,7 +52,7 @@ jobs:
         run: |
           sudo apt-get install libpcsclite-dev
           go build -o tuf -tags=pivkey ./cmd/tuf/
-      - name: snapshot
+      - name: snapshot and timestamp
         run: |
           ./tuf snapshot -repository $REPO
           ./tuf sign -repository $REPO -roles snapshot -key ${SNAPSHOT_KEY}
@@ -55,7 +61,6 @@ jobs:
       - name: publish
         run: |
           ./tuf publish -repository $REPO
-          ls $REPO/repository/
       - name: Upload snapshot and timestamp
         uses: 'actions/upload-artifact@v2'
         with:

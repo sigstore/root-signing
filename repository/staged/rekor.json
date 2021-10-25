@@ -1,0 +1,17 @@
+{
+	"signatures": null,
+	"signed": {
+		"_type": "targets",
+		"expires": "2022-04-19T20:19:52Z",
+		"spec_version": "1.0",
+		"targets": {
+			"rekor.0.pub": {
+				"hashes": {
+					"sha512": "0ae7705e02db33e814329746a4a0e5603c5bdcd91c96d072158d71011a2695788866565a2fec0fe363eb72cbcaeda39e54c5fe8d416daf9f3101fdba4217ef35"
+				},
+				"length": 178
+			}
+		},
+		"version": 1
+	}
+}

@@ -5,7 +5,7 @@ name: Snapshot and Timestamp
 on:
   # Enable cron for re-signing snapshot and timestamp every 2 weeks
   schedule:
-     cron: '0 0 */14 * *' # every 14 days
+    - cron: '0 0 */14 * *' # every 14 days
   # When a new root is staged
   push:
     branches:

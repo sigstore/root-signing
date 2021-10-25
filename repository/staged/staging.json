@@ -1,0 +1,10 @@
+{
+	"signatures": null,
+	"signed": {
+		"_type": "targets",
+		"expires": "2022-01-19T21:19:56Z",
+		"spec_version": "1.0",
+		"targets": {},
+		"version": 1
+	}
+}

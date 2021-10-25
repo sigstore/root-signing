@@ -1,0 +1,112 @@
+{
+	"signatures": [
+		{
+			"keyid": "2f64fb5eac0cf94dd39bb45308b98920055e9a0d8e012a7220787834c60aef97",
+			"sig": "3044022059e58db00b8131f5eb93f760f37dda02e3f1f5229130ff26b4526860c1350d5902200517cbbbfcc5df5869c25907f310aa356ae87ef4b8aba58a8b770cf71be922b9"
+		},
+		{
+			"keyid": "bdde902f5ec668179ff5ca0dabf7657109287d690bf97e230c21d65f99155c62",
+			"sig": "3044022056c075c8397b2e86dda820ffeae54906f4dd978c8fa78e3564f2ff268374253202207b3c999eb1efe496cc0d287fb7391a2d26c56f0e483c9bbc3ec93524819a50d7"
+		},
+		{
+			"keyid": "eaf22372f417dd618a46f6c627dbc276e9fd30a004fc94f9be946e73f8bd090b",
+			"sig": "304402200e736cfcaa19a6644fb42fddda848ab4231f0763c84ce230121e310bb85982630220598dd1bba8e8139e477a6b5a0242ff395b44746c2668e526f29aff4b3cfe1aee"
+		},
+		{
+			"keyid": "f40f32044071a9365505da3d1e3be6561f6f22d0e60cf51df783999f6c3429cb",
+			"sig": "304602210098dfe9980f465aee0fffeb16563e597a0f1a74f76fc1cfd720ed0697549192d50221009b9765eebd2fd7b51b1d652358b2349cb7fa38529ec7ad15ca081ccd74363999"
+		},
+		{
+			"keyid": "f505595165a177a41750a8e864ed1719b1edfccd5a426fd2c0ffda33ce7ff209",
+			"sig": "304502207d87c4f7543cc31b0841a54b441eb67b1cecba0c21f9d2f7a03174a7af5c5ed3022100d9b91db5b01c200d92dcf48729148868247b6ec3a38989aaabc713a285d0f9d4"
+		}
+	],
+	"signed": {
+		"_type": "targets",
+		"delegations": {
+			"keys": {
+				"ae0c689c6347ada7359df48934991f4e013193d6ddf3482a5ffb293f74f3b217": {
+					"keyid_hash_algorithms": [
+						"sha256",
+						"sha512"
+					],
+					"keytype": "ecdsa-sha2-nistp256",
+					"keyval": {
+						"public": "043463588ae9df33a419d1099761245af52aaf7e638b2047bc0f739a62de9808c50a21ea8a1a273799f857f31a1bcb66e6661dd9d5ac7ac3ca260b0b8130c3fed8"
+					},
+					"scheme": "ecdsa-sha2-nistp256"
+				},
+				"b811bd53f2d7adcf5d93e6bb4a8ed2e0ca0f83d454a3e51f105c8e8376bc80d4": {
+					"keyid_hash_algorithms": [
+						"sha256",
+						"sha512"
+					],
+					"keytype": "ecdsa-sha2-nistp256",
+					"keyval": {
+						"public": "041b4b13a6e7110292d284c0dbfc3962a12d2a779a800c99aff59c6afe779296943c75d84aa5bad0be28e4061cf93e0cd3d372d9b2f75ea9f29b907cbccd82006f"
+					},
+					"scheme": "ecdsa-sha2-nistp256"
+				}
+			},
+			"roles": [
+				{
+					"keyids": [
+						"ae0c689c6347ada7359df48934991f4e013193d6ddf3482a5ffb293f74f3b217"
+					],
+					"name": "rekor",
+					"paths": [
+						"rekor.*.pub"
+					],
+					"terminating": true,
+					"threshold": 1
+				},
+				{
+					"keyids": [
+						"b811bd53f2d7adcf5d93e6bb4a8ed2e0ca0f83d454a3e51f105c8e8376bc80d4"
+					],
+					"name": "staging",
+					"paths": [
+						"*"
+					],
+					"terminating": false,
+					"threshold": 1
+				}
+			]
+		},
+		"expires": "2022-04-19T20:19:56Z",
+		"spec_version": "1.0",
+		"targets": {
+			"artifact.pub": {
+				"hashes": {
+					"sha512": "308fd1d1d95d7f80aa33b837795251cc3e886792982275e062409e13e4e236ffc34d676682aa96fdc751414de99c864bf132dde71581fa651c6343905e3bf988"
+				},
+				"length": 177
+			},
+			"ctfe.pub": {
+				"hashes": {
+					"sha512": "4b20747d1afe2544238ad38cc0cc3010921b177d60ac743767e0ef675b915489bd01a36606c0ff83c06448622d7160f0d866c83d20f0c0f44653dcc3f9aa0bd4"
+				},
+				"length": 177
+			},
+			"fulcio.crt.pem": {
+				"hashes": {
+					"sha512": "100f563c94b14c09c61adbaa460e3caa49083662dfcc4ad0a07296e3e719d8b449a0c0ddad37775f32af69c3535629b83aa8c95286e32251ad99eed38fff69c3"
+				},
+				"length": 768
+			},
+			"fulcio_v1.crt.pem": {
+				"hashes": {
+					"sha512": "f2e33a6dc208cee1f51d33bbea675ab0f0ced269617497985f9a0680689ee7073e4b6f8fef64c91bda590d30c129b3070dddce824c05bc165ac9802f0705cab6"
+				},
+				"length": 740
+			},
+			"rekor.pub": {
+				"hashes": {
+					"sha512": "0ae7705e02db33e814329746a4a0e5603c5bdcd91c96d072158d71011a2695788866565a2fec0fe363eb72cbcaeda39e54c5fe8d416daf9f3101fdba4217ef35"
+				},
+				"length": 178
+			}
+		},
+		"version": 2
+	}
+}

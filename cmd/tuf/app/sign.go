@@ -170,10 +170,6 @@ func SignMeta(ctx context.Context, store tuf.LocalStore, name string, signer sig
 		return err
 	}
 
-	if s.Signatures == nil {
-		// init-repo should have pre-populated these. don't lose them.
-		return errors.New("pre-entries not defined")
-	}
 	sigs := make([]data.Signature, 0, len(s.Signatures))
 
 	// Add it to your key entry

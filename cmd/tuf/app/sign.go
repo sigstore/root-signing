@@ -174,15 +174,23 @@ func SignMeta(ctx context.Context, store tuf.LocalStore, name string, signer sig
 
 	// Add it to your key entry
 	for _, id := range key.IDs() {
-		for _, entry := range s.Signatures {
-			if entry.KeyID == id {
-				sigs = append(sigs, data.Signature{
-					KeyID:     id,
-					Signature: sig,
-				})
-			} else {
-				sigs = append(sigs, entry)
+		// If pre-entries are defined.
+		if s.Signatures != nil {
+			for _, entry := range s.Signatures {
+				if entry.KeyID == id {
+					sigs = append(sigs, data.Signature{
+						KeyID:     id,
+						Signature: sig,
+					})
+				} else {
+					sigs = append(sigs, entry)
+				}
 			}
+		} else {
+			sigs = append(sigs, data.Signature{
+				KeyID:     id,
+				Signature: sig,
+			})
 		}
 	}
 

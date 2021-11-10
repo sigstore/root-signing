@@ -71,7 +71,7 @@ but will default to the name if unspecified.
 func DelegationCmd(ctx context.Context, directory, name, path string, keyRefs keysFlag, targets targetsFlag) error {
 	store := tuf.FileSystemStore(directory, nil)
 
-	repo, err := tuf.NewRepoIndent(store, "", "\t")
+	repo, err := tuf.NewRepoIndent(store, "", "\t", "sha512", "sha256")
 	if err != nil {
 		return err
 	}

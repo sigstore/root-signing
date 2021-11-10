@@ -37,7 +37,7 @@ func Timestamp() *ffcli.Command {
 func TimestampCmd(ctx context.Context, directory string) error {
 	store := tuf.FileSystemStore(directory, nil)
 
-	repo, err := tuf.NewRepoIndent(store, "", "\t")
+	repo, err := tuf.NewRepoIndent(store, "", "\t", "sha512", "sha256")
 	if err != nil {
 		return err
 	}

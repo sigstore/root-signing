@@ -79,7 +79,7 @@ func Init() *ffcli.Command {
 func InitCmd(ctx context.Context, directory, previous string, targets targetsFlag, snapshotRef string, timestampRef string) error {
 	// TODO: Validate directory is a good path.
 	store := tuf.FileSystemStore(directory, nil)
-	repo, err := tuf.NewRepo(store)
+	repo, err := tuf.NewRepoIndent(store, "", "\t", "sha512", "sha256")
 	if err != nil {
 		return err
 	}

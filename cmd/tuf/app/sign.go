@@ -5,7 +5,6 @@ package app
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -150,17 +149,17 @@ func SignMeta(ctx context.Context, store tuf.LocalStore, name string, signer sig
 	if err != nil {
 		return err
 	}
-	if name == "root" || name == "targets" && s.Signatures == nil {
+	if (name == "root.json" || name == "targets.json") && s.Signatures == nil {
 		// init-repo should have pre-populated these. don't lose them.
 		return errors.New("pre-entries not defined")
 	}
 
 	// Sign payload
-	var decoded map[string]interface{}
-	if err := json.Unmarshal(s.Signed, &decoded); err != nil {
+	meta, err := repo.GetMetaFromStore(s.Signed, name)
+	if err != nil {
 		return err
 	}
-	msg, err := cjson.Marshal(decoded)
+	msg, err := cjson.Marshal(meta)
 	if err != nil {
 		return err
 	}

@@ -7,10 +7,10 @@ if [ -z "$GITHUB_USER" ]; then
     echo "Set GITHUB_USER"
     exit
 fi
-if [ -z "$CEREMONY_DATE" ]; then
-    CEREMONY_DATE=$(date '%Y-%m-%d')
+if [ -z "$REPO" ]; then
+    REPO=$(pwd)/ceremony/$(date '%Y-%m-%d')
+    echo "Using default REPO $REPO"
 fi
-export REPO=$(pwd)/ceremony/$CEREMONY_DATE
 
 # Dump the git state
 git checkout main

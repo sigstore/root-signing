@@ -18,7 +18,7 @@ jobs:
         with:
           fetch-depth: 0
       - run: |
-          echo "REPO=$(pwd)/ceremony/$(date '+%Y-%m-%d')" >> $GITHUB_ENV
+          echo "REPO=$(pwd)/repository" >> $GITHUB_ENV
       - uses: actions/setup-go@v2
         with:
           go-version: '1.16.4'
@@ -27,4 +27,4 @@ jobs:
       - name: build
         run: go build -o verify ./cmd/verify/
       - name: verify
-        run: ./verify --root piv-attestation-ca.pem --repository $REPO
+        run: ./verify --root piv-attestation-ca.pem --repository $REPO --tuf-root $REPO/repository/1.root.json

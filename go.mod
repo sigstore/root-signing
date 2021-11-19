@@ -24,4 +24,4 @@ require (
 	golang.org/x/term v0.0.0-20210615171337-6886f2dfbf5b
 )
 
-replace github.com/theupdateframework/go-tuf => github.com/asraa/go-tuf v0.0.0-20211018154110-b7b6ddad25b5
+replace github.com/theupdateframework/go-tuf => github.com/asraa/go-tuf v0.0.0-20211118155909-342063f69dee

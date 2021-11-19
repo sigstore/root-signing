@@ -2,7 +2,6 @@ package repo
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 
 	"github.com/theupdateframework/go-tuf"
@@ -78,14 +77,13 @@ func GetMetaFromStore(msg []byte, name string) (interface{}, error) {
 	switch name {
 	case "root.json":
 		meta = &data.Root{}
-	case "targets.json":
-		meta = &data.Targets{}
 	case "snapshot.json":
 		meta = &data.Snapshot{}
 	case "timestamp.json":
 		meta = &data.Timestamp{}
 	default:
-		return nil, errors.New("invalid meta name " + name)
+		// Targets and delegated roles
+		meta = &data.Targets{}
 	}
 	if err := json.Unmarshal(msg, meta); err != nil {
 		return nil, err

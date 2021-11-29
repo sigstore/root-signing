@@ -5,10 +5,12 @@ on:
     branches: [ main ]
     paths:
       - 'ceremony/**'
+      - 'repository/**'
   pull_request:
     branches: [ main ]
     paths:
       - 'ceremony/**'
+      - 'repository/**'
 
 jobs:  
   validate:

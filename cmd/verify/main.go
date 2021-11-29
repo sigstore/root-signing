@@ -168,26 +168,22 @@ func main() {
 		os.Exit(1)
 	}
 
-	if _, err := os.Stat(*repository + "/keys"); os.IsNotExist(err) {
-		// Fail gracefully here in case you run verification before keys are added
-		log.Printf("keys not initialized yet")
-		return
-	}
-
-	// Verify signing keys
-	keyMap, err := verifySigningKeys(*repository+"/keys", rootCA)
-	if err != nil {
-		log.Printf("error verifying signing keys: %s", err)
-		os.Exit(1)
-	}
-
-	// Verify staged metadata in the repository
-	if _, err := os.Stat(*repository + "/staged"); err == nil {
-		if err := verifyMetadata(*repository, *keyMap); err != nil {
+	if _, err := os.Stat(*repository + "/keys"); !os.IsNotExist(err) {
+		// Verify signing keys
+		keyMap, err := verifySigningKeys(*repository+"/keys", rootCA)
+		if err != nil {
 			log.Printf("error verifying signing keys: %s", err)
 			os.Exit(1)
 		}
-		return
+
+		// Verify staged metadata in the repository
+		if _, err := os.Stat(*repository + "/staged"); err == nil {
+			if err := verifyMetadata(*repository, *keyMap); err != nil {
+				log.Printf("error verifying signing keys: %s", err)
+				os.Exit(1)
+			}
+			return
+		}
 	}
 
 	// If we have a finalized "/repository/1.root.json", test that go-tuf client accepts this

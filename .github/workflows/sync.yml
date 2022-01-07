@@ -38,5 +38,7 @@ jobs:
           gcloud auth login --brief --cred-file="${{ steps.auth.outputs.credentials_file_path }}"
           gcloud auth list
       # Sync  
+      # TODO(asraa): Use a stable API or switch to gsutil cp when gsutil supports  workload identity federation
       - name: sync
-        run: gsutil cp -r repository/repository/* gs://sigstore-tuf-root/
+        run: | 
+          gcloud alpha storage cp -r repository/repository/* gs://sigstore-tuf-root/

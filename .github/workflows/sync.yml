@@ -41,4 +41,4 @@ jobs:
       # TODO(asraa): Use a stable API or switch to gsutil cp when gsutil supports  workload identity federation
       - name: sync
         run: | 
-          gcloud alpha storage cp -r repository/repository/* gs://sigstore-tuf-root/
+          gcloud alpha storage cp -r repository/repository/* gs://sigstore-tuf-root/ --quiet

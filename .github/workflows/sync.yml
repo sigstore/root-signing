@@ -22,10 +22,10 @@ jobs:
       - uses: actions/setup-go@v2
         with:
           go-version: 1.17.x
-      - uses: 'google-github-actions/setup-gcloud@489ab62c6e3c1ced7dd3ee7ae435591181cf8526' #v0.3.0+
+      - uses: 'google-github-actions/setup-gcloud@v0.4.0'
         with:
           project_id: project-rekor
-          install_components: alpha, beta
+          install_components: alpha
       # Setup OIDC->SA auth
       - uses: 'google-github-actions/auth@v0.3.0'
         id: auth
@@ -42,4 +42,4 @@ jobs:
       # TODO(asraa): Use a stable API or switch to gsutil cp when gsutil supports  workload identity federation
       - name: sync
         run: | 
-          gcloud alpha storage cp -r repository/repository/* gs://sigstore-tuf-root/ --quiet
+          gcloud alpha --quiet storage cp -r repository/repository/* gs://sigstore-tuf-root/

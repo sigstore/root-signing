@@ -35,7 +35,7 @@ jobs:
         with:
           project_id: project-rekor
       # Setup OIDC->SA auth
-      - uses: 'google-github-actions/auth@v0.3.0'
+      - uses: 'google-github-actions/auth@v0.4.4'
         id: auth
         with:
           token_format: 'access_token'

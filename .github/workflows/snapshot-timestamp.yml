@@ -20,7 +20,7 @@ jobs:
     permissions:
       id-token: 'write'
     steps:
-      - uses: actions/checkout@v2.3.4
+      - uses: actions/checkout@v2.4.0
         with:
           fetch-depth: 0
       - name: setup
@@ -72,7 +72,7 @@ jobs:
     needs: snapshot_and_timestamp
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2.3.4
+      - uses: actions/checkout@v2.4.0
         with:
           fetch-depth: 0
       - uses: 'actions/download-artifact@v2'

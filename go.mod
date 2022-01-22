@@ -13,7 +13,7 @@ require (
 	github.com/aws/aws-sdk-go v1.40.43 // indirect
 	github.com/cenkalti/backoff/v3 v3.2.2 // indirect
 	github.com/mitchellh/mapstructure v1.4.2 // indirect
-	github.com/peterbourgon/ff/v3 v3.1.0
+	github.com/peterbourgon/ff/v3 v3.1.2
 	github.com/pkg/errors v0.9.1
 	github.com/sigstore/cosign v1.1.0
 	github.com/sigstore/sigstore v0.0.0-20210729211320-56a91f560f44

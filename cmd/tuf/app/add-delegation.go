@@ -86,7 +86,7 @@ func DelegationCmd(ctx context.Context, directory, name, path string, keyRefs ke
 	}
 	sigs := s.Signatures
 
-	keys := []*data.Key{}
+	keys := []*data.PublicKey{}
 	ids := []string{}
 	for _, keyRef := range keyRefs {
 		signerKey, err := pkeys.GetKmsSigningKey(ctx, keyRef)

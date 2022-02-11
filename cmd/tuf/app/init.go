@@ -198,7 +198,7 @@ func setSignedMeta(store tuf.LocalStore, role string, s *data.Signed) error {
 	return store.SetMeta(role, b)
 }
 
-func setMetaWithSigKeyIDs(store tuf.LocalStore, role string, meta interface{}, keys []*data.Key) error {
+func setMetaWithSigKeyIDs(store tuf.LocalStore, role string, meta interface{}, keys []*data.PublicKey) error {
 	signed, err := jsonMarshal(meta)
 	if err != nil {
 		return err
@@ -232,12 +232,12 @@ func jsonMarshal(v interface{}) ([]byte, error) {
 	return out.Bytes(), nil
 }
 
-func getKeysFromDir(dir string) ([]*data.Key, error) {
+func getKeysFromDir(dir string) ([]*data.PublicKey, error) {
 	files, err := ioutil.ReadDir(dir)
 	if err != nil {
 		return nil, err
 	}
-	var tufKeys []*data.Key
+	var tufKeys []*data.PublicKey
 	for _, file := range files {
 		if file.IsDir() {
 			key, err := pkeys.SigningKeyFromDir(filepath.Join(dir, file.Name()))

@@ -1,0 +1,44 @@
+name: Root Monitor
+
+# Execute this as a daily cron job.
+on:
+  # Enable cron for re-signing snapshot and timestamp every week
+  schedule:
+    - cron: '0 0 */1 * *' # every day
+  workflow_dispatch:
+
+jobs:
+  root-probe:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/setup-go@v2
+        with:
+          go-version: 1.17.7
+      - name: Install verify
+        run: go install github.com/sigstore/root-signing/...@latest
+
+      # Check expiration in less than 3 days
+      - name: Check expiration
+        run: |
+          export EXPIRY=$(date -d '+3 days' '+%Y/%m/%d')
+          verify repository --gcs --repository sigstore-tuf-root --root ceremony/2021-06-18/repository/root.json --valid-until ${EXPIRY}
+
+  slack-notification:
+    name: Slack Notification On Failure
+    runs-on: ubuntu-latest
+
+    needs: [root-probe]
+    if: always() && (needs.root-probe.result == 'failure')
+
+    steps:
+    - name: Set message
+      run: |
+        echo "root_state=failure" >> $GITHUB_ENV
+    - name: Slack Notification
+      uses: rtCamp/action-slack-notify@v2
+      env:
+        SLACK_USERNAME: Sigstore probe
+        SLACK_ICON: https://next.redhat.com/wp-content/uploads/2021/10/Symbol_200x200.png
+        SLACK_COLOR: '#d40404' # red
+        SLACK_MESSAGE: "GCS Root: ${{ env.root_state }}"
+        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}

@@ -108,7 +108,7 @@ func checkMetaForRole(store tuf.LocalStore, role []string) error {
 
 func getSigner(ctx context.Context, sk bool, keyRef string) (*keys.SignerAndTufKey, error) {
 	if sk {
-		// This will give us the data.Key with the correct id.
+		// This will give us the data.PublicKey with the correct id.
 		keyAndAttestations, err := GetKeyAndAttestation(ctx)
 		if err != nil {
 			return nil, err
@@ -143,7 +143,7 @@ func SignCmd(ctx context.Context, directory string, roles []string, signer *keys
 	return nil
 }
 
-func SignMeta(ctx context.Context, store tuf.LocalStore, name string, signer signature.Signer, key *data.Key) error {
+func SignMeta(ctx context.Context, store tuf.LocalStore, name string, signer signature.Signer, key *data.PublicKey) error {
 	fmt.Printf("Signing metadata for %s... \n", name)
 	s, err := repo.GetSignedMeta(store, name)
 	if err != nil {

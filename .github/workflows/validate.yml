@@ -8,9 +8,6 @@ on:
       - 'repository/**'
   pull_request:
     branches: [ main ]
-    paths:
-      - 'ceremony/**'
-      - 'repository/**'
 
 jobs:  
   validate:
@@ -28,5 +25,7 @@ jobs:
         run: curl -fsO https://developers.yubico.com/PIV/Introduction/piv-attestation-ca.pem
       - name: build
         run: go build -o verify ./cmd/verify/
+        - name: build
+        run: go build -o tuf -tags=pivkey ./cmd/tuf
       - name: verify
         run: ./verify --root piv-attestation-ca.pem --repository $REPO --tuf-root $REPO/repository/1.root.json

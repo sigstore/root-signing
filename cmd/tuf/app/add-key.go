@@ -1,4 +1,3 @@
-//go:build pivkey
 // +build pivkey
 
 package app
@@ -49,7 +48,7 @@ func AddKey() *ffcli.Command {
 
 type KeyAndAttestations struct {
 	attestations pivcli.Attestations
-	key          *data.PublicKey
+	key          *data.Key
 }
 
 func GetKeyAndAttestation(ctx context.Context) (*KeyAndAttestations, error) {
@@ -59,7 +58,7 @@ func GetKeyAndAttestation(ctx context.Context) (*KeyAndAttestations, error) {
 	}
 
 	pub := attestations.KeyCert.PublicKey.(*ecdsa.PublicKey)
-	pk := &data.PublicKey{
+	pk := &data.Key{
 		Type:       data.KeyTypeECDSA_SHA2_P256,
 		Scheme:     data.KeySchemeECDSA_SHA2_P256,
 		Algorithms: data.KeyAlgorithms,

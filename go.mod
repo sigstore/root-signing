@@ -5,7 +5,7 @@ go 1.16
 require (
 	github.com/peterbourgon/ff/v3 v3.1.2
 	github.com/pkg/errors v0.9.1
-	github.com/sigstore/cosign v1.5.1
+	github.com/sigstore/cosign v1.5.2
 	github.com/sigstore/sigstore v1.1.1-0.20220130134424-bae9b66b8442
 	github.com/spf13/cobra v1.3.0
 	github.com/spf13/viper v1.10.1

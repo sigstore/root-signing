@@ -3,11 +3,11 @@ name: Sync Repository with GCS
 # Execute this on changes to repository/repository/
 on:
   # When a new root is published.
-  push:
-    branches:
-      - main
-    paths:
-      - 'repository/repository/**'
+  # push:
+  #   branches:
+  #     - main
+  #   paths:
+  #     - 'repository/repository/**'
   workflow_dispatch:
 
 jobs:  

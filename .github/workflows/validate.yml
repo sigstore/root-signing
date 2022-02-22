@@ -28,4 +28,7 @@ jobs:
         - name: build
         run: go build -o tuf -tags=pivkey ./cmd/tuf
       - name: verify
-        run: ./verify --root piv-attestation-ca.pem --repository $REPO --tuf-root $REPO/repository/1.root.json
+        run: |
+          ./verify keys --root piv-attestation-ca.pem --key-directory $REPO/keys
+          ./verify repository --repository $REPO --root $REPO/repository/1.root.json
+

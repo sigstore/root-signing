@@ -8,6 +8,7 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/x509"
+	"encoding/json"
 	"encoding/pem"
 	"flag"
 	"fmt"
@@ -59,11 +60,15 @@ func GetKeyAndAttestation(ctx context.Context) (*KeyAndAttestations, error) {
 	}
 
 	pub := attestations.KeyCert.PublicKey.(*ecdsa.PublicKey)
+	keyValBytes, err := json.Marshal(ecdsaPublic{PublicKey: elliptic.Marshal(pub.Curve, pub.X, pub.Y)})
+	if err != nil {
+		return nil, err
+	}
 	pk := &data.PublicKey{
 		Type:       data.KeyTypeECDSA_SHA2_P256,
 		Scheme:     data.KeySchemeECDSA_SHA2_P256,
-		Algorithms: data.KeyAlgorithms,
-		Value:      data.KeyValue{Public: elliptic.Marshal(pub.Curve, pub.X, pub.Y)},
+		Algorithms: data.HashAlgorithms,
+		Value:      keyValBytes,
 	}
 
 	return &KeyAndAttestations{attestations: *attestations, key: pk}, nil
@@ -95,6 +100,10 @@ func AddKeyCmd(ctx context.Context, directory string) error {
 
 	// Write to repository/keys/SERIAL_NUM/SERIAL_NUM_pubkey.pem, etc
 	return WriteKeyData(keyAndAttestations, directory)
+}
+
+type ecdsaPublic struct {
+	PublicKey data.HexBytes `json:"public"`
 }
 
 func WriteKeyData(keyAndAttestations *KeyAndAttestations, directory string) error {

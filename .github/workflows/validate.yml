@@ -21,14 +21,15 @@ jobs:
       - uses: actions/setup-go@v2
         with:
           go-version: '1.16.4'
-      - name: root
-        run: curl -fsO https://developers.yubico.com/PIV/Introduction/piv-attestation-ca.pem
+      - name: install deps
+        run: | 
+          sudo apt-get install libpcsclite-dev
+          curl -fsO https://developers.yubico.com/PIV/Introduction/piv-attestation-ca.pem
       - name: build
         run: go build -o verify ./cmd/verify/
-        - name: build
+      - name: build
         run: go build -o tuf -tags=pivkey ./cmd/tuf
       - name: verify
         run: |
-          ./verify keys --root piv-attestation-ca.pem --key-directory $REPO/keys
           ./verify repository --repository $REPO --root $REPO/repository/1.root.json
 

@@ -18,6 +18,7 @@ jobs:
           fetch-depth: 0
       - run: |
           echo "REPO=$(pwd)/repository" >> $GITHUB_ENV
+          echo "GCS_REPO=https://storage.googleapis.com/sigstore-tuf-root" >> $GITHUB_ENV
       - uses: actions/setup-go@v2
         with:
           go-version: '1.16.4'
@@ -29,6 +30,8 @@ jobs:
         run: go build -o verify ./cmd/verify/
       - name: build
         run: go build -o tuf -tags=pivkey ./cmd/tuf
-      - name: verify
-        run: ./verify --root piv-attestation-ca.pem --repository $REPO --tuf-root $REPO/repository/1.root.json
+      - name: verify local published repository 
+        run: ./verify repository --repository $REPO --root $(pwd)/ceremony/2021-06-18/repository/root.json
+      - name: verify GCS remote published repository
+        run: ./verify repository --repository $GCS_REPO --root $(pwd)/ceremony/2021-06-18/repository/root.json
 

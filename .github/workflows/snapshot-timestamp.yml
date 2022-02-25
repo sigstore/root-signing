@@ -20,7 +20,7 @@ jobs:
     permissions:
       id-token: 'write'
     steps:
-      - uses: actions/checkout@v2.4.0
+      - uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579 # v2.4.0
         with:
           fetch-depth: 0
       - name: setup
@@ -28,14 +28,14 @@ jobs:
           echo "REPO=$(pwd)/repository/" >> $GITHUB_ENV
           echo "SNAPSHOT_KEY=gcpkms://projects/project-rekor/locations/global/keyRings/sigstore-root/cryptoKeys/snapshot" >> $GITHUB_ENV
           echo "TIMESTAMP_KEY=gcpkms://projects/project-rekor/locations/global/keyRings/sigstore-root/cryptoKeys/timestamp" >> $GITHUB_ENV
-      - uses: actions/setup-go@v2
+      - uses: actions/setup-go@bfdd3570ce990073878bf10f6b2d79082de49492 # v2.2.0
         with:
           go-version: 1.17.x
-      - uses: 'google-github-actions/setup-gcloud@v0.5.1'
+      - uses: google-github-actions/setup-gcloud@04141d8a7edfc8c679682f23e7bbbe05cbe32bb3 # v0.5.1
         with:
           project_id: project-rekor
       # Setup OIDC->SA auth
-      - uses: 'google-github-actions/auth@v0.6.0'
+      - uses: google-github-actions/auth@8d125895b958610ec414ca4dae010257eaa814d3 # v0.6.0
         id: auth
         with:
           token_format: 'access_token'
@@ -62,7 +62,7 @@ jobs:
         run: |
           ./tuf publish -repository $REPO
       - name: Upload snapshot and timestamp
-        uses: 'actions/upload-artifact@v2'
+        uses: actions/upload-artifact@82c141cc518b40d92cc801eee768e7aafc9c2fa2 # v2.3.1
         with:
           name: snapshot-and-timestamp
           path: repository/repository/
@@ -72,16 +72,16 @@ jobs:
     needs: snapshot_and_timestamp
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2.4.0
+      - uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579 # v2.4.0
         with:
           fetch-depth: 0
-      - uses: 'actions/download-artifact@v2'
+      - uses: actions/download-artifact@f023be2c48cc18debc3bacd34cb396e0295e2869 # v2.1.0
         with:
           name: snapshot-and-timestamp
           path: repository/repository/
       # Open pull request changes
       - name: create pull request
-        uses: 'peter-evans/create-pull-request@v3'
+        uses: peter-evans/create-pull-request@f22a7da129c901513876a2380e2dae9f8e145330 # v3.12.1
         with:
           commit-message: update snapshot and timestamp
           title: Update Snapshot and Timestamp

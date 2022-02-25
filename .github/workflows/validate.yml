@@ -9,28 +9,28 @@ on:
   pull_request:
     branches: [ main ]
 
-jobs:  
+jobs:
   validate:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2.4.0
+      - uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579 # v2.4.0
         with:
           fetch-depth: 0
       - run: |
           echo "REPO=$(pwd)/repository" >> $GITHUB_ENV
           echo "GCS_REPO=https://storage.googleapis.com/sigstore-tuf-root" >> $GITHUB_ENV
-      - uses: actions/setup-go@v2
+      - uses: actions/setup-go@bfdd3570ce990073878bf10f6b2d79082de49492 # v2.2.0
         with:
           go-version: '1.16.4'
       - name: install deps
-        run: | 
+        run: |
           sudo apt-get install libpcsclite-dev
           curl -fsO https://developers.yubico.com/PIV/Introduction/piv-attestation-ca.pem
       - name: build
         run: go build -o verify ./cmd/verify/
       - name: build
         run: go build -o tuf -tags=pivkey ./cmd/tuf
-      - name: verify local published repository 
+      - name: verify local published repository
         run: ./verify repository --repository $REPO --root $(pwd)/ceremony/2021-06-18/repository/root.json
       - name: verify GCS remote published repository
         run: ./verify repository --repository $GCS_REPO --root $(pwd)/ceremony/2021-06-18/repository/root.json

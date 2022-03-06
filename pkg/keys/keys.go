@@ -21,6 +21,9 @@ import (
 	"github.com/sigstore/sigstore/pkg/signature/kms"
 	"github.com/sigstore/sigstore/pkg/signature/options"
 	"github.com/theupdateframework/go-tuf/data"
+
+	// Register the provider-specific plugins
+	_ "github.com/sigstore/sigstore/pkg/signature/kms/gcp"
 )
 
 // See https://developers.yubico.com/PIV/Introduction/PIV_attestation.html

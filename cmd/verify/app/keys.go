@@ -47,7 +47,10 @@ func toCert(filename string) (*x509.Certificate, error) {
 type KeyMap map[string]*keys.SigningKey
 
 func getKeyID(key keys.SigningKey) (*string, error) {
-	pk := keys.ToTufKey(key)
+	pk, err := keys.ToTufKey(key)
+	if err != nil {
+		return nil, err
+	}
 	if len(pk.IDs()) == 0 {
 		return nil, errors.New("error getting key ID")
 	}

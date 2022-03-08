@@ -10,8 +10,10 @@ require (
 	github.com/spf13/cobra v1.3.0
 	github.com/spf13/viper v1.10.1
 	github.com/tent/canonical-json-go v0.0.0-20130607151641-96e4ba3a7613
-	github.com/theupdateframework/go-tuf v0.0.0-20220211205608-f0c3294f63b9
+	github.com/theupdateframework/go-tuf v0.1.0
+	golang.org/x/crypto v0.0.0-20220214200702-86341886e292 // indirect
+	golang.org/x/sys v0.0.0-20220227234510-4e6760a101f9 // indirect
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211
 )
 
-replace github.com/theupdateframework/go-tuf => github.com/asraa/go-tuf v0.0.0-20211118155909-342063f69dee
+replace github.com/theupdateframework/go-tuf => github.com/mnm678/go-tuf v0.0.0-20220304223310-cbf366a5642a

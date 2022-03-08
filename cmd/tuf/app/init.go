@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/peterbourgon/ff/v3/ffcli"
-	"github.com/pkg/errors"
 	pkeys "github.com/sigstore/root-signing/pkg/keys"
 	prepo "github.com/sigstore/root-signing/pkg/repo"
 	cjson "github.com/tent/canonical-json-go"
@@ -98,15 +97,32 @@ func InitCmd(ctx context.Context, directory, previous string, targets targetsFla
 		return err
 	}
 
-	// Add the keys we just provisioned to root and targets
+	// Add the keys we just provisioned to root and targets and revoke any removed ones.
+	root, err := prepo.GetRootFromStore(store)
+	if err != nil {
+		return err
+	}
 	keys, err := getKeysFromDir(directory + "/keys")
 	if err != nil {
 		return err
 	}
 	for _, role := range []string{"root", "targets"} {
+		currentKeyMap := map[string]bool{}
 		for _, tufKey := range keys {
+			currentKeyMap[tufKey.IDs()[0]] = true
 			if err := repo.AddVerificationKeyWithExpiration(role, tufKey, expiration); err != nil {
 				return err
+			}
+		}
+		// Revoke any keys that we've rotated out
+		oldKeys, ok := root.Roles[role]
+		if ok {
+			for _, oldKeyID := range oldKeys.KeyIDs {
+				if _, ok := currentKeyMap[oldKeyID]; !ok {
+					if err := repo.RevokeKey(role, oldKeyID); err != nil {
+						return err
+					}
+				}
 			}
 		}
 		if err := repo.SetThreshold(role, threshold); err != nil {
@@ -114,30 +130,36 @@ func InitCmd(ctx context.Context, directory, previous string, targets targetsFla
 		}
 	}
 
-	// Revoke old root keys used for snapshot and timestamp and roles.
-	for _, role := range []string{"snapshot", "timestamp"} {
-		for _, tufKey := range keys {
-			// Revoke the offline root keys used in root signing v1 for snapshot and timestamp role.
-			// Revocation is done by specifying one of it's key IDs.
-			// The snapshot and timestamp roles in v2+ will be based on online signers on GCP KMS to
-			// facilitate staging project delegations between root signing events..
-			if err := repo.RevokeKey(role, tufKey.IDs()[0]); err != nil {
-				return errors.Wrap(err, "error revoking key")
-			}
-		}
-		if err := repo.SetThreshold(role, 1); err != nil {
-			return err
-		}
-	}
-	// Add online snapshot and timestamp keys with a shorter expiration of three weeks.
+	// Revoke old root keys used for snapshot and timestamp and roles and add new keys.
 	for role, keyRef := range map[string]string{"snapshot": snapshotRef, "timestamp": timestampRef} {
-		// Add new online keys
 		signerKey, err := pkeys.GetKmsSigningKey(ctx, keyRef)
 		if err != nil {
 			return err
 		}
+
+		currentKeys, ok := root.Roles[role]
+		if ok {
+			for _, oldKeyID := range currentKeys.KeyIDs {
+				if oldKeyID == signerKey.Key.IDs()[0] {
+					// This is the signers we want to keep.
+					continue
+				}
+				// Revoke the offline root keys used in root signing v1 for snapshot and timestamp role.
+				// Revocation is done by specifying one of it's key IDs.
+				// The snapshot and timestamp roles in v2+ will be based on online signers on GCP KMS to
+				// facilitate staging project delegations between root signing events..
+				if err := repo.RevokeKey(role, oldKeyID); err != nil {
+					continue
+				}
+			}
+		}
+
 		// Sets a three week (21 days) expiration.
 		if err := repo.AddVerificationKeyWithExpiration(role, signerKey.Key, time.Now().AddDate(0, 0, 21).UTC()); err != nil {
+			return err
+		}
+
+		if err := repo.SetThreshold(role, 1); err != nil {
 			return err
 		}
 	}
@@ -163,7 +185,7 @@ func InitCmd(ctx context.Context, directory, previous string, targets targetsFla
 		relativePaths = append(relativePaths, base)
 	}
 
-	if err := repo.AddTargetsWithExpires(relativePaths, nil, expiration); err != nil {
+	if err := repo.AddTargetsWithExpiresToPreferredRole(relativePaths, nil, expiration, "targets"); err != nil {
 		return fmt.Errorf("error adding targets %w", err)
 	}
 	if err := repo.SetThreshold("targets", threshold); err != nil {
@@ -181,7 +203,7 @@ func InitCmd(ctx context.Context, directory, previous string, targets targetsFla
 
 	// We manually increment the root version in case adding the verification keys did not
 	// increment the root version (because of no change).
-	root, err := prepo.GetRootFromStore(store)
+	root, err = prepo.GetRootFromStore(store)
 	if err != nil {
 		return err
 	}
@@ -198,7 +220,7 @@ func setSignedMeta(store tuf.LocalStore, role string, s *data.Signed) error {
 	return store.SetMeta(role, b)
 }
 
-func setMetaWithSigKeyIDs(store tuf.LocalStore, role string, meta interface{}, keys []*data.Key) error {
+func setMetaWithSigKeyIDs(store tuf.LocalStore, role string, meta interface{}, keys []*data.PublicKey) error {
 	signed, err := jsonMarshal(meta)
 	if err != nil {
 		return err
@@ -232,19 +254,23 @@ func jsonMarshal(v interface{}) ([]byte, error) {
 	return out.Bytes(), nil
 }
 
-func getKeysFromDir(dir string) ([]*data.Key, error) {
+func getKeysFromDir(dir string) ([]*data.PublicKey, error) {
 	files, err := ioutil.ReadDir(dir)
 	if err != nil {
 		return nil, err
 	}
-	var tufKeys []*data.Key
+	var tufKeys []*data.PublicKey
 	for _, file := range files {
 		if file.IsDir() {
 			key, err := pkeys.SigningKeyFromDir(filepath.Join(dir, file.Name()))
 			if err != nil {
 				return nil, err
 			}
-			tufKeys = append(tufKeys, pkeys.ToTufKey(*key))
+			tufKey, err := pkeys.ToTufKey(*key)
+			if err != nil {
+				return nil, err
+			}
+			tufKeys = append(tufKeys, tufKey)
 		}
 	}
 	return tufKeys, err

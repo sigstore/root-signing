@@ -121,7 +121,7 @@ var (
 	expiration string
 )
 
-func getKeysAndThreshold(clocal client.LocalStore) ([]*data.Key, int, error) {
+func getKeysAndThreshold(clocal client.LocalStore) ([]*data.PublicKey, int, error) {
 	// TODO: Remove when InitLocal is added to TUF client
 	meta, err := clocal.GetMeta()
 	if err != nil {

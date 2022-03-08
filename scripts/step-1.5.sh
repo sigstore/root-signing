@@ -34,6 +34,12 @@ export REPO=$(pwd)/ceremony/$CEREMONY_DATE
 
 # Copy the previous keys and repository into the new repository.
 cp -r ${PREV_REPO}/* ${REPO}
+mkdir ${REPO}/staged
+# Remove a key by ID that need to be removed from the root keyholders
+if [[ -n $1 ]]; then 
+    echo "Removing key: $1"
+    rm -r ${REPO}/keys/$1
+fi
 
 # Dump the git state
 git status

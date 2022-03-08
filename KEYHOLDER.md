@@ -20,7 +20,7 @@ This will setup your fork and build the TUF binary to use for metadata generatio
 You may need to install `libpcslite` to support hardware tokens. See [`go-piv`'s installation instructions for your platform.](https://github.com/go-piv/piv-go#installation).
 
 
-1. **Each keyholder** should insert their hardware token and run
+1. **Each new keyholder** should insert their hardware token and run
 
 ```
 ./scripts/step-1.sh
@@ -33,9 +33,9 @@ This will output three files (a public key, device certificate, and hardware cer
 **Keyholders** should remove their hardware token.
 
 
-1.5. After all keys are merged, **the conductor** should initialize the TUF repository and add the targets file (including delegations). From this directory:
+1.5. After all new keys are added, **the conductor** should initialize the TUF repository and add the targets file (including delegations). From this directory, invoke the script with any keys root keys to revoke as argument:
 ```
-./scripts/step-1.5.sh
+./scripts/step-1.5.sh ${KEY_TO_REMOVE}
 TUF repository initialized at  $REPO
 Created target file at  $REPO/staged/targets/$TARGET
 ```

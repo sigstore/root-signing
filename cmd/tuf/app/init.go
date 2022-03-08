@@ -91,7 +91,7 @@ func InitCmd(ctx context.Context, directory, previous string, targets targetsFla
 	}
 
 	// Get the root.json file and initialize it with the expirations and thresholds
-	expiration := time.Now().AddDate(0, 6, 0).UTC()
+	expiration := time.Now().AddDate(0, 4, 0).UTC()
 	curRootVersion, err := repo.RootVersion()
 	if err != nil {
 		return err

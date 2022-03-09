@@ -14,6 +14,7 @@ require (
 	golang.org/x/crypto v0.0.0-20220214200702-86341886e292 // indirect
 	golang.org/x/sys v0.0.0-20220227234510-4e6760a101f9 // indirect
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211
+	gopkg.in/yaml.v2 v2.4.0
 )
 
 replace github.com/theupdateframework/go-tuf => github.com/mnm678/go-tuf v0.0.0-20220304223310-cbf366a5642a

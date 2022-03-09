@@ -10,7 +10,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/peterbourgon/ff/v3/ffcli"
@@ -23,19 +22,13 @@ import (
 
 var threshold = 3
 
-type targetsFlag []string
+// 4 week expiration on snapshot.
+// Aims for 3 week re-signing.
+var snapshotWeeksExpires = 4
 
-func (f *targetsFlag) String() string {
-	return strings.Join(*f, ", ")
-}
-
-func (f *targetsFlag) Set(value string) error {
-	if _, err := os.Stat(filepath.Clean(value)); os.IsNotExist(err) {
-		return err
-	}
-	*f = append(*f, value)
-	return nil
-}
+// 7 day expiration on timestamp.
+// Aims for 3-day re-signing.
+var timestampDaysExpires = 7
 
 func Init() *ffcli.Command {
 	var (
@@ -44,9 +37,8 @@ func Init() *ffcli.Command {
 		previous   = flagset.String("previous", "", "path to the previous repository")
 		snapshot   = flagset.String("snapshot", "", "reference to an online snapshot signer")
 		timestamp  = flagset.String("timestamp", "", "reference to an online timestamp signer")
-		targets    = targetsFlag{}
+		targets    = flagset.String("target-meta", "", "path to a target configuration file")
 	)
-	flagset.Var(&targets, "target", "path to target to add")
 	return &ffcli.Command{
 		Name:       "init",
 		ShortUsage: "tuf init initializes a new TUF repository",
@@ -70,12 +62,12 @@ func Init() *ffcli.Command {
 			if *timestamp == "" {
 				return flag.ErrHelp
 			}
-			return InitCmd(ctx, *repository, *previous, targets, *snapshot, *timestamp)
+			return InitCmd(ctx, *repository, *previous, *targets, *snapshot, *timestamp)
 		},
 	}
 }
 
-func InitCmd(ctx context.Context, directory, previous string, targets targetsFlag, snapshotRef string, timestampRef string) error {
+func InitCmd(ctx context.Context, directory, previous, targets, snapshotRef, timestampRef string) error {
 	// TODO: Validate directory is a good path.
 	store := tuf.FileSystemStore(directory, nil)
 	repo, err := tuf.NewRepoIndent(store, "", "\t", "sha512", "sha256")
@@ -154,8 +146,8 @@ func InitCmd(ctx context.Context, directory, previous string, targets targetsFla
 			}
 		}
 
-		// Sets a three week (21 days) expiration.
-		if err := repo.AddVerificationKeyWithExpiration(role, signerKey.Key, time.Now().AddDate(0, 0, 21).UTC()); err != nil {
+		// Add key. The expiration will adjust in the snapshot/timestamp step.
+		if err := repo.AddVerificationKeyWithExpiration(role, signerKey.Key, data.DefaultExpires(role)); err != nil {
 			return err
 		}
 
@@ -165,15 +157,23 @@ func InitCmd(ctx context.Context, directory, previous string, targets targetsFla
 	}
 
 	// Add targets (copy them into the repository and add them to the targets.json)
-	relativePaths := []string{}
-	for _, target := range targets {
-		from, err := os.Open(target)
+	targetCfg, err := os.ReadFile(targets)
+	if err != nil {
+		return err
+	}
+	meta, err := prepo.TargetMetaFromString(targetCfg)
+	if err != nil {
+		return err
+	}
+
+	for tt, custom := range meta {
+		from, err := os.Open(tt)
 		if err != nil {
 			return err
 		}
 		defer from.Close()
-		base := filepath.Base(target)
-		to, err := os.OpenFile(filepath.Join(directory, "staged/targets", base), os.O_RDWR|os.O_CREATE, 0666)
+		base := filepath.Base(tt)
+		to, err := os.Create(filepath.Join(directory, "staged", "targets", base))
 		if err != nil {
 			return err
 		}
@@ -182,12 +182,11 @@ func InitCmd(ctx context.Context, directory, previous string, targets targetsFla
 			return err
 		}
 		fmt.Fprintln(os.Stderr, "Created target file at ", to.Name())
-		relativePaths = append(relativePaths, base)
+		if err := repo.AddTargetsWithExpiresToPreferredRole([]string{base}, custom, expiration, "targets"); err != nil {
+			return fmt.Errorf("error adding targets %w", err)
+		}
 	}
 
-	if err := repo.AddTargetsWithExpiresToPreferredRole(relativePaths, nil, expiration, "targets"); err != nil {
-		return fmt.Errorf("error adding targets %w", err)
-	}
 	if err := repo.SetThreshold("targets", threshold); err != nil {
 		return err
 	}

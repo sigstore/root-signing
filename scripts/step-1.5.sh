@@ -23,6 +23,10 @@ if [ -z "$STAGING_KEY" ]; then
     echo "Set STAGING_KEY"
     exit
 fi
+if [ -z "$REVOCATION_KEY" ]; then
+    echo "Set REVOCATION_KEY"
+    exit
+fi
 if [ -z "$PREV_REPO" ]; then
     echo "Set PREV_REPO"
     exit
@@ -34,7 +38,7 @@ export REPO=$(pwd)/ceremony/$CEREMONY_DATE
 
 # Copy the previous keys and repository into the new repository.
 cp -r ${PREV_REPO}/* ${REPO}
-mkdir ${REPO}/staged
+mkdir -p ${REPO}/staged/targets
 # Remove a key by ID that need to be removed from the root keyholders
 if [[ -n $1 ]]; then 
     echo "Removing key: $1"
@@ -51,12 +55,15 @@ git pull upstream main
 git status
 
 # Setup the root and targets
-./tuf init -repository $REPO -target targets/fulcio.crt.pem -target targets/fulcio_v1.crt.pem -target targets/rekor.pub -target targets/ctfe.pub -target targets/artifact.pub -snapshot ${SNAPSHOT_KEY} -timestamp ${TIMESTAMP_KEY} -previous ${PREV_REPO}
+./tuf init -repository $REPO -target-meta config/target-metadata.yaml -snapshot ${SNAPSHOT_KEY} -timestamp ${TIMESTAMP_KEY} -previous ${PREV_REPO}
 # Add rekor delegation
 cp targets/rekor.pub targets/rekor.0.pub
-./tuf add-delegation -repository $REPO -name "rekor" -key $REKOR_KEY -path "rekor.*.pub" -target targets/rekor.0.pub
+./tuf add-delegation -repository $REPO -name "rekor" -key $REKOR_KEY -path "rekor.*.pub" -target-meta config/rekor-metadata.yml
 # Add staging project delegation
 ./tuf add-delegation -repository $REPO -name "staging" -key $STAGING_KEY -path "*"
+# TODO: Add revoked project delegation
+./tuf add-delegation -repository $REPO -name "revocation" -key $REVOCATION_KEY -path "*" -target-meta config/revocation-metadata.yml
+
 
 git checkout -b setup-root
 git add ceremony/

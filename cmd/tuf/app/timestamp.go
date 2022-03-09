@@ -41,5 +41,5 @@ func TimestampCmd(ctx context.Context, directory string) error {
 	if err != nil {
 		return err
 	}
-	return repo.TimestampWithExpires(time.Now().AddDate(0, 0, 14).UTC())
+	return repo.TimestampWithExpires(time.Now().AddDate(0, 0, timestampDaysExpires).UTC())
 }

@@ -7,6 +7,8 @@ import (
 	"github.com/theupdateframework/go-tuf"
 	"github.com/theupdateframework/go-tuf/data"
 	"github.com/theupdateframework/go-tuf/verify"
+
+	"gopkg.in/yaml.v2"
 )
 
 func CreateDb(store tuf.LocalStore) (*verify.DB, error) {
@@ -89,4 +91,32 @@ func GetMetaFromStore(msg []byte, name string) (interface{}, error) {
 		return nil, err
 	}
 	return meta, nil
+}
+
+// TODO make public in cosign -- we need to wait for go-tuf changes.
+type customMetadata struct {
+	Usage  string `json:"usage"`
+	Status string `json:"status"`
+}
+
+type sigstoreCustomMetadata struct {
+	Sigstore customMetadata `json:"sigstore"`
+}
+
+// Target metadata helpers
+func TargetMetaFromString(b []byte) (map[string]json.RawMessage, error) {
+	targetsMeta := map[string]sigstoreCustomMetadata{}
+	targetsMetaJSON := map[string]json.RawMessage{}
+	if err := yaml.Unmarshal(b, &targetsMeta); err != nil {
+		return nil, err
+	}
+	for t, custom := range targetsMeta {
+		customJson, err := json.Marshal(custom)
+		if err != nil {
+			return nil, err
+		}
+		targetsMetaJSON[t] = customJson
+	}
+
+	return targetsMetaJSON, nil
 }

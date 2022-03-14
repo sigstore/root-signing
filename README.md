@@ -29,6 +29,15 @@ If you are a verifier, follow instructions at [VERIFIER.md](VERIFIER.md).
 ### Acknowledgements
 Special thanks to Dan Lorenc, Trishank Kuppusamy, Marina Moore, Santiago Torres-Arias, and the whole SigStore community! 
 
+## Current Sigstore Root Keyholders 
+* Bob Callaway [June 2021 - present]
+* Dan Lorenc [June 2021 - present]
+* Luke Hinds [June 2021 - present]
+* Marina Moore [June 2021 - present]
+* Santiago Torres-Arias [June 2021 - present]
+
+## Emeritus Sigstore Root Keyholders
+* None yet!
 
 
 

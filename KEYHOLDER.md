@@ -1,5 +1,10 @@
 # TUF Generation
 
+Pre-requisites:
+* A local Git installation and a Go development setup
+* SSH authentication for GitHub (see [here](https://docs.github.com/en/authentication/connecting-to-github-with-ssh))
+* Keyholders: A USB port connection for your hardware key (beware of using a remote connection)
+
 0. **The keyholders and the conductor** should fork [this](https://github.com/sigstore/root-signing) git repository by clicking the "fork" button on GitHub. Then, set your `${GITHUB_USER}` with your GitHub username and execute the script:
 
 ```

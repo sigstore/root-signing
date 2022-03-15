@@ -1,5 +1,10 @@
 # TUF Generation
 
+Pre-requisites:
+* A local Git installation and a Go development setup
+* SSH authentication for GitHub (see [here](https://docs.github.com/en/authentication/connecting-to-github-with-ssh))
+* Keyholders: A USB port connection for your hardware key (beware of using a remote connection; the keyholder should not assume that magic occurs during an SSH session)
+
 0. **The keyholders and the conductor** should fork [this](https://github.com/sigstore/root-signing) git repository by clicking the "fork" button on GitHub. Then, set your `${GITHUB_USER}` with your GitHub username and execute the script:
 
 ```
@@ -15,9 +20,9 @@ export SNAPSHOT_KEY=${SNAPSHOT_KEY_REFERENCE}
 export TIMESTAMP_KEY=${TIMESTAM_KEY_REFERENCE}
 ```
 
-This will setup your fork and build the TUF binary to use for metadata generation.
-
 You may need to install `libpcslite` to support hardware tokens. See [`go-piv`'s installation instructions for your platform.](https://github.com/go-piv/piv-go#installation).
+
+This will setup your fork and build the TUF binary to use for metadata generation.
 
 
 1. **Each keyholder** should insert their hardware token and run
@@ -29,6 +34,17 @@ You may need to install `libpcslite` to support hardware tokens. See [`go-piv`'s
 You will be prompted to reset your hardware key and set a PIN. Choose a PIN between 6 and 8 characters that you will remember for signing in later steps.
 
 This will output three files (a public key, device certificate, and hardware certificate) in a directory named with your serial number `ceremony/YYYY-MM-DD/keys/${SERIAL_NUM}`.
+
+Troubleshooting: If you hit the error
+```
+error: connecting to pscs: the Smart card resource manager is not running
+```
+
+then run the following to start the pcsc daemon (note: this may require root access):
+```
+systemctl start pcscd.service
+systemctl enable pcscd.service
+```
 
 **Keyholders** should remove their hardware token.
 

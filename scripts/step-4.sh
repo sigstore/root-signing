@@ -16,7 +16,7 @@ if [ -z "$SNAPSHOT_KEY" ]; then
     exit
 fi
 if [ -z "$CEREMONY_DATE" ]; then
-    CEREMONY_DATE=$(date '%Y-%m-%d')
+    CEREMONY_DATE=$(date '+%Y-%m-%d')
 fi
 export REPO=$(pwd)/ceremony/$CEREMONY_DATE
 

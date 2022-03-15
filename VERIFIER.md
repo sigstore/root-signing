@@ -1,5 +1,9 @@
 At any point, a verifier can run a script to verify each incoming PR and verify the hashes of the targets files.
 
+Pre-requisites:
+* A local Git installation and a Go development setup
+* SSH authentication for GitHub (see [here](https://docs.github.com/en/authentication/connecting-to-github-with-ssh))
+
 0. **Verifiers** should fork [this](https://github.com/sigstore/root-signing) git repository by clicking the "fork" button on GitHub.
 
 1. To verify a PR, run the script with the pull request ID to verify, where `YOUR_GITHUB_USERNAME` is your GitHub username:

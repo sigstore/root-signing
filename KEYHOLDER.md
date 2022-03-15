@@ -3,7 +3,7 @@
 Pre-requisites:
 * A local Git installation and a Go development setup
 * SSH authentication for GitHub (see [here](https://docs.github.com/en/authentication/connecting-to-github-with-ssh))
-* Keyholders: A USB port connection for your hardware key (beware of using a remote connection)
+* Keyholders: A USB port connection for your hardware key (beware of using a remote connection; the keyholder should not assume that magic occurs during an SSH session)
 
 0. **The keyholders and the conductor** should fork [this](https://github.com/sigstore/root-signing) git repository by clicking the "fork" button on GitHub. Then, set your `${GITHUB_USER}` with your GitHub username and execute the script:
 
@@ -40,7 +40,7 @@ Troubleshooting: If you hit the error
 error: connecting to pscs: the Smart card resource manager is not running
 ```
 
-then run the following to start the pcsc daemon:
+then run the following to start the pcsc daemon (note: this may require root access):
 ```
 systemctl start pcscd.service
 systemctl enable pcscd.service

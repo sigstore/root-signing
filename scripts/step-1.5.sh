@@ -27,7 +27,7 @@ if [ -z "$REVOCATION_KEY" ]; then
     echo "Set REVOCATION_KEY"
     exit
 fi
-if [ -z "$PREV_REPO" ]; then
+if [ -z "${PREV_REPO+set}" ]; then
     echo "Set PREV_REPO"
     exit
 fi
@@ -37,7 +37,9 @@ fi
 export REPO=$(pwd)/ceremony/$CEREMONY_DATE
 
 # Copy the previous keys and repository into the new repository.
-cp -r ${PREV_REPO}/* ${REPO}
+if [ ! -z "$PREV_REPO" ]; then
+    cp -r ${PREV_REPO}/* ${REPO}
+fi
 mkdir -p ${REPO}/staged/targets
 # Remove a key by ID that need to be removed from the root keyholders
 if [[ -n $1 ]]; then 
@@ -55,7 +57,7 @@ git pull upstream main
 git status
 
 # Setup the root and targets
-./tuf init -repository $REPO -target-meta config/target-metadata.yaml -snapshot ${SNAPSHOT_KEY} -timestamp ${TIMESTAMP_KEY} -previous ${PREV_REPO}
+./tuf init -repository $REPO -target-meta config/targets-metadata.yaml -snapshot ${SNAPSHOT_KEY} -timestamp ${TIMESTAMP_KEY} -previous "${PREV_REPO}"
 # Add rekor delegation
 cp targets/rekor.pub targets/rekor.0.pub
 ./tuf add-delegation -repository $REPO -name "rekor" -key $REKOR_KEY -path "rekor.*.pub" -target-meta config/rekor-metadata.yml

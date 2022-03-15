@@ -84,7 +84,9 @@ func verifyStagedMetadata(repository string) error {
 		log.Printf("\nVerifying %s...", name)
 		signed, err := repo.GetSignedMeta(store, name+".json")
 		if err != nil {
-			return err
+			// Metadata file may not exist yet.
+			log.Printf("\t%s", err)
+			continue
 		}
 
 		// Rremove the empty placeholder signatures

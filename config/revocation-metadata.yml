@@ -1,2 +1,2 @@
 # Target files and metadata under rekor delegation
-targets/revocation.list: ""
+targets/revocation.list:

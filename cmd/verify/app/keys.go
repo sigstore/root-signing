@@ -46,15 +46,15 @@ func toCert(filename string) (*x509.Certificate, error) {
 // Map from Key ID to Signing Key
 type KeyMap map[string]*keys.SigningKey
 
-func getKeyID(key keys.SigningKey) (*string, error) {
+func getKeyID(key keys.SigningKey) (string, error) {
 	pk, err := keys.ToTufKey(key)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	if len(pk.IDs()) == 0 {
-		return nil, errors.New("error getting key ID")
+		return "", errors.New("error getting key ID")
 	}
-	return &pk.IDs()[0], nil
+	return pk.IDs()[0], nil
 }
 
 func verifySigningKeys(dirname string, rootCA *x509.Certificate) (*KeyMap, error) {
@@ -82,9 +82,9 @@ func verifySigningKeys(dirname string, rootCA *x509.Certificate) (*KeyMap, error
 			}
 
 			log.Printf("\nVERIFIED KEY %d\n", key.SerialNumber)
-			log.Printf("\tTUF key id: %d\n", id)
+			log.Printf("\tTUF key id: %s\n", id)
 
-			keyMap[*id] = key
+			keyMap[id] = key
 		}
 	}
 	// Note we use relative path here to simplify things.

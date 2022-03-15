@@ -8,7 +8,7 @@ if [ -z "$GITHUB_USER" ]; then
     exit
 fi
 if [ -z "$CEREMONY_DATE" ]; then
-    CEREMONY_DATE=$(date '%Y-%m-%d')
+    CEREMONY_DATE=$(date '+%Y-%m-%d')
 fi
 export REPO=$(pwd)/ceremony/$CEREMONY_DATE
 

@@ -15,6 +15,10 @@ if [ -z "$STAGING_KEY" ]; then
     echo "Set STAGING_KEY"
     exit
 fi
+if [ -z "$REVOCATION_KEY" ]; then
+    echo "Set REVOCATION_KEY"
+    exit
+fi
 if [ -z "$CEREMONY_DATE" ]; then
     CEREMONY_DATE=$(date '+%Y-%m-%d')
 fi
@@ -32,6 +36,7 @@ git status
 # Sign the delegations
 ./tuf sign -repository $REPO -roles rekor -key ${REKOR_KEY}
 ./tuf sign -repository $REPO -roles staging -key ${STAGING_KEY}
+./tuf sign -repository $REPO -roles revocation -key ${REVOCATION_KEY}
 
 git checkout -b sign-delegations
 git add ceremony/

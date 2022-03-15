@@ -74,6 +74,10 @@ func InitCmd(ctx context.Context, directory, previous, targets, snapshotRef, tim
 	if err != nil {
 		return err
 	}
+	curRootVersion, err := repo.RootVersion()
+	if err != nil {
+		return err
+	}
 	if previous == "" {
 		// Only initialize if no previous specified.
 		if err := repo.Init(false); err != nil {
@@ -84,10 +88,6 @@ func InitCmd(ctx context.Context, directory, previous, targets, snapshotRef, tim
 
 	// Get the root.json file and initialize it with the expirations and thresholds
 	expiration := time.Now().AddDate(0, 4, 0).UTC()
-	curRootVersion, err := repo.RootVersion()
-	if err != nil {
-		return err
-	}
 
 	// Add the keys we just provisioned to root and targets and revoke any removed ones.
 	root, err := prepo.GetRootFromStore(store)

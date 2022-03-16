@@ -25,7 +25,7 @@ git status
 ./tuf publish -repository $REPO
 # Clear and copy into the repository/
 rm -r repository/
-cp -r $REPO/repository/. repository/
+cp -r $REPO/repository/* repository/
 
 git checkout -b publish
 git add ceremony/

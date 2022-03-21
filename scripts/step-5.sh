@@ -24,9 +24,8 @@ git status
 # Sign the root and targets
 ./tuf publish -repository $REPO
 # Clear and copy into the repository/
-rm -r repository/
-mkdir repository/
-cp -r $REPO/repository/* repository/
+rm -r repository/ && mkdir repository/
+cp -r $REPO/repository/ repository/
 
 git checkout -b publish
 git add ceremony/

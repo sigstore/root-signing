@@ -16,6 +16,11 @@ export REPO=$(pwd)/ceremony/$CEREMONY_DATE
 git status
 git remote -v
 
+git clean -d -f
+git checkout main
+git pull upstream main
+git status
+
 # Add the key!
 ./tuf add-key -repository $REPO
 git status

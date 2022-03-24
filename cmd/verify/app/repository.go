@@ -110,7 +110,14 @@ func verifyStagedMetadata(repository string) error {
 	}
 
 	for name, role := range root.Roles {
-		log.Printf("\nVerifying %s...", name)
+		log.Printf("\nVerifying staged %s...", name)
+
+		if !store.FileIsStaged(name + ".json") {
+			// We only want to verify staged metadata.
+			log.Printf("\tMetadata is not staged yet\n")
+			continue
+		}
+
 		signed, err := repo.GetSignedMeta(store, name+".json")
 		if err != nil {
 			// Metadata file may not exist yet.
@@ -131,8 +138,16 @@ func verifyStagedMetadata(repository string) error {
 			if _, ok := err.(verify.ErrRoleThreshold); ok {
 				// we may not have all the sig, allow partial sigs for success
 				log.Printf("\tContains %d/%d valid signatures\n", err.(verify.ErrRoleThreshold).Actual, role.Threshold)
+				_, err := printAndGetSignedMeta(name, signed.Signed)
+				if err != nil {
+					return err
+				}
 			} else if err.Error() == verify.ErrNoSignatures.Error() {
 				log.Printf("\tContains 0/%d valid signatures\n", role.Threshold)
+				_, err := printAndGetSignedMeta(name, signed.Signed)
+				if err != nil {
+					return err
+				}
 			} else {
 				log.Printf("\tError verifying: %s\n", err)
 				return err
@@ -183,6 +198,15 @@ type signedMeta struct {
 	Version int       `json:"version"`
 }
 
+func printAndGetSignedMeta(role string, signed json.RawMessage) (*signedMeta, error) {
+	sm := &signedMeta{}
+	if err := json.Unmarshal(signed, sm); err != nil {
+		return nil, err
+	}
+	fmt.Printf("\t%s version %d, expires %s\n", role, sm.Version, sm.Expires.Format("2006/01/02"))
+	return sm, nil
+}
+
 func getClientState(local client.LocalStore) (map[string]signedMeta, error) {
 	trustedMeta, err := local.GetMeta()
 	res := make(map[string]signedMeta, len(trustedMeta))
@@ -194,12 +218,11 @@ func getClientState(local client.LocalStore) (map[string]signedMeta, error) {
 		if err := json.Unmarshal(md, s); err != nil {
 			return nil, err
 		}
-		sm := &signedMeta{}
-		if err := json.Unmarshal(s.Signed, sm); err != nil {
+		sm, err := printAndGetSignedMeta(role, s.Signed)
+		if err != nil {
 			return nil, err
 		}
 		res[role] = *sm
-		fmt.Printf("\t%s version %d, expires %s\n", role, sm.Version, sm.Expires.Format("2006/01/02"))
 	}
 	return res, nil
 }

@@ -30,6 +30,9 @@ var snapshotWeeksExpires = 4
 // Aims for 3-day re-signing.
 var timestampDaysExpires = 7
 
+// root, targets, and delegation default expiration.
+var rootAndTargetsMonthsExpires = 4
+
 func Init() *ffcli.Command {
 	var (
 		flagset    = flag.NewFlagSet("tuf init", flag.ExitOnError)
@@ -87,7 +90,7 @@ func InitCmd(ctx context.Context, directory, previous, targets, snapshotRef, tim
 	}
 
 	// Get the root.json file and initialize it with the expirations and thresholds
-	expiration := time.Now().AddDate(0, 4, 0).UTC()
+	expiration := time.Now().AddDate(0, rootAndTargetsMonthsExpires, 0).UTC()
 
 	// Add the keys we just provisioned to root and targets and revoke any removed ones.
 	root, err := prepo.GetRootFromStore(store)

@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pkg/errors"
 	pkeys "github.com/sigstore/root-signing/pkg/keys"
 	prepo "github.com/sigstore/root-signing/pkg/repo"
 	"github.com/theupdateframework/go-tuf/data"
@@ -95,7 +94,7 @@ func DelegationCmd(ctx context.Context, directory, name, path string, keyRefs ke
 		keys = append(keys, signerKey.Key)
 		ids = append(ids, signerKey.Key.IDs()...)
 	}
-	// Don't increment version multiple times.
+	// Don't increment targets version multiple times.
 	version, err := repo.TargetsVersion()
 	if err != nil {
 		return err
@@ -108,7 +107,8 @@ func DelegationCmd(ctx context.Context, directory, name, path string, keyRefs ke
 		Paths:     []string{path},
 		Threshold: 1,
 	}, keys, expiration); err != nil {
-		return errors.Wrap(err, "adding targets delegation")
+		// If delegation already added, then we just want to bump version and expiration.
+		fmt.Fprintln(os.Stdout, "Adding targets delegation: ", err)
 	}
 
 	// Add targets (copy them into the repository and add them to the targets.json)

@@ -36,6 +36,15 @@ if [ -z "$CEREMONY_DATE" ]; then
 fi
 export REPO=$(pwd)/ceremony/$CEREMONY_DATE
 
+# Dump the git state
+git status
+git remote -v
+
+git clean -d -f
+git checkout main
+git pull upstream main
+git status
+
 # Copy the previous keys and repository into the new repository.
 if [ ! -z "$PREV_REPO" ]; then
     cp -r ${PREV_REPO}/* ${REPO}
@@ -46,15 +55,6 @@ if [[ -n $1 ]]; then
     echo "Removing key: $1"
     rm -r ${REPO}/keys/$1
 fi
-
-# Dump the git state
-git status
-git remote -v
-
-git clean -d -f
-git checkout main
-git pull upstream main
-git status
 
 # Setup the root and targets
 ./tuf init -repository $REPO -target-meta config/targets-metadata.yaml -snapshot ${SNAPSHOT_KEY} -timestamp ${TIMESTAMP_KEY} -previous "${PREV_REPO}"

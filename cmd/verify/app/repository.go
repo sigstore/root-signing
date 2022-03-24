@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/fs"
 	"io/ioutil"
 	"log"
 	"net/url"
@@ -37,13 +38,41 @@ type fileRemoteStore struct {
 	Meta map[string]json.RawMessage
 }
 
-func FileRemoteStore(repo string) (client.RemoteStore, error) {
-	// Load all the metadata from well-known.tuf
-	// Get the well-known.tuf blob from the repository
-	store := tuf.FileSystemStore(repo, nil)
-	meta, err := store.GetMeta()
+func isMetaFile(e os.DirEntry) (bool, error) {
+	if e.IsDir() || filepath.Ext(e.Name()) != ".json" {
+		return false, nil
+	}
+
+	info, err := e.Info()
 	if err != nil {
-		return nil, err
+		return false, err
+	}
+
+	return info.Mode().IsRegular(), nil
+}
+
+func FileRemoteStore(repo string) (client.RemoteStore, error) {
+	// Load all the metadata only from the committed repository/
+	repoDir := filepath.Join(repo, "repository")
+	committed, err := os.ReadDir(repoDir)
+	if err != nil && !errors.Is(err, fs.ErrNotExist) {
+		return nil, fmt.Errorf("could not list repo dir: %w", err)
+	}
+
+	meta := make(map[string]json.RawMessage)
+	for _, e := range committed {
+		imf, err := isMetaFile(e)
+		if err != nil {
+			return nil, err
+		}
+		if imf {
+			name := e.Name()
+			f, err := ioutil.ReadFile(filepath.Join(repoDir, name))
+			if err != nil {
+				return nil, err
+			}
+			meta[name] = f
+		}
 	}
 
 	return fileRemoteStore{Repo: repo, Meta: meta}, nil

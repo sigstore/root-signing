@@ -21,8 +21,15 @@ git checkout main
 git pull upstream main
 git status
 
+# Ask user to insert key 
+read -n1 -r -s -p "Insert your Yubikey, then press any key to continue..." 
+
 # Add the key!
 ./tuf add-key -repository $REPO
+
+# Ask user to remove key (and replace with SSH security key)
+read -n1 -r -s -p "Remove your Yubikey, then press any key to continue..." 
+
 git status
 git checkout -b add-key
 git add ceremony/

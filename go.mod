@@ -5,8 +5,8 @@ go 1.16
 require (
 	github.com/peterbourgon/ff/v3 v3.1.2
 	github.com/pkg/errors v0.9.1
-	github.com/sigstore/cosign v1.6.0
-	github.com/sigstore/sigstore v1.1.1-0.20220217212907-e48ca03a5ba7
+	github.com/sigstore/cosign v1.7.0
+	github.com/sigstore/sigstore v1.2.1-0.20220330193110-d7475aecf1db
 	github.com/spf13/cobra v1.4.0
 	github.com/spf13/viper v1.10.1
 	github.com/tent/canonical-json-go v0.0.0-20130607151641-96e4ba3a7613

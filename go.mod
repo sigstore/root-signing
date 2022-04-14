@@ -8,7 +8,7 @@ require (
 	github.com/sigstore/cosign v1.7.2
 	github.com/sigstore/sigstore v1.2.1-0.20220401110139-0e610e39782f
 	github.com/spf13/cobra v1.4.0
-	github.com/spf13/viper v1.10.1
+	github.com/spf13/viper v1.11.0
 	github.com/tent/canonical-json-go v0.0.0-20130607151641-96e4ba3a7613
 	github.com/theupdateframework/go-tuf v0.0.0-20220211205608-f0c3294f63b9
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211

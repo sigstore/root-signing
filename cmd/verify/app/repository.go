@@ -121,31 +121,6 @@ var (
 	expiration string
 )
 
-func getKeysAndThreshold(clocal client.LocalStore) ([]*data.Key, int, error) {
-	// TODO: Remove when InitLocal is added to TUF client
-	meta, err := clocal.GetMeta()
-	if err != nil {
-		return nil, 0, err
-	}
-	local := tuf.MemoryStore(meta, nil)
-	repo, err := tuf.NewRepoIndent(local, "", "\t", "sha512", "sha256")
-	if err != nil {
-		log.Printf("error reading trusted TUF local: %s", err)
-		return nil, 0, err
-	}
-	rootKeys, err := repo.RootKeys()
-	if err != nil {
-		log.Printf("error getting TUF local root keys : %s", err)
-		return nil, 0, err
-	}
-	threshold, err := repo.GetThreshold("root")
-	if err != nil {
-		log.Printf("error getting threshold from root : %s", err)
-		return nil, 0, err
-	}
-	return rootKeys, threshold, nil
-}
-
 type signedMeta struct {
 	Type    string    `json:"_type"`
 	Expires time.Time `json:"expires"`
@@ -212,11 +187,6 @@ var repositoryCmd = &cobra.Command{
 			log.Printf("error setting root metadata: %s", err)
 			os.Exit(1)
 		}
-		rootKeys, threshold, err := getKeysAndThreshold(local)
-		if err != nil {
-			log.Printf("error getting keys and threshold from root : %s", err)
-			os.Exit(1)
-		}
 
 		var remote client.RemoteStore
 		u, err := url.ParseRequestURI(repository)
@@ -239,7 +209,7 @@ var repositoryCmd = &cobra.Command{
 		}
 		c := client.NewClient(local, remote)
 
-		if err := c.Init(rootKeys, threshold); err != nil {
+		if err := c.InitLocal(rootMeta); err != nil {
 			log.Printf("error initializing client: %s", err)
 			os.Exit(1)
 		}

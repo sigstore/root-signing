@@ -1,3 +1,4 @@
+//go:build pivkey
 // +build pivkey
 
 package app
@@ -7,6 +8,7 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/x509"
+	"encoding/json"
 	"encoding/pem"
 	"flag"
 	"fmt"
@@ -16,6 +18,7 @@ import (
 
 	"github.com/peterbourgon/ff/v3/ffcli"
 	"github.com/sigstore/cosign/cmd/cosign/cli/pivcli"
+	"github.com/sigstore/root-signing/pkg/keys"
 	"github.com/theupdateframework/go-tuf/data"
 	"golang.org/x/term"
 )
@@ -48,7 +51,7 @@ func AddKey() *ffcli.Command {
 
 type KeyAndAttestations struct {
 	attestations pivcli.Attestations
-	key          *data.Key
+	key          *data.PublicKey
 }
 
 func GetKeyAndAttestation(ctx context.Context) (*KeyAndAttestations, error) {
@@ -58,11 +61,15 @@ func GetKeyAndAttestation(ctx context.Context) (*KeyAndAttestations, error) {
 	}
 
 	pub := attestations.KeyCert.PublicKey.(*ecdsa.PublicKey)
-	pk := &data.Key{
+	keyValBytes, err := json.Marshal(keys.EcdsaPublic{PublicKey: elliptic.Marshal(pub.Curve, pub.X, pub.Y)})
+	if err != nil {
+		return nil, err
+	}
+	pk := &data.PublicKey{
 		Type:       data.KeyTypeECDSA_SHA2_P256,
 		Scheme:     data.KeySchemeECDSA_SHA2_P256,
-		Algorithms: data.KeyAlgorithms,
-		Value:      data.KeyValue{Public: elliptic.Marshal(pub.Curve, pub.X, pub.Y)},
+		Algorithms: data.HashAlgorithms,
+		Value:      keyValBytes,
 	}
 
 	return &KeyAndAttestations{attestations: *attestations, key: pk}, nil

@@ -46,6 +46,6 @@ jobs:
           for f in $(ls repository/repository/ -I *timestamp.json)
           do
             gcloud alpha --quiet storage cp --cache-control=no-store -r repository/repository/$f gs://sigstore-tuf-root/
-          end
+          done
           # Upload timestamp
           gcloud alpha --quiet storage cp --cache-control=no-store -r repository/repository/*timestamp.json gs://sigstore-tuf-root/

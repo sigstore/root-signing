@@ -86,7 +86,7 @@ func DelegationCmd(ctx context.Context, directory, name, path string, keyRefs ke
 	}
 	sigs := s.Signatures
 
-	keys := []*data.Key{}
+	keys := []*data.PublicKey{}
 	ids := []string{}
 	for _, keyRef := range keyRefs {
 		signerKey, err := pkeys.GetKmsSigningKey(ctx, keyRef)
@@ -103,7 +103,7 @@ func DelegationCmd(ctx context.Context, directory, name, path string, keyRefs ke
 	}
 
 	expiration := time.Now().AddDate(0, 6, 0).UTC()
-	if err := repo.AddTargetsDelegationWithExpires("targets", data.DelegatedRole{
+	if err := repo.AddDelegatedRoleWithExpires("targets", data.DelegatedRole{
 		Name:      name,
 		KeyIDs:    ids,
 		Paths:     []string{path},

@@ -8,6 +8,7 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/asn1"
+	"encoding/json"
 	"encoding/pem"
 	"errors"
 	"fmt"
@@ -39,7 +40,11 @@ type SigningKey struct {
 
 type SignerAndTufKey struct {
 	Signer signature.Signer
-	Key    *data.Key
+	Key    *data.PublicKey
+}
+
+type EcdsaPublic struct {
+	PublicKey data.HexBytes `json:"public"`
 }
 
 func toPubKey(pemBytes []byte) (*ecdsa.PublicKey, error) {
@@ -84,14 +89,18 @@ func ToSigningKey(serialNumber int, pubKey []byte, deviceCert []byte, keyCert []
 	return &key, nil
 }
 
-func ToTufKey(key SigningKey) *data.Key {
+func ToTufKey(key SigningKey) (*data.PublicKey, error) {
 	pub := key.PublicKey
-	return &data.Key{
+	keyValBytes, err := json.Marshal(EcdsaPublic{PublicKey: elliptic.Marshal(pub.Curve, pub.X, pub.Y)})
+	if err != nil {
+		return nil, err
+	}
+	return &data.PublicKey{
 		Type:       data.KeyTypeECDSA_SHA2_P256,
 		Scheme:     data.KeySchemeECDSA_SHA2_P256,
-		Algorithms: data.KeyAlgorithms,
-		Value:      data.KeyValue{Public: elliptic.Marshal(pub.Curve, pub.X, pub.Y)},
-	}
+		Algorithms: data.HashAlgorithms,
+		Value:      keyValBytes,
+	}, nil
 }
 
 func getSerialNumber(c *x509.Certificate) (*int, error) {
@@ -190,11 +199,15 @@ func GetKmsSigningKey(ctx context.Context, keyRef string) (*SignerAndTufKey, err
 	}
 	switch kt := pub.(type) {
 	case *ecdsa.PublicKey:
-		return &SignerAndTufKey{Key: &data.Key{
+		keyValBytes, err := json.Marshal(EcdsaPublic{PublicKey: elliptic.Marshal(kt.Curve, kt.X, kt.Y)})
+		if err != nil {
+			return nil, err
+		}
+		return &SignerAndTufKey{Key: &data.PublicKey{
 			Type:       data.KeyTypeECDSA_SHA2_P256,
 			Scheme:     data.KeySchemeECDSA_SHA2_P256,
-			Algorithms: data.KeyAlgorithms,
-			Value:      data.KeyValue{Public: elliptic.Marshal(kt.Curve, kt.X, kt.Y)},
+			Algorithms: data.HashAlgorithms,
+			Value:      keyValBytes,
 		}, Signer: kmsKey}, nil
 	case *rsa.PublicKey:
 		return nil, errors.New("RSA keys not supported")

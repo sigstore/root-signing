@@ -72,7 +72,7 @@ func Sign() *ffcli.Command {
 }
 
 func checkMetaForRole(store tuf.LocalStore, role []string) error {
-	db, err := repo.CreateDb(store)
+	db, _, err := repo.CreateDb(store)
 	if err != nil {
 		return fmt.Errorf("error creating verification database: %w", err)
 	}

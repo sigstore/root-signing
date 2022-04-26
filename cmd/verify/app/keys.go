@@ -81,7 +81,7 @@ func verifySigningKeys(dirname string, rootCA *x509.Certificate) (*KeyMap, error
 				return nil, err
 			}
 
-			log.Printf("\nVERIFIED KEY %d\n", key.SerialNumber)
+			log.Printf("\nVERIFIED KEY WITH SERIAL NUMBER %d\n", key.SerialNumber)
 			log.Printf("\tTUF key id: %s\n", id)
 
 			keyMap[id] = key

@@ -163,6 +163,7 @@ func verifyStagedMetadata(repository string) error {
 					return err
 				}
 			} else if err.Error() == verify.ErrNoSignatures.Error() {
+				// We do not return an error here so we can log unsigned metadata
 				log.Printf("\tContains 0/%d valid signatures\n", thresholds[name])
 				_, err := printAndGetSignedMeta(name, signed.Signed)
 				if err != nil {

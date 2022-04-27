@@ -2,12 +2,12 @@ name: CI Validate
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, v3-staging  ]
     paths:
       - 'ceremony/**'
       - 'repository/**'
   pull_request:
-    branches: [ main ]
+    branches: [ main, v3-staging  ]
 
 jobs:
   validate:

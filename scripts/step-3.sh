@@ -42,6 +42,7 @@ git status
 # Sign the delegations
 ./tuf sign -repository $REPO -roles rekor -key ${REKOR_KEY}
 ./tuf sign -repository $REPO -roles staging -key ${STAGING_KEY}
+./tuf sign -repository $REPO -roles revocation -key ${REVOCATION_KEY}
 
 if [ -n "$NO_PUSH" ]; then
     echo "Skipping push, exiting early..."

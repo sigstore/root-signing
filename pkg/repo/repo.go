@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	ctuf "github.com/sigstore/cosign/pkg/cosign/tuf"
 	"github.com/theupdateframework/go-tuf"
 	"github.com/theupdateframework/go-tuf/data"
 	"github.com/theupdateframework/go-tuf/verify"
@@ -139,10 +140,9 @@ func GetMetaFromStore(msg []byte, name string) (interface{}, error) {
 	return meta, nil
 }
 
-// TODO make public in cosign -- we need to wait for go-tuf changes.
 type customMetadata struct {
-	Usage  string `json:"usage"`
-	Status string `json:"status"`
+	Usage  ctuf.UsageKind  `json:"usage"`
+	Status ctuf.StatusKind `json:"status"`
 }
 
 type sigstoreCustomMetadata struct {

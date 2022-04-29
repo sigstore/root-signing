@@ -130,23 +130,6 @@ func InitCmd(ctx context.Context, directory, previous, targets, snapshotRef stri
 			return err
 		}
 
-		currentKeys, ok := root.Roles[role]
-		if ok {
-			for _, oldKeyID := range currentKeys.KeyIDs {
-				if oldKeyID == signerKey.Key.IDs()[0] {
-					// This is the signers we want to keep.
-					continue
-				}
-				// Revoke the offline root keys used in root signing v1 for snapshot and timestamp role.
-				// Revocation is done by specifying one of it's key IDs.
-				// The snapshot and timestamp roles in v2+ will be based on online signers on GCP KMS to
-				// facilitate staging project delegations between root signing events..
-				if err := repo.RevokeKey(role, oldKeyID); err != nil {
-					continue
-				}
-			}
-		}
-
 		// Add key. The expiration will adjust in the snapshot/timestamp step.
 		if err := repo.AddVerificationKeyWithExpiration(role, signerKey.Key, data.DefaultExpires(role)); err != nil {
 			return err

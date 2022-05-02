@@ -6,9 +6,11 @@ import (
 	"strconv"
 	"strings"
 
+	ctuf "github.com/sigstore/cosign/pkg/cosign/tuf"
 	"github.com/theupdateframework/go-tuf"
 	"github.com/theupdateframework/go-tuf/data"
 	"github.com/theupdateframework/go-tuf/verify"
+	"gopkg.in/yaml.v2"
 )
 
 func CreateDb(store tuf.LocalStore) (db *verify.DB, thresholds map[string]int, err error) {
@@ -136,6 +138,33 @@ func GetMetaFromStore(msg []byte, name string) (interface{}, error) {
 		return nil, err
 	}
 	return meta, nil
+}
+
+type customMetadata struct {
+	Usage  ctuf.UsageKind  `json:"usage"`
+	Status ctuf.StatusKind `json:"status"`
+}
+
+type sigstoreCustomMetadata struct {
+	Sigstore customMetadata `json:"sigstore"`
+}
+
+// Target metadata helpers
+func TargetMetaFromString(b []byte) (map[string]json.RawMessage, error) {
+	targetsMeta := map[string]sigstoreCustomMetadata{}
+	targetsMetaJSON := map[string]json.RawMessage{}
+	if err := yaml.Unmarshal(b, &targetsMeta); err != nil {
+		return nil, err
+	}
+	for t, custom := range targetsMeta {
+		customJson, err := json.Marshal(custom)
+		if err != nil {
+			return nil, err
+		}
+		targetsMetaJSON[t] = customJson
+	}
+
+	return targetsMetaJSON, nil
 }
 
 func IsVersionedManifest(name string) bool {

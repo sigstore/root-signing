@@ -104,6 +104,10 @@ if [ -n "$NO_PUSH" ]; then
     exit
 fi
 
+if [ -n "$NO_PUSH" ]; then
+    echo "Skipping push, exiting early..."
+fi
+
 git checkout -b setup-root
 git add ceremony/
 git commit -s -a -m "Setting up root for ${GITHUB_USER}"

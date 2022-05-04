@@ -47,7 +47,7 @@ fi
 # Verify keys
 ./verify keys --root piv-attestation-ca.pem --key-directory $REPO/keys
 # If staged metadata exists, verify the staged repository
-if [ -f $REPO/staged/root.json ]; then
+if [ -f $REPO/repository/1.root.json ]; then
     ./verify repository --repository $REPO --staged
 fi
 # If published data exists, verify against a root

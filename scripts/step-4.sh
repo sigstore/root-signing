@@ -45,6 +45,7 @@ git status
 
 if [ -n "$NO_PUSH" ]; then
     echo "Skipping push, exiting early..."
+    exit
 fi
 
 git checkout -b sign-snapshot

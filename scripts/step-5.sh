@@ -35,6 +35,7 @@ cp -r $REPO/repository/ repository/
 
 if [ -n "$NO_PUSH" ]; then
     echo "Skipping push, exiting early..."
+    exit
 fi
 
 git checkout -b publish

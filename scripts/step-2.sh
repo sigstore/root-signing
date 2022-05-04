@@ -38,6 +38,7 @@ read -n1 -r -s -p "Remove your Yubikey, then press any key to continue...\n"
 
 if [ -n "$NO_PUSH" ]; then
     echo "Skipping push, exiting early..."
+    exit
 fi
 
 git status

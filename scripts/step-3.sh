@@ -19,18 +19,24 @@ if [ -z "$REVOCATION_KEY" ]; then
     echo "Set REVOCATION_KEY"
     exit
 fi
-if [ -z "$CEREMONY_DATE" ]; then
-    CEREMONY_DATE=$(date '+%Y-%m-%d')
+if [ -z "$REPO" ]; then
+    REPO=$(pwd)/ceremony/$(date '+%Y-%m-%d')
+    echo "Using default REPO $REPO"
 fi
-export REPO=$(pwd)/ceremony/$CEREMONY_DATE
+
+if [ -z "$BRANCH" ]; then
+    export BRANCH=main
+else
+    echo "Using branch $BRANCH"
+fi
 
 # Dump the git state
 git status
 git remote -v
 
 git clean -d -f
-git checkout main
-git pull upstream main
+git checkout $BRANCH
+git pull upstream $BRANCH
 git status
 
 # Sign the delegations
@@ -38,10 +44,17 @@ git status
 ./tuf sign -repository $REPO -roles staging -key ${STAGING_KEY}
 ./tuf sign -repository $REPO -roles revocation -key ${REVOCATION_KEY}
 
+if [ -n "$NO_PUSH" ]; then
+    echo "Skipping push, exiting early..."
+fi
+
 git checkout -b sign-delegations
 git add ceremony/
 git commit -s -a -m "Signing delegations for ${GITHUB_USER}"
 git push -f origin sign-delegations
 
 # Open the browser
-open "https://github.com/${GITHUB_USER}/root-signing/pull/new/sign-delegations" || xdg-open "https://github.com/${GITHUB_USER}/root-signing/pull/new/sign-delegations"
+export GITHUB_URL=$(git remote -v | awk '/^upstream/{print $2}'| head -1 | sed -Ee 's#(git@|git://)#https://#' -e 's@com:@com/@' -e 's#\.git$##')
+export CHANGE_BRANCH=$(git symbolic-ref HEAD | cut -d"/" -f 3,4)
+export PR_URL=${GITHUB_URL}"/compare/${BRANCH}..."${CHANGE_BRANCH}"?expand=1"
+open "${PR_URL}" || xdg-open "${PR_URL}"

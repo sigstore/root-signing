@@ -8,6 +8,12 @@ if [ -z "$GITHUB_USER" ]; then
     exit
 fi
 
+if [ -z "$BRANCH" ]; then
+    export BRANCH=main
+else
+    echo "Using branch $BRANCH"
+fi
+
 # Dump the git state
 git status
 git remote -v
@@ -23,14 +29,15 @@ git remote -v
 # Cleanup branches
 git branch -D setup-root || true
 git branch -D add-key || true
-git branch -D sign-targets || true
+git branch -D sign-root-targets || true
+git branch -D sign-delegations || true
 git branch -D sign-snapshot || true
 git branch -D sign-timestamp || true
 git branch -D publish || true
 
 git clean -d -f
-git checkout main
-git pull upstream main
+git checkout $BRANCH
+git pull upstream $BRANCH
 git rev-parse HEAD
 
 # build the tuf binary

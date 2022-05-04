@@ -90,6 +90,7 @@ fi
 
 if [ -n "$NO_PUSH" ]; then
     echo "Skipping push, exiting early..."
+    exit
 fi
 
 git checkout -b setup-root

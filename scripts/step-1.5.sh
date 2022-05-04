@@ -39,9 +39,6 @@ else
     echo "Using branch $BRANCH"
 fi
 
-# Copy the previous keys and repository into the new repository.
-cp -r ${PREV_REPO}/* ${REPO}
-
 # Dump the git state
 git status
 git remote -v
@@ -64,7 +61,7 @@ if [[ -n $1 ]]; then
 fi
 
 # TODO: Remove when v3-staging is merged
-if [[ $BRANCH == "v3-staging" ]]
+if [[ $BRANCH == "v3-staging" ]]; then
     if [ -z "$REVOCATION_KEY" ]; then
         echo "Set REVOCATION_KEY"
         exit

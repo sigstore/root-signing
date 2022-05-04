@@ -180,7 +180,7 @@ func InitCmd(ctx context.Context, directory, previous, targets, snapshotRef stri
 	if err != nil {
 		return err
 	}
-	if err := setMetaWithSigKeyIDs(store, "targets.json", t, allRootKeys); err != nil {
+	if err := setMetaWithSigKeyIDs(store, "targets.json", t, keys); err != nil {
 		return err
 	}
 
@@ -192,7 +192,7 @@ func InitCmd(ctx context.Context, directory, previous, targets, snapshotRef stri
 	}
 	root.Version = curRootVersion + 1
 	root.Expires = expiration
-	return setMetaWithSigKeyIDs(store, "root.json", root, keys)
+	return setMetaWithSigKeyIDs(store, "root.json", root, allRootKeys)
 }
 
 func setSignedMeta(store tuf.LocalStore, role string, s *data.Signed) error {

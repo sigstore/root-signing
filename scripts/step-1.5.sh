@@ -43,7 +43,7 @@ fi
 git status
 git remote -v
 
-if [ -n "$NO_CLEAN" ]; then
+if [ -z "$NO_CLEAN" ]; then
     git clean -d -f
     git checkout $BRANCH
     git pull upstream $BRANCH
@@ -53,7 +53,7 @@ git status
 
 # Copy the previous keys and repository into the new repository.
 if [ ! -z "$PREV_REPO" ]; then
-    cp -pr ${PREV_REPO}/* ${REPO}
+    mkdir -p ${REPO} && cp -r ${PREV_REPO}/* ${REPO}
 fi
 mkdir -p ${REPO}/staged/targets
 

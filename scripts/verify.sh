@@ -12,16 +12,23 @@ if [ -z "$REPO" ]; then
     echo "Using default REPO $REPO"
 fi
 
-# Dump the git state
-git checkout main
-git status
-git remote -v
+if [ -z "$BRANCH" ]; then
+    export BRANCH=main
+else
+    echo "Using branch $BRANCH"
+fi
 
 # Setup forks
 git remote rm upstream || true
 git remote add upstream git@github.com:sigstore/root-signing.git
 git remote rm origin || true
 git remote add origin git@github.com:"$GITHUB_USER"/root-signing.git
+git remote -v
+
+# Dump the git state
+git checkout $BRANCH
+git pull upstream $BRANCH
+git status
 git remote -v
 
 # build the verification binary

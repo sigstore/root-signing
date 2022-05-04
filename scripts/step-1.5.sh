@@ -43,9 +43,14 @@ fi
 git status
 git remote -v
 
+
 if [ -z "$NO_CLEAN" ]; then
     git clean -d -f
-    git checkout $BRANCH
+fi
+
+git checkout $BRANCH
+
+if [ -z "$NO_CLEAN" ]; then
     git pull upstream $BRANCH
 fi
 

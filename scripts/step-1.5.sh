@@ -53,7 +53,7 @@ git status
 
 # Copy the previous keys and repository into the new repository.
 if [ ! -z "$PREV_REPO" ]; then
-    cp -pr ${PREV_REPO}/* ${REPO}
+    mkdir -p ${REPO} && cp -r ${PREV_REPO}/* ${REPO}
 fi
 mkdir -p ${REPO}/staged/targets
 

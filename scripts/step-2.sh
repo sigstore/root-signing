@@ -22,9 +22,12 @@ fi
 git status
 git remote -v
 
-git clean -d -f
-git checkout $BRANCH
-git pull upstream $BRANCH
+if [ -n "$NO_CLEAN" ]; then
+    git clean -d -f
+    git checkout $BRANCH
+    git pull upstream $BRANCH
+fi
+
 git status
 
 # Ask user to insert key 

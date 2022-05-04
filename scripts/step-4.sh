@@ -15,18 +15,24 @@ if [ -z "$SNAPSHOT_KEY" ]; then
     echo "Set SNAPSHOT_KEY"
     exit
 fi
-if [ -z "$CEREMONY_DATE" ]; then
-    CEREMONY_DATE=$(date '+%Y-%m-%d')
+if [ -z "$REPO" ]; then
+    REPO=$(pwd)/ceremony/$(date '+%Y-%m-%d')
+    echo "Using default REPO $REPO"
 fi
-export REPO=$(pwd)/ceremony/$CEREMONY_DATE
+
+if [ -z "$BRANCH" ]; then
+    export BRANCH=main
+else
+    echo "Using branch $BRANCH"
+fi
 
 # Dump the git state
 git status
 git remote -v
 
 git clean -d -f
-git checkout main
-git pull upstream main
+git checkout $BRANCH
+git pull upstream $BRANCH
 git status
 
 # Snapshot and sign the snapshot with snapshot kms key
@@ -37,10 +43,17 @@ git status
 ./tuf timestamp -repository $REPO
 ./tuf sign -repository $REPO -roles timestamp -key ${TIMESTAMP_KEY}
 
+if [ -n "$NO_PUSH" ]; then
+    echo "Skipping push, exiting early..."
+fi
+
 git checkout -b sign-snapshot
 git add ceremony/
 git commit -s -a -m "Signing snapshot for ${GITHUB_USER}"
 git push -f origin sign-snapshot
 
 # Open the browser
-open "https://github.com/${GITHUB_USER}/root-signing/pull/new/sign-snapshot" || xdg-open "https://github.com/${GITHUB_USER}/root-signing/pull/new/sign-snapshot"
+export GITHUB_URL=$(git remote -v | awk '/^upstream/{print $2}'| head -1 | sed -Ee 's#(git@|git://)#https://#' -e 's@com:@com/@' -e 's#\.git$##')
+export CHANGE_BRANCH=$(git symbolic-ref HEAD | cut -d"/" -f 3,4)
+export PR_URL=${GITHUB_URL}"/compare/${BRANCH}..."${CHANGE_BRANCH}"?expand=1"
+open "${PR_URL}" || xdg-open "${PR_URL}"

@@ -30,27 +30,41 @@ if [ -z "$REVOCATION_KEY" ]; then
     exit
 fi
 # Repo options
-if [ -z "$PREV_REPO" ]; then
+if [ -z "${PREV_REPO+set}" ]; then
     echo "Set PREV_REPO"
     exit
 fi
-if [ -z "$CEREMONY_DATE" ]; then
-    CEREMONY_DATE=$(date '+%Y-%m-%d')
+if [ -z "$REPO" ]; then
+    REPO=$(pwd)/ceremony/$(date '+%Y-%m-%d')
+    echo "Using default REPO $REPO"
 fi
-export REPO=$(pwd)/ceremony/$CEREMONY_DATE
+
+if [ -z "$BRANCH" ]; then
+    export BRANCH=main
+else
+    echo "Using branch $BRANCH"
+fi
 
 # Dump the git state
 git status
 git remote -v
 
 git clean -d -f
-git checkout main
-git pull upstream main
+git checkout $BRANCH
+git pull upstream $BRANCH
 git status
 
 # Copy the previous keys and repository into the new repository.
-cp -r ${PREV_REPO}/* ${REPO}
+if [ ! -z "$PREV_REPO" ]; then
+    cp -r ${PREV_REPO}/* ${REPO}
+fi
 mkdir -p ${REPO}/staged/targets
+
+# Remove a key by ID that need to be removed from the root keyholders
+if [[ -n $1 ]]; then 
+    echo "Removing key: $1"
+    rm -r ${REPO}/keys/$1
+fi
 
 # Setup the root and targets
 ./tuf init -repository $REPO -target-meta config/targets-metadata.yml -snapshot ${SNAPSHOT_KEY} -timestamp ${TIMESTAMP_KEY} -previous "${PREV_REPO}"
@@ -62,11 +76,17 @@ cp targets/rekor.pub targets/rekor.0.pub
 # TODO: Add revoked project delegation
 ./tuf add-delegation -repository $REPO -name "revocation" -key $REVOCATION_KEY -path "*" -target-meta config/revocation-metadata.yml
 
+if [ -n "$NO_PUSH" ]; then
+    echo "Skipping push, exiting early..."
+fi
+
 git checkout -b setup-root
 git add ceremony/
 git commit -s -a -m "Setting up root for ${GITHUB_USER}"
 git push -f origin setup-root
 
 # Open the browser
-open "https://github.com/${GITHUB_USER}/root-signing/pull/new/setup-root" || xdg-open "https://github.com/${GITHUB_USER}/root-signing/pull/new/setup-root"
-
+export GITHUB_URL=$(git remote -v | awk '/^upstream/{print $2}'| head -1 | sed -Ee 's#(git@|git://)#https://#' -e 's@com:@com/@' -e 's#\.git$##')
+export CHANGE_BRANCH=$(git symbolic-ref HEAD | cut -d"/" -f 3,4)
+export PR_URL=${GITHUB_URL}"/compare/${BRANCH}..."${CHANGE_BRANCH}"?expand=1"
+open "${PR_URL}" || xdg-open "${PR_URL}"

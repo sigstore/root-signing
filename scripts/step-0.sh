@@ -37,8 +37,12 @@ git branch -D sign-timestamp || true
 git branch -D publish || true
 
 git clean -d -f
-git checkout $BRANCH
-git pull upstream $BRANCH
+if git show-ref --quiet refs/heads/$BRANCH; then
+    git checkout $BRANCH
+    git pull upstream $BRANCH
+else
+    git checkout -t upstream/$BRANCH
+fi
 git rev-parse HEAD
 
 # build the tuf binary

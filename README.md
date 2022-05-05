@@ -32,12 +32,12 @@ Special thanks to Dan Lorenc, Trishank Kuppusamy, Marina Moore, Santiago Torres-
 ## Current Sigstore Root Keyholders 
 * Bob Callaway [June 2021 - present]
 * Dan Lorenc [June 2021 - present]
-* Luke Hinds [June 2021 - present]
+* Joshua Lock [March 2022 - present]
 * Marina Moore [June 2021 - present]
 * Santiago Torres-Arias [June 2021 - present]
 
 ## Emeritus Sigstore Root Keyholders
-* None yet!
+* Luke Hinds [June 2021 - March 2022]
 
 
 

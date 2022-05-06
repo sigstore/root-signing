@@ -41,5 +41,5 @@ func SnapshotCmd(ctx context.Context, directory string) error {
 	if err != nil {
 		return err
 	}
-	return repo.SnapshotWithExpires(time.Now().AddDate(0, 0, 14).UTC())
+	return repo.SnapshotWithExpires(time.Now().AddDate(0, 0, 21).UTC())
 }

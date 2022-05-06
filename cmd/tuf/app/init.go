@@ -73,14 +73,14 @@ func InitCmd(ctx context.Context, directory, previous, targets, snapshotRef stri
 
 	if previous == "" {
 		// Only initialize if no previous specified.
-		if err := repo.Init(false); err != nil {
+		if err := repo.Init(true); err != nil {
 			return err
 		}
 		fmt.Fprintln(os.Stderr, "TUF repository initialized at ", directory)
 	}
 
 	// Get the root.json file and initialize it with the expirations and thresholds
-	expiration := time.Now().AddDate(0, 6, 0).UTC()
+	expiration := time.Now().AddDate(0, 6, 0).UTC().Round(time.Second)
 
 	// Add the keys we just provisioned to root and targets and revoke any removed ones.
 	root, err := prepo.GetRootFromStore(store)
@@ -190,6 +190,7 @@ func InitCmd(ctx context.Context, directory, previous, targets, snapshotRef stri
 	if err != nil {
 		return err
 	}
+	root.ConsistentSnapshot = true
 	root.Version = curRootVersion + 1
 	root.Expires = expiration
 	return setMetaWithSigKeyIDs(store, "root.json", root, allRootKeys)

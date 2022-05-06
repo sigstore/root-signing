@@ -73,7 +73,7 @@ func InitCmd(ctx context.Context, directory, previous, targets, snapshotRef stri
 
 	if previous == "" {
 		// Only initialize if no previous specified.
-		if err := repo.Init(true); err != nil {
+		if err := repo.Init( /*consistentSnapshot=*/ true); err != nil {
 			return err
 		}
 		fmt.Fprintln(os.Stderr, "TUF repository initialized at ", directory)

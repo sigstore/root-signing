@@ -11,7 +11,11 @@ fi
 if [ -z "$BRANCH" ]; then
     export BRANCH=main
 else
+<<<<<<< HEAD
     echo "Using upstream branch $BRANCH"
+=======
+    echo "Using branch $BRANCH"
+>>>>>>> upstream/v3-staging
 fi
 
 # Dump the git state

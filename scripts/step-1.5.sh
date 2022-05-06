@@ -25,11 +25,11 @@ if [ -z "$STAGING_KEY" ]; then
     echo "Set STAGING_KEY"
     exit
 fi
-# Repo options
 if [ -z "$REVOCATION_KEY" ]; then
     echo "Set REVOCATION_KEY"
     exit
 fi
+# Repo options
 if [ -z "${PREV_REPO+set}" ]; then
     echo "Set PREV_REPO"
     exit

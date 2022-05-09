@@ -29,6 +29,10 @@ if [ -z "$REVOCATION_KEY" ]; then
     echo "Set REVOCATION_KEY"
     exit
 fi
+if [ -z "$REVOCATION_KEY" ]; then
+    echo "Set REVOCATION_KEY"
+    exit
+fi
 # Repo options
 if [ -z "${PREV_REPO+set}" ]; then
     echo "Set PREV_REPO"
@@ -74,38 +78,20 @@ if [[ -n $1 ]]; then
     rm -r ${REPO}/keys/$1
 fi
 
-# TODO: Remove when v3-staging is merged
-if [[ $BRANCH == "v3-staging" ]]; then
-    if [ -z "$REVOCATION_KEY" ]; then
-        echo "Set REVOCATION_KEY"
-        exit
-    fi
-    # Setup the root and targets
-    ./tuf init -repository $REPO -target-meta config/targets-metadata.yml -snapshot ${SNAPSHOT_KEY} -timestamp ${TIMESTAMP_KEY} -previous "${PREV_REPO}"
-    # Add rekor delegation
-    cp targets/rekor.pub targets/rekor.0.pub
-    ./tuf add-delegation -repository $REPO -name "rekor" -key $REKOR_KEY -path "rekor.*.pub" -target-meta config/rekor-metadata.yml
-    # Add staging project delegation
-    ./tuf add-delegation -repository $REPO -name "staging" -key $STAGING_KEY -path "*"
-    # Add revoked project delegation
-    ./tuf add-delegation -repository $REPO -name "revocation" -key $REVOCATION_KEY -path "*" -target-meta config/revocation-metadata.yml
-else
-    # Setup the root and targets
-    ./tuf init -repository $REPO -target targets/fulcio.crt.pem -target targets/fulcio_v1.crt.pem -target targets/rekor.pub -target targets/ctfe.pub -target targets/artifact.pub -snapshot ${SNAPSHOT_KEY} -timestamp ${TIMESTAMP_KEY} -previous ${PREV_REPO}
-    # Add rekor delegation
-    cp targets/rekor.pub targets/rekor.0.pub
-    ./tuf add-delegation -repository $REPO -name "rekor" -key $REKOR_KEY -path "rekor.*.pub" -target targets/rekor.0.pub
-    # Add staging project delegation
-    ./tuf add-delegation -repository $REPO -name "staging" -key $STAGING_KEY -path "*"
-fi
+
+# Setup the root and targets
+./tuf init -repository $REPO -target-meta config/targets-metadata.yml -snapshot ${SNAPSHOT_KEY} -timestamp ${TIMESTAMP_KEY} -previous "${PREV_REPO}"
+# Add rekor delegation
+cp targets/rekor.pub targets/rekor.0.pub
+./tuf add-delegation -repository $REPO -name "rekor" -key $REKOR_KEY -path "rekor.*.pub" -target-meta config/rekor-metadata.yml
+# Add staging project delegation
+./tuf add-delegation -repository $REPO -name "staging" -key $STAGING_KEY -path "*"
+# Add revoked project delegation
+./tuf add-delegation -repository $REPO -name "revocation" -key $REVOCATION_KEY -path "*" -target-meta config/revocation-metadata.yml
 
 if [ -n "$NO_PUSH" ]; then
     echo "Skipping push, exiting early..."
     exit
-fi
-
-if [ -n "$NO_PUSH" ]; then
-    echo "Skipping push, exiting early..."
 fi
 
 git checkout -b setup-root

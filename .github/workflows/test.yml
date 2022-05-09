@@ -2,11 +2,11 @@ name: CI Test
 
 on:
   push:
-    branches: [ main, v3-staging ]
+    branches: [ main ]
     paths-ignore:
       - 'ceremony/**'
   pull_request:
-    branches: [ main, v3-staging ]
+    branches: [ main ]
     paths-ignore:
       - 'ceremony/**'
 

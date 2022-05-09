@@ -38,6 +38,7 @@ read -n1 -r -s -p "Remove your Yubikey, then press any key to continue...\n"
 
 if [ -n "$NO_PUSH" ]; then
     echo "Skipping push, exiting early..."
+    exit
 fi
 
 git status
@@ -49,5 +50,5 @@ git push -f origin add-key
 # Open the browser
 export GITHUB_URL=$(git remote -v | awk '/^upstream/{print $2}'| head -1 | sed -Ee 's#(git@|git://)#https://#' -e 's@com:@com/@' -e 's#\.git$##')
 export CHANGE_BRANCH=$(git symbolic-ref HEAD | cut -d"/" -f 3,4)
-export PR_URL=${GITHUB_URL}"/compare/${BRANCH}..."${CHANGE_BRANCH}"?expand=1"
+export PR_URL=${GITHUB_URL}"/compare/${BRANCH}..."${GITHUB_USER}:${CHANGE_BRANCH}"?expand=1"
 open "${PR_URL}" || xdg-open "${PR_URL}"

@@ -100,7 +100,7 @@ func DelegationCmd(ctx context.Context, directory, name, path string, keyRefs ke
 		return err
 	}
 
-	expiration := time.Now().AddDate(0, 6, 0).UTC()
+	expiration := time.Now().AddDate(0, 6, 0).UTC().Round(time.Second)
 	if err := repo.AddDelegatedRoleWithExpires("targets", data.DelegatedRole{
 		Name:      name,
 		KeyIDs:    ids,

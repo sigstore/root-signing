@@ -11,7 +11,11 @@ fi
 if [ -z "$BRANCH" ]; then
     export BRANCH=main
 else
+<<<<<<< HEAD
+    echo "Using upstream branch $BRANCH"
+=======
     echo "Using branch $BRANCH"
+>>>>>>> upstream/v3-staging
 fi
 
 # Dump the git state
@@ -24,7 +28,8 @@ git remote add upstream git@github.com:sigstore/root-signing.git
 git remote rm origin || true
 git remote add origin git@github.com:"$GITHUB_USER"/root-signing.git
 git remote -v
-
+# Ensure we have all the latest refs from upstream
+git fetch upstream
 
 # Cleanup branches
 git branch -D setup-root || true
@@ -36,8 +41,12 @@ git branch -D sign-timestamp || true
 git branch -D publish || true
 
 git clean -d -f
-git checkout $BRANCH
-git pull upstream $BRANCH
+if git show-ref --quiet refs/heads/$BRANCH; then
+    git checkout $BRANCH
+    git pull upstream $BRANCH
+else
+    git checkout -t upstream/$BRANCH
+fi
 git rev-parse HEAD
 
 # build the tuf binary

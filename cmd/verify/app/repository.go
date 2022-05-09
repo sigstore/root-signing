@@ -5,11 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/fs"
 	"io/ioutil"
 	"log"
 	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -38,12 +40,27 @@ type fileRemoteStore struct {
 }
 
 func FileRemoteStore(repo string) (client.RemoteStore, error) {
-	// Load all the metadata from well-known.tuf
-	// Get the well-known.tuf blob from the repository
-	store := tuf.FileSystemStore(repo, nil)
-	meta, err := store.GetMeta()
-	if err != nil {
-		return nil, err
+	// Load all the metadata only from the committed repository/
+	repoDir := filepath.Join(repo, "repository")
+	committed, err := os.ReadDir(repoDir)
+	if err != nil && !errors.Is(err, fs.ErrNotExist) {
+		return nil, fmt.Errorf("could not list repo dir: %w", err)
+	}
+
+	meta := make(map[string]json.RawMessage)
+	for _, e := range committed {
+		imf, err := isMetaFile(e)
+		if err != nil {
+			return nil, err
+		}
+		if imf {
+			name := e.Name()
+			f, err := ioutil.ReadFile(filepath.Join(repoDir, name))
+			if err != nil {
+				return nil, err
+			}
+			meta[name] = f
+		}
 	}
 
 	return fileRemoteStore{Repo: repo, Meta: meta}, nil
@@ -65,25 +82,66 @@ func (r fileRemoteStore) GetTarget(target string) (io.ReadCloser, int64, error) 
 	return ioutil.NopCloser(bytes.NewReader(payload)), int64(len(payload)), nil
 }
 
+// Metadata helpers
+type signedMeta struct {
+	Type    string    `json:"_type"`
+	Expires time.Time `json:"expires"`
+	Version int       `json:"version"`
+}
+
+func isMetaFile(e os.DirEntry) (bool, error) {
+	if e.IsDir() || filepath.Ext(e.Name()) != ".json" {
+		return false, nil
+	}
+
+	info, err := e.Info()
+	if err != nil {
+		return false, err
+	}
+
+	return info.Mode().IsRegular(), nil
+}
+
+func printAndGetSignedMeta(role string, signed json.RawMessage) (*signedMeta, error) {
+	sm := &signedMeta{}
+	if err := json.Unmarshal(signed, sm); err != nil {
+		return nil, err
+	}
+	fmt.Printf("\t%s version %d, expires %s\n", role, sm.Version, sm.Expires.Format("2006/01/02"))
+	return sm, nil
+}
+
 func verifyStagedMetadata(repository string) error {
 	log.Printf("\nOutputting metadata verification at %s...\n", repository)
 
 	// logs the state of each metadata file, including number of signatures to achieve threshold
 	// and verifies the signatures in each file.
 	store := tuf.FileSystemStore(repository, nil)
-	db, err := repo.CreateDb(store)
-	if err != nil {
-		return err
-	}
-	root, err := repo.GetRootFromStore(store)
+
+	db, thresholds, err := repo.CreateDb(store)
 	if err != nil {
 		return err
 	}
 
-	for name, role := range root.Roles {
+	meta, err := store.GetMeta()
+	if err != nil {
+		return err
+	}
+
+	for name, md := range meta {
+		if repo.IsVersionedManifest(name) {
+			continue
+		}
+		// only verify staged.
+		if !store.FileIsStaged(name) {
+			continue
+		}
+
 		log.Printf("\nVerifying %s...", name)
-		signed, err := repo.GetSignedMeta(store, name+".json")
-		if err != nil {
+
+		name = strings.TrimSuffix(name, ".json")
+		signed := &data.Signed{}
+		if err := json.Unmarshal(md, signed); err != nil {
 			return err
 		}
 
@@ -99,57 +157,32 @@ func verifyStagedMetadata(repository string) error {
 		if err = db.VerifySignatures(signed, name); err != nil {
 			if _, ok := err.(verify.ErrRoleThreshold); ok {
 				// we may not have all the sig, allow partial sigs for success
-				log.Printf("\tContains %d/%d valid signatures\n", err.(verify.ErrRoleThreshold).Actual, role.Threshold)
+				log.Printf("\tContains %d/%d valid signatures\n", err.(verify.ErrRoleThreshold).Actual, thresholds[name])
+				_, err := printAndGetSignedMeta(name, signed.Signed)
+				if err != nil {
+					return err
+				}
 			} else if err.Error() == verify.ErrNoSignatures.Error() {
-				log.Printf("\tContains 0/%d valid signatures\n", role.Threshold)
+				// We do not return an error here so we can log unsigned metadata
+				log.Printf("\tContains 0/%d valid signatures\n", thresholds[name])
+				_, err := printAndGetSignedMeta(name, signed.Signed)
+				if err != nil {
+					return err
+				}
 			} else {
 				log.Printf("\tError verifying: %s\n", err)
 				return err
 			}
 		} else {
 			log.Printf("\tSuccess! Signatures valid and threshold achieved\n")
+			_, err := printAndGetSignedMeta(name, signed.Signed)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
 	return nil
-}
-
-var (
-	repository string
-	staged     bool
-	root       file
-	expiration string
-)
-
-func getKeysAndThreshold(clocal client.LocalStore) ([]*data.Key, int, error) {
-	// TODO: Remove when InitLocal is added to TUF client
-	meta, err := clocal.GetMeta()
-	if err != nil {
-		return nil, 0, err
-	}
-	local := tuf.MemoryStore(meta, nil)
-	repo, err := tuf.NewRepoIndent(local, "", "\t", "sha512", "sha256")
-	if err != nil {
-		log.Printf("error reading trusted TUF local: %s", err)
-		return nil, 0, err
-	}
-	rootKeys, err := repo.RootKeys()
-	if err != nil {
-		log.Printf("error getting TUF local root keys : %s", err)
-		return nil, 0, err
-	}
-	threshold, err := repo.GetThreshold("root")
-	if err != nil {
-		log.Printf("error getting threshold from root : %s", err)
-		return nil, 0, err
-	}
-	return rootKeys, threshold, nil
-}
-
-type signedMeta struct {
-	Type    string    `json:"_type"`
-	Expires time.Time `json:"expires"`
-	Version int       `json:"version"`
 }
 
 func getClientState(local client.LocalStore) (map[string]signedMeta, error) {
@@ -158,20 +191,28 @@ func getClientState(local client.LocalStore) (map[string]signedMeta, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "getting trusted meta")
 	}
+
 	for role, md := range trustedMeta {
 		s := &data.Signed{}
 		if err := json.Unmarshal(md, s); err != nil {
 			return nil, err
 		}
-		sm := &signedMeta{}
-		if err := json.Unmarshal(s.Signed, sm); err != nil {
+		sm, err := printAndGetSignedMeta(role, s.Signed)
+		if err != nil {
 			return nil, err
 		}
 		res[role] = *sm
-		fmt.Printf("\t%s version %d, expires %s\n", role, sm.Version, sm.Expires.Format("2006/01/02"))
 	}
+
 	return res, nil
 }
+
+var (
+	repository string
+	staged     bool
+	root       file
+	expiration string
+)
 
 var repositoryCmd = &cobra.Command{
 	Use:   "repository",
@@ -189,6 +230,7 @@ var repositoryCmd = &cobra.Command{
 		if staged {
 			// Assumes a local repository!
 			// This will include staged metadata and verify partial signatures
+			log.Printf("STAGED METADATA")
 			if err := verifyStagedMetadata(repository); err != nil {
 				log.Printf("error verifying metadata: %s", err)
 				os.Exit(1)
@@ -202,6 +244,9 @@ var repositoryCmd = &cobra.Command{
 			_ = cmd.Usage()
 			os.Exit(1)
 		}
+
+		log.Printf("\nVERIFYING TUF CLIENT UPDATE\n\n")
+
 		rootMeta, err := ioutil.ReadFile(root.String())
 		if err != nil {
 			log.Printf("error reading trusted TUF root: %s", root.String())
@@ -210,11 +255,6 @@ var repositoryCmd = &cobra.Command{
 		local := client.MemoryLocalStore()
 		if err := local.SetMeta("root.json", rootMeta); err != nil {
 			log.Printf("error setting root metadata: %s", err)
-			os.Exit(1)
-		}
-		rootKeys, threshold, err := getKeysAndThreshold(local)
-		if err != nil {
-			log.Printf("error getting keys and threshold from root : %s", err)
 			os.Exit(1)
 		}
 
@@ -239,7 +279,7 @@ var repositoryCmd = &cobra.Command{
 		}
 		c := client.NewClient(local, remote)
 
-		if err := c.Init(rootKeys, threshold); err != nil {
+		if err := c.InitLocal(rootMeta); err != nil {
 			log.Printf("error initializing client: %s", err)
 			os.Exit(1)
 		}

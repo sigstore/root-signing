@@ -10,11 +10,9 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/peterbourgon/ff/v3/ffcli"
-	"github.com/pkg/errors"
 	pkeys "github.com/sigstore/root-signing/pkg/keys"
 	prepo "github.com/sigstore/root-signing/pkg/repo"
 	cjson "github.com/tent/canonical-json-go"
@@ -24,20 +22,6 @@ import (
 
 var threshold = 3
 
-type targetsFlag []string
-
-func (f *targetsFlag) String() string {
-	return strings.Join(*f, ", ")
-}
-
-func (f *targetsFlag) Set(value string) error {
-	if _, err := os.Stat(filepath.Clean(value)); os.IsNotExist(err) {
-		return err
-	}
-	*f = append(*f, value)
-	return nil
-}
-
 func Init() *ffcli.Command {
 	var (
 		flagset    = flag.NewFlagSet("tuf init", flag.ExitOnError)
@@ -45,9 +29,8 @@ func Init() *ffcli.Command {
 		previous   = flagset.String("previous", "", "path to the previous repository")
 		snapshot   = flagset.String("snapshot", "", "reference to an online snapshot signer")
 		timestamp  = flagset.String("timestamp", "", "reference to an online timestamp signer")
-		targets    = targetsFlag{}
+		targets    = flagset.String("target-meta", "", "path to a target configuration file")
 	)
-	flagset.Var(&targets, "target", "path to target to add")
 	return &ffcli.Command{
 		Name:       "init",
 		ShortUsage: "tuf init initializes a new TUF repository",
@@ -71,42 +54,68 @@ func Init() *ffcli.Command {
 			if *timestamp == "" {
 				return flag.ErrHelp
 			}
-			return InitCmd(ctx, *repository, *previous, targets, *snapshot, *timestamp)
+			return InitCmd(ctx, *repository, *previous, *targets, *snapshot, *timestamp)
 		},
 	}
 }
 
-func InitCmd(ctx context.Context, directory, previous string, targets targetsFlag, snapshotRef string, timestampRef string) error {
+func InitCmd(ctx context.Context, directory, previous, targets, snapshotRef string, timestampRef string) error {
 	// TODO: Validate directory is a good path.
 	store := tuf.FileSystemStore(directory, nil)
 	repo, err := tuf.NewRepoIndent(store, "", "\t", "sha512", "sha256")
 	if err != nil {
 		return err
 	}
+	curRootVersion, err := repo.RootVersion()
+	if err != nil {
+		return err
+	}
+
 	if previous == "" {
 		// Only initialize if no previous specified.
-		if err := repo.Init(false); err != nil {
+		if err := repo.Init( /*consistentSnapshot=*/ true); err != nil {
 			return err
 		}
 		fmt.Fprintln(os.Stderr, "TUF repository initialized at ", directory)
 	}
 
 	// Get the root.json file and initialize it with the expirations and thresholds
-	expiration := time.Now().AddDate(0, 6, 0).UTC()
-	curRootVersion, err := repo.RootVersion()
+	expiration := time.Now().AddDate(0, 6, 0).UTC().Round(time.Second)
+
+	// Add the keys we just provisioned to root and targets and revoke any removed ones.
+	root, err := prepo.GetRootFromStore(store)
 	if err != nil {
 		return err
 	}
-
-	// Add the keys we just provisioned to root and targets
 	keys, err := getKeysFromDir(directory + "/keys")
 	if err != nil {
 		return err
 	}
+	var allRootKeys []*data.PublicKey
 	for _, role := range []string{"root", "targets"} {
+		currentKeyMap := map[string]bool{}
 		for _, tufKey := range keys {
+			currentKeyMap[tufKey.IDs()[0]] = true
 			if err := repo.AddVerificationKeyWithExpiration(role, tufKey, expiration); err != nil {
 				return err
+			}
+		}
+		if role == "root" {
+			// This retrieves all the new root keys, but before we revoke any.
+			allRootKeys, err = repo.RootKeys()
+			if err != nil {
+				return err
+			}
+		}
+		// Revoke any keys that we've rotated out
+		oldKeys, ok := root.Roles[role]
+		if ok {
+			for _, oldKeyID := range oldKeys.KeyIDs {
+				if _, ok := currentKeyMap[oldKeyID]; !ok {
+					if err := repo.RevokeKey(role, oldKeyID); err != nil {
+						return err
+					}
+				}
 			}
 		}
 		if err := repo.SetThreshold(role, threshold); err != nil {
@@ -114,44 +123,41 @@ func InitCmd(ctx context.Context, directory, previous string, targets targetsFla
 		}
 	}
 
-	// Revoke old root keys used for snapshot and timestamp and roles.
-	for _, role := range []string{"snapshot", "timestamp"} {
-		for _, tufKey := range keys {
-			// Revoke the offline root keys used in root signing v1 for snapshot and timestamp role.
-			// Revocation is done by specifying one of it's key IDs.
-			// The snapshot and timestamp roles in v2+ will be based on online signers on GCP KMS to
-			// facilitate staging project delegations between root signing events..
-			if err := repo.RevokeKey(role, tufKey.IDs()[0]); err != nil {
-				return errors.Wrap(err, "error revoking key")
-			}
-		}
-		if err := repo.SetThreshold(role, 1); err != nil {
-			return err
-		}
-	}
-	// Add online snapshot and timestamp keys with a shorter expiration of three weeks.
+	// Revoke old root keys used for snapshot and timestamp and roles and add new keys.
 	for role, keyRef := range map[string]string{"snapshot": snapshotRef, "timestamp": timestampRef} {
-		// Add new online keys
 		signerKey, err := pkeys.GetKmsSigningKey(ctx, keyRef)
 		if err != nil {
 			return err
 		}
-		// Sets a three week (21 days) expiration.
-		if err := repo.AddVerificationKeyWithExpiration(role, signerKey.Key, time.Now().AddDate(0, 0, 21).UTC()); err != nil {
+
+		// Add key. The expiration will adjust in the snapshot/timestamp step.
+		if err := repo.AddVerificationKeyWithExpiration(role, signerKey.Key, data.DefaultExpires(role)); err != nil {
+			return err
+		}
+
+		if err := repo.SetThreshold(role, 1); err != nil {
 			return err
 		}
 	}
 
 	// Add targets (copy them into the repository and add them to the targets.json)
-	relativePaths := []string{}
-	for _, target := range targets {
-		from, err := os.Open(target)
+	targetCfg, err := os.ReadFile(targets)
+	if err != nil {
+		return err
+	}
+	meta, err := prepo.TargetMetaFromString(targetCfg)
+	if err != nil {
+		return err
+	}
+
+	for tt, custom := range meta {
+		from, err := os.Open(tt)
 		if err != nil {
 			return err
 		}
 		defer from.Close()
-		base := filepath.Base(target)
-		to, err := os.OpenFile(filepath.Join(directory, "staged/targets", base), os.O_RDWR|os.O_CREATE, 0666)
+		base := filepath.Base(tt)
+		to, err := os.Create(filepath.Join(directory, "staged", "targets", base))
 		if err != nil {
 			return err
 		}
@@ -160,12 +166,11 @@ func InitCmd(ctx context.Context, directory, previous string, targets targetsFla
 			return err
 		}
 		fmt.Fprintln(os.Stderr, "Created target file at ", to.Name())
-		relativePaths = append(relativePaths, base)
+		if err := repo.AddTargetWithExpiresToPreferredRole(base, custom, expiration, "targets"); err != nil {
+			return fmt.Errorf("error adding targets %w", err)
+		}
 	}
 
-	if err := repo.AddTargetsWithExpires(relativePaths, nil, expiration); err != nil {
-		return fmt.Errorf("error adding targets %w", err)
-	}
 	if err := repo.SetThreshold("targets", threshold); err != nil {
 		return err
 	}
@@ -181,13 +186,14 @@ func InitCmd(ctx context.Context, directory, previous string, targets targetsFla
 
 	// We manually increment the root version in case adding the verification keys did not
 	// increment the root version (because of no change).
-	root, err := prepo.GetRootFromStore(store)
+	root, err = prepo.GetRootFromStore(store)
 	if err != nil {
 		return err
 	}
+	root.ConsistentSnapshot = true
 	root.Version = curRootVersion + 1
 	root.Expires = expiration
-	return setMetaWithSigKeyIDs(store, "root.json", root, keys)
+	return setMetaWithSigKeyIDs(store, "root.json", root, allRootKeys)
 }
 
 func setSignedMeta(store tuf.LocalStore, role string, s *data.Signed) error {
@@ -198,7 +204,7 @@ func setSignedMeta(store tuf.LocalStore, role string, s *data.Signed) error {
 	return store.SetMeta(role, b)
 }
 
-func setMetaWithSigKeyIDs(store tuf.LocalStore, role string, meta interface{}, keys []*data.Key) error {
+func setMetaWithSigKeyIDs(store tuf.LocalStore, role string, meta interface{}, keys []*data.PublicKey) error {
 	signed, err := jsonMarshal(meta)
 	if err != nil {
 		return err
@@ -232,19 +238,23 @@ func jsonMarshal(v interface{}) ([]byte, error) {
 	return out.Bytes(), nil
 }
 
-func getKeysFromDir(dir string) ([]*data.Key, error) {
+func getKeysFromDir(dir string) ([]*data.PublicKey, error) {
 	files, err := ioutil.ReadDir(dir)
 	if err != nil {
 		return nil, err
 	}
-	var tufKeys []*data.Key
+	var tufKeys []*data.PublicKey
 	for _, file := range files {
 		if file.IsDir() {
 			key, err := pkeys.SigningKeyFromDir(filepath.Join(dir, file.Name()))
 			if err != nil {
 				return nil, err
 			}
-			tufKeys = append(tufKeys, pkeys.ToTufKey(*key))
+			tufKey, err := pkeys.ToTufKey(*key)
+			if err != nil {
+				return nil, err
+			}
+			tufKeys = append(tufKeys, tufKey)
 		}
 	}
 	return tufKeys, err

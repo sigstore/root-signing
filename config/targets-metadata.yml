@@ -1,0 +1,29 @@
+# Target files and metadata under top-level targets
+targets/fulcio_v1.crt.pem:
+  sigstore:
+    usage: Fulcio
+    status: Active
+targets/fulcio_intermediate_v1.crt.pem:
+  sigstore:
+    usage: Fulcio
+    status: Active
+targets/fulcio.crt.pem:
+  sigstore:
+    usage: Fulcio
+    status: Expired
+targets/artifact.pub:
+  sigstore:
+    usage: Unknown
+    status: Active
+targets/ctfe.pub:
+  sigstore:
+    usage: CTFE
+    status: Active
+targets/rekor.pub:
+  sigstore:
+    usage: Rekor
+    status: Active
+targets/rekor.0.pub:
+  sigstore:
+    usage: Rekor
+    status: Active 

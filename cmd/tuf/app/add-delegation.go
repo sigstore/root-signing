@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pkg/errors"
 	pkeys "github.com/sigstore/root-signing/pkg/keys"
 	prepo "github.com/sigstore/root-signing/pkg/repo"
 	"github.com/theupdateframework/go-tuf/data"
@@ -37,10 +36,9 @@ func AddDelegation() *ffcli.Command {
 		name       = flagset.String("name", "", "name of the delegatee")
 		keys       = keysFlag{}
 		path       = flagset.String("path", "", "path for the delegation")
-		targets    = targetsFlag{}
+		targets    = flagset.String("target-meta", "", "path to a target configuration file")
 	)
 	flagset.Var(&keys, "key", "key reference for the delegatee")
-	flagset.Var(&targets, "target", "path to target to add")
 	return &ffcli.Command{
 		Name:       "add-delegation",
 		ShortUsage: "tuf add-delegation a role delegation from the top-level targets",
@@ -63,12 +61,12 @@ but will default to the name if unspecified.
 			if len(keys) == 0 {
 				return flag.ErrHelp
 			}
-			return DelegationCmd(ctx, *repository, *name, *path, keys, targets)
+			return DelegationCmd(ctx, *repository, *name, *path, keys, *targets)
 		},
 	}
 }
 
-func DelegationCmd(ctx context.Context, directory, name, path string, keyRefs keysFlag, targets targetsFlag) error {
+func DelegationCmd(ctx context.Context, directory, name, path string, keyRefs keysFlag, targets string) error {
 	store := tuf.FileSystemStore(directory, nil)
 
 	repo, err := tuf.NewRepoIndent(store, "", "\t", "sha512", "sha256")
@@ -86,7 +84,7 @@ func DelegationCmd(ctx context.Context, directory, name, path string, keyRefs ke
 	}
 	sigs := s.Signatures
 
-	keys := []*data.Key{}
+	keys := []*data.PublicKey{}
 	ids := []string{}
 	for _, keyRef := range keyRefs {
 		signerKey, err := pkeys.GetKmsSigningKey(ctx, keyRef)
@@ -96,45 +94,64 @@ func DelegationCmd(ctx context.Context, directory, name, path string, keyRefs ke
 		keys = append(keys, signerKey.Key)
 		ids = append(ids, signerKey.Key.IDs()...)
 	}
-	// Don't increment version multiple times.
+	// Don't increment targets version multiple times.
 	version, err := repo.TargetsVersion()
 	if err != nil {
 		return err
 	}
 
-	expiration := time.Now().AddDate(0, 6, 0).UTC()
-	if err := repo.AddTargetsDelegationWithExpires("targets", data.DelegatedRole{
+	expiration := time.Now().AddDate(0, 6, 0).UTC().Round(time.Second)
+	if err := repo.AddDelegatedRoleWithExpires("targets", data.DelegatedRole{
 		Name:      name,
 		KeyIDs:    ids,
 		Paths:     []string{path},
 		Threshold: 1,
 	}, keys, expiration); err != nil {
-		return errors.Wrap(err, "adding targets delegation")
+		// If delegation already added, then we just want to bump version and expiration.
+		fmt.Fprintln(os.Stdout, "Adding targets delegation: ", err)
 	}
-	relativePaths := []string{}
-	for _, target := range targets {
-		from, err := os.Open(target)
+
+	// Add targets (copy them into the repository and add them to the targets.json)
+	if targets != "" {
+		targetCfg, err := os.ReadFile(targets)
 		if err != nil {
 			return err
 		}
-		defer from.Close()
-		base := filepath.Base(target)
-		to, err := os.OpenFile(filepath.Join(directory, "staged/targets", base), os.O_RDWR|os.O_CREATE, 0666)
+		meta, err := prepo.TargetMetaFromString(targetCfg)
 		if err != nil {
 			return err
 		}
-		defer to.Close()
-		if _, err := io.Copy(to, from); err != nil {
-			return err
+
+		for tt, custom := range meta {
+			from, err := os.Open(tt)
+			if err != nil {
+				return err
+			}
+			defer from.Close()
+			base := filepath.Base(tt)
+			to, err := os.Create(filepath.Join(directory, "staged", "targets", base))
+			if err != nil {
+				return err
+			}
+			defer to.Close()
+			if _, err := io.Copy(to, from); err != nil {
+				return err
+			}
+			fmt.Fprintln(os.Stderr, "Created target file at ", to.Name())
+			if err := repo.AddTargetsWithExpiresToPreferredRole([]string{base}, custom, expiration, name); err != nil {
+				return fmt.Errorf("error adding targets %w", err)
+			}
 		}
-		fmt.Fprintln(os.Stderr, "Created target file at ", to.Name())
-		relativePaths = append(relativePaths, base)
-	}
-	if len(relativePaths) > 0 {
-		if err := repo.AddTargetsWithExpires(relativePaths, nil, expiration); err != nil {
+	} /* else {
+		// If there are no targets to add to the delegation, then add an empty targets.
+		// Currently, we cannot add empty targets to a delegation.
+		// TODO uncomment this when go-tuf is resolved
+		// https://github.com/theupdateframework/go-tuf/issues/243
+		if err := repo.AddTargetsWithExpiresToPreferredRole([]string{}, nil, expiration, name); err != nil {
 			return fmt.Errorf("error adding targets %w", err)
 		}
-	}
+	} */
+
 	if err := repo.SetTargetsVersion(version); err != nil {
 		return err
 	}

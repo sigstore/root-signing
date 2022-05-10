@@ -2,15 +2,21 @@
 	"signatures": [
 		{
 			"keyid": "ae0c689c6347ada7359df48934991f4e013193d6ddf3482a5ffb293f74f3b217",
-			"sig": "3045022076eadd73f6664bac5cc91f12d3a7ddcdd53f9bde661f147651196ff66e7235d1022100f7b3143792405f9e8a75331a05d4128bdf083de302801e99c3d027919a4b03da"
+			"sig": "304402204986bfc064f18ceab9513204e64829e18b6283d8b8a0b524086fca8a0d5f8ac9022068ee1734e0d2e6d57f3104b264b3b59db9865d5ac3db31632e4ed534d1eb206b"
 		}
 	],
 	"signed": {
 		"_type": "targets",
-		"expires": "2022-05-11T19:10:11Z",
+		"expires": "2022-11-10T02:19:45Z",
 		"spec_version": "1.0",
 		"targets": {
 			"rekor.0.pub": {
+				"custom": {
+					"sigstore": {
+						"status": "Active",
+						"usage": "Rekor"
+					}
+				},
 				"hashes": {
 					"sha256": "dce5ef715502ec9f3cdfd11f8cc384b31a6141023d3e7595e9908a81cb6241bd",
 					"sha512": "0ae7705e02db33e814329746a4a0e5603c5bdcd91c96d072158d71011a2695788866565a2fec0fe363eb72cbcaeda39e54c5fe8d416daf9f3101fdba4217ef35"
@@ -18,6 +24,6 @@
 				"length": 178
 			}
 		},
-		"version": 1
+		"version": 2
 	}
 }

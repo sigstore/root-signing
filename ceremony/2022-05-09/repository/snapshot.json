@@ -2,19 +2,27 @@
 	"signatures": [
 		{
 			"keyid": "fc61191ba8a516fe386c7d6c97d918e1d241e1589729add09b122725b8c32451",
-			"sig": "3046022100d2a7627fd6287c8f8a88ae2c8e9d04ed2022a4d1628bb46a40d72d45e265c92f022100bd6f50fc8b2866ee9ff5d6d3cb27060f09adf488914f33d424a32243c04f8aa1"
+			"sig": "3045022100cf722a765b36437f0d5bd5b29a3042da237506c44ca00c8383da8a8e3e78b562022008b7b93d349a39a3170b37f76ef2e5bca410c8cd049e36bf893d0e80a2d6d11f"
 		}
 	],
 	"signed": {
 		"_type": "snapshot",
-		"expires": "2022-05-22T00:09:50Z",
+		"expires": "2022-05-31T17:41:04Z",
 		"meta": {
 			"rekor.json": {
 				"hashes": {
-					"sha256": "a7412a87f8d7b330e0380b19a4a76c00357c39a1aa7f56fd87445d4e12faafe4",
-					"sha512": "720cb3c42bac50c5bc3cb7076e730301ef29f1893ea52e25f9393fc05851c7a531638c42d9fc992969805982a2bf51d676e33d28a7382ea589b5a9f87474c63f"
+					"sha256": "01f801860cd19f0535988b9f090acce40385cb5591968c35d270e95ec42e9915",
+					"sha512": "9a81caec5359deddd6ac95f00e7ceb42fdf4ca460ceee5ede197bebf19449952748d1eeb031935bf44b4f26d41fb60513087c3600ee521f6c68531ad9f678353"
 				},
-				"length": 697,
+				"length": 793,
+				"version": 2
+			},
+			"revocation.json": {
+				"hashes": {
+					"sha256": "ad121d0bb22e1f6521b8cd2664f7c9e50490a35c5ed349a9ebb6e3bdacf072b3",
+					"sha512": "edbd7855be299c7be40338970dc48ebca2b6a9bd0865ccdba83c14f5749e39b24ccb564af95dfab75092346d947bbb7683cfa8d33787fb5ecf95d89efe960ffb"
+				},
+				"length": 783,
 				"version": 1
 			},
 			"root.json": {
@@ -27,22 +35,22 @@
 			},
 			"staging.json": {
 				"hashes": {
-					"sha256": "c7f32379c2a76f0ec0af84e86794a8f4fe285e44fb62f336d598810dccdc7343",
-					"sha512": "5462cb15fe5248a12cc12387a732ad43caf42391361f36113ea3d4b7e5e193cdf39fbe91c309c0691134377cb83afeba50cf6d711537d8280ce16ce9cd8752ba"
+					"sha256": "8dc8da4a75e53d33a5f3199e4a18f68f5f395e37ff0c909b72b7f4281960a323",
+					"sha512": "c5da72dc0ec7fb772b3e99d82d2042904a9a4113b5e489018c0a5405157b8ea99bbb86126d2074f169afed023341241f884ef4444baadc4005fca3a972972034"
 				},
-				"length": 399,
+				"length": 397,
 				"version": 1
 			},
 			"targets.json": {
 				"hashes": {
-					"sha256": "18d10c07c8d6bd7484772b02dcc988d0abf8a0fa379d5893a502410590c17fe6",
-					"sha512": "c2ba2a84820288997c8fae264776df7b262dde97c4f9e0320ad354879ce5afabd1d43494734fecffd23253442a14cfe217787de8b65cf7fd1f03130b72a0767c"
+					"sha256": "c06201b2e03565113319e0851542a26258eeb0b1223a4b17a05b8ee56e75943e",
+					"sha512": "145c8e15ea06d420a969eef4fb33aa830b9751f853fd3d6dfa4fe9440e94a4281b01d29ef424f2a5c640011f651b0f40556a32170a753f86b8df683330b1ac01"
 				},
-				"length": 4167,
-				"version": 2
+				"length": 6088,
+				"version": 3
 			}
 		},
 		"spec_version": "1.0",
-		"version": 28
+		"version": 29
 	}
 }

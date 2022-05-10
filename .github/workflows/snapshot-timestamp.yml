@@ -81,7 +81,7 @@ jobs:
       - uses: actions/download-artifact@fb598a63ae348fa914e94cd0ff38f362e927b741 # v2.1.0
         with:
           name: snapshot-and-timestamp
-          path: repository/repository/
+          path: repository/
       # Open pull request changes
       - name: create pull request
         uses: peter-evans/create-pull-request@f094b77505fb89581e68a1163fbd2fffece39da1 # v4.0.2

@@ -30,7 +30,7 @@ git status
 # Sign the root and targets
 ./tuf publish -repository $REPO
 # Clear and copy into the repository/
-rm -r repository/ if [ -f $REPO/repository/1.root.json ]; then
+rm -r repository/
 cp -r $REPO/repository/ repository/
 
 if [ -n "$NO_PUSH" ]; then

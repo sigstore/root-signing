@@ -1,13 +1,13 @@
 name: Sync Repository with GCS
 
-# Execute this on changes to repository/repository/
+# Execute this on changes to repository/
 on:
   # When a new root is published.
-  # push:
-    # branches:
-    #   - main
-    # paths:
-    #   - 'repository/repository/**'
+  push:
+    branches:
+      - main
+    paths:
+      - 'repository/**'
   workflow_dispatch:
 
 jobs:
@@ -43,9 +43,9 @@ jobs:
       - name: sync
         run: |
           # Upload all but TUF timestamp. Once timestamp is uploaded, all other files must uploaded.
-          for f in $(ls repository/repository/ -I *timestamp.json)
+          for f in $(ls repository/ -I *timestamp.json)
           do
-            gcloud alpha --quiet storage cp --cache-control=no-store -r repository/repository/$f gs://sigstore-tuf-root/
+            gcloud alpha --quiet storage cp --cache-control=no-store -r repository/$f gs://sigstore-tuf-root/
           done
           # Upload timestamp
-          gcloud alpha --quiet storage cp --cache-control=no-store -r repository/repository/*timestamp.json gs://sigstore-tuf-root/
+          gcloud alpha --quiet storage cp --cache-control=no-store -r repository/*timestamp.json gs://sigstore-tuf-root/

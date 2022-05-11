@@ -212,6 +212,7 @@ var (
 	staged     bool
 	root       file
 	expiration string
+	roles      []string
 )
 
 var repositoryCmd = &cobra.Command{
@@ -315,6 +316,9 @@ var repositoryCmd = &cobra.Command{
 				os.Exit(1)
 			}
 			for role, sm := range clientState {
+				if !checkRoleExpiry(role) {
+					continue
+				}
 				if sm.Expires.Before(validUntil) {
 					fmt.Printf("error: %s will expire on %s\n", role, sm.Expires.Format("2006/01/02"))
 					os.Exit(1)
@@ -324,7 +328,20 @@ var repositoryCmd = &cobra.Command{
 	},
 }
 
+func checkRoleExpiry(role string) bool {
+	if roles == nil {
+		return true
+	}
+	for _, r := range roles {
+		if r == role {
+			return true
+		}
+	}
+	return false
+}
+
 func init() {
+	repositoryCmd.Flags().StringArrayVar(&roles, "role", nil, "set multiple times for multiple roles (all roles verified if unset)")
 	repositoryCmd.Flags().StringVar(&repository, "repository", "repository/", "path to repository, may be HTTP or local file")
 	repositoryCmd.Flags().BoolVar(&staged, "staged", false, "indicates whether the repository is staged and should only be partially verified")
 	repositoryCmd.Flags().Var(&root, "root", "path to a trusted root, required unless verifying staged metadata")

@@ -27,7 +27,7 @@ jobs:
           fetch-depth: 2
       - run: |
           cd repository/
-          python -m http.server 8001
+          python -m http.server 8001 &
           echo "REPO=http://localhost:8001" >> $GITHUB_ENV
       
       # Test cosign initialize

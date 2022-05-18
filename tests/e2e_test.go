@@ -1,11 +1,12 @@
 package test
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"io"
 	"io/ioutil"
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -18,8 +19,17 @@ import (
 	"github.com/theupdateframework/go-tuf/data"
 )
 
-// Create test HSM keys.
-// This function creates a test temp directory of fake hardware keys.
+// TODO(asraa): Add more unit tests, including
+//   * Test >1 threshold signers for root and targets.
+//   * Custom metadata included in targets
+//   * Updating a root version
+//   * Rotating a keyholder
+//   * Root and targets are validated before snapshotting
+//   * Root and target placeholders are removed before snapshotting
+//   * Fetching targets with cosign's API with/without consistent snapshotting
+
+// Create a test HSM key located in a keys/ subdirectory of testDir.
+// TODO(asraa): Generalize to create new keys programmatically.
 func createTestHsmKey(testDir string) error {
 	keyDir := filepath.Join(testDir, "keys", "10550341")
 	if err := os.MkdirAll(keyDir, 0755); err != nil {
@@ -54,12 +64,12 @@ func createTestSigner(t *testing.T) string {
 		t.Fatal(err)
 	}
 	temp := t.TempDir()
-	path := path.Join(temp, "cosign.key")
+	f, _ := os.CreateTemp(temp, "*.key")
 
-	if err := os.WriteFile(path, keys.PrivateBytes, 0600); err != nil {
+	if _, err := io.Copy(f, bytes.NewBuffer(keys.PrivateBytes)); err != nil {
 		t.Fatal(err)
 	}
-	return path
+	return f.Name()
 }
 
 func TestInitCmd(t *testing.T) {

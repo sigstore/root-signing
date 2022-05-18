@@ -72,7 +72,7 @@ func GetKeyAndAttestation(ctx context.Context) (*KeyAndAttestations, error) {
 		Value:      keyValBytes,
 	}
 
-	return &KeyAndAttestations{attestations: *attestations, key: pk}, nil
+	return &KeyAndAttestations{Attestations: *attestations, Key: pk}, nil
 }
 
 func AddKeyCmd(ctx context.Context, directory string) error {
@@ -104,14 +104,14 @@ func AddKeyCmd(ctx context.Context, directory string) error {
 }
 
 func WriteKeyData(keyAndAttestations *KeyAndAttestations, directory string) error {
-	att := keyAndAttestations.attestations
+	att := keyAndAttestations.Attestations
 	serial := fmt.Sprint(att.KeyAttestation.Serial)
 	keyDir := filepath.Join(directory, "keys", serial)
 	if err := os.MkdirAll(keyDir, 0755); err != nil {
 		return err
 	}
 
-	b, err := x509.MarshalPKIXPublicKey(keyAndAttestations.attestations.KeyCert.PublicKey)
+	b, err := x509.MarshalPKIXPublicKey(keyAndAttestations.Attestations.KeyCert.PublicKey)
 	if err != nil {
 		return err
 	}

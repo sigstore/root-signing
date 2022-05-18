@@ -122,7 +122,7 @@ func getSigner(ctx context.Context, sk bool, keyRef string) (*keys.SignerAndTufK
 		if err != nil {
 			return nil, err
 		}
-		return &keys.SignerAndTufKey{Signer: signer, Key: keyAndAttestations.key}, nil
+		return &keys.SignerAndTufKey{Signer: signer, Key: keyAndAttestations.Key}, nil
 	}
 	// A key reference was provided.
 	return keys.GetSigningKey(ctx, keyRef)

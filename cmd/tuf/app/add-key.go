@@ -50,8 +50,8 @@ func AddKey() *ffcli.Command {
 }
 
 type KeyAndAttestations struct {
-	attestations pivcli.Attestations
-	key          *data.PublicKey
+	Attestations pivcli.Attestations
+	Key          *data.PublicKey
 }
 
 func GetKeyAndAttestation(ctx context.Context) (*KeyAndAttestations, error) {

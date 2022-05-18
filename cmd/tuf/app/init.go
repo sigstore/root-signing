@@ -20,12 +20,13 @@ import (
 	"github.com/theupdateframework/go-tuf/data"
 )
 
-var threshold = 3
+var DefaultThreshold = 3
 
 func Init() *ffcli.Command {
 	var (
 		flagset    = flag.NewFlagSet("tuf init", flag.ExitOnError)
 		repository = flagset.String("repository", "", "path to initialize the staged repository")
+		threshold  = flagset.Int("threshold", DefaultThreshold, "default root and targets signer threshold")
 		previous   = flagset.String("previous", "", "path to the previous repository")
 		snapshot   = flagset.String("snapshot", "", "reference to an online snapshot signer")
 		timestamp  = flagset.String("timestamp", "", "reference to an online timestamp signer")
@@ -54,12 +55,35 @@ func Init() *ffcli.Command {
 			if *timestamp == "" {
 				return flag.ErrHelp
 			}
-			return InitCmd(ctx, *repository, *previous, *targets, *snapshot, *timestamp)
+			if *targets == "" {
+				return flag.ErrHelp
+			}
+			targetsConfigStr, err := os.ReadFile(*targets)
+			if err != nil {
+				return err
+			}
+			targetsConfig, err := prepo.SigstoreTargetMetaFromString(targetsConfigStr)
+			if err != nil {
+				return err
+			}
+			return InitCmd(ctx, *repository, *previous, *threshold, targetsConfig, *snapshot, *timestamp)
 		},
 	}
 }
 
-func InitCmd(ctx context.Context, directory, previous, targets, snapshotRef string, timestampRef string) error {
+// InitCmd creates a new staged root.json and targets.json in the specified directory. It populates the top-level
+// roles with signers and adds targets to top-level targets.
+//   * directory: Directory to write newly staged metadata. Must contain a keys/ subdirectory with root/targets signers.
+//   * previous: Optional previous repository to chain the root from.
+//   * threshold: The root and targets threshold.
+//   * targetsConfig: A map of target file names and custom metadata to add to top-level targets.
+//                    Target file names are expected to be in the working directory.
+//   * snapshotRef: A reference (KMS, file, URL) to a snapshot signer.
+//   * timestampRef: A reference (KMS, file, URL) to a timestamp signer.
+// The root and targets metadata will be initialized with a 6 month expiration.
+// Revoked keys will be automatically calculated given the previous root and the signers in directory.
+// Signature placeholders for each key will be added to the root.json and targets.json file.
+func InitCmd(ctx context.Context, directory, previous string, threshold int, targetsConfig map[string]json.RawMessage, snapshotRef string, timestampRef string) error {
 	// TODO: Validate directory is a good path.
 	store := tuf.FileSystemStore(directory, nil)
 	repo, err := tuf.NewRepoIndent(store, "", "\t", "sha512", "sha256")
@@ -125,7 +149,7 @@ func InitCmd(ctx context.Context, directory, previous, targets, snapshotRef stri
 
 	// Revoke old root keys used for snapshot and timestamp and roles and add new keys.
 	for role, keyRef := range map[string]string{"snapshot": snapshotRef, "timestamp": timestampRef} {
-		signerKey, err := pkeys.GetKmsSigningKey(ctx, keyRef)
+		signerKey, err := pkeys.GetSigningKey(ctx, keyRef)
 		if err != nil {
 			return err
 		}
@@ -141,16 +165,7 @@ func InitCmd(ctx context.Context, directory, previous, targets, snapshotRef stri
 	}
 
 	// Add targets (copy them into the repository and add them to the targets.json)
-	targetCfg, err := os.ReadFile(targets)
-	if err != nil {
-		return err
-	}
-	meta, err := prepo.TargetMetaFromString(targetCfg)
-	if err != nil {
-		return err
-	}
-
-	for tt, custom := range meta {
+	for tt, custom := range targetsConfig {
 		from, err := os.Open(tt)
 		if err != nil {
 			return err

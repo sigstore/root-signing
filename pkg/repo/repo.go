@@ -150,7 +150,7 @@ type sigstoreCustomMetadata struct {
 }
 
 // Target metadata helpers
-func TargetMetaFromString(b []byte) (map[string]json.RawMessage, error) {
+func SigstoreTargetMetaFromString(b []byte) (map[string]json.RawMessage, error) {
 	targetsMeta := map[string]sigstoreCustomMetadata{}
 	targetsMetaJSON := map[string]json.RawMessage{}
 	if err := yaml.Unmarshal(b, &targetsMeta); err != nil {

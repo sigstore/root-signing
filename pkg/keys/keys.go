@@ -2,7 +2,6 @@ package keys
 
 import (
 	"context"
-	"crypto"
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rsa"
@@ -18,8 +17,8 @@ import (
 	"strconv"
 	"strings"
 
+	csignature "github.com/sigstore/cosign/pkg/signature"
 	"github.com/sigstore/sigstore/pkg/signature"
-	"github.com/sigstore/sigstore/pkg/signature/kms"
 	"github.com/sigstore/sigstore/pkg/signature/options"
 	"github.com/theupdateframework/go-tuf/data"
 
@@ -187,13 +186,12 @@ func (key SigningKey) Verify(root *x509.Certificate) error {
 	return nil
 }
 
-func GetKmsSigningKey(ctx context.Context, keyRef string) (*SignerAndTufKey, error) {
-	kmsKey, err := kms.Get(ctx, keyRef, crypto.SHA256)
+func GetSigningKey(ctx context.Context, keyRef string) (*SignerAndTufKey, error) {
+	key, err := csignature.SignerVerifierFromKeyRef(ctx, keyRef, nil)
 	if err != nil {
 		return nil, err
 	}
-	// KMS specified
-	pub, err := kmsKey.PublicKey(options.WithContext(ctx))
+	pub, err := key.PublicKey(options.WithContext(ctx))
 	if err != nil {
 		return nil, err
 	}
@@ -208,7 +206,7 @@ func GetKmsSigningKey(ctx context.Context, keyRef string) (*SignerAndTufKey, err
 			Scheme:     data.KeySchemeECDSA_SHA2_P256,
 			Algorithms: data.HashAlgorithms,
 			Value:      keyValBytes,
-		}, Signer: kmsKey}, nil
+		}, Signer: key}, nil
 	case *rsa.PublicKey:
 		return nil, errors.New("RSA keys not supported")
 

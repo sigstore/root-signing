@@ -125,7 +125,7 @@ func getSigner(ctx context.Context, sk bool, keyRef string) (*keys.SignerAndTufK
 		return &keys.SignerAndTufKey{Signer: signer, Key: keyAndAttestations.key}, nil
 	}
 	// A key reference was provided.
-	return keys.GetKmsSigningKey(ctx, keyRef)
+	return keys.GetSigningKey(ctx, keyRef)
 }
 
 func SignCmd(ctx context.Context, directory string, roles []string, signer *keys.SignerAndTufKey) error {

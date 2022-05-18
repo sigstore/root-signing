@@ -102,7 +102,7 @@ func isMetaFile(e os.DirEntry) (bool, error) {
 	return info.Mode().IsRegular(), nil
 }
 
-func printAndGetSignedMeta(role string, signed json.RawMessage) (*signedMeta, error) {
+func PrintAndGetSignedMeta(role string, signed json.RawMessage) (*signedMeta, error) {
 	sm := &signedMeta{}
 	if err := json.Unmarshal(signed, sm); err != nil {
 		return nil, err
@@ -145,7 +145,7 @@ func verifyStagedMetadata(repository string) error {
 			return err
 		}
 
-		// Rremove the empty placeholder signatures
+		// Remove the empty placeholder signatures
 		var sigs []data.Signature
 		for _, sig := range signed.Signatures {
 			if len(sig.Signature) != 0 {
@@ -158,14 +158,14 @@ func verifyStagedMetadata(repository string) error {
 			if _, ok := err.(verify.ErrRoleThreshold); ok {
 				// we may not have all the sig, allow partial sigs for success
 				log.Printf("\tContains %d/%d valid signatures\n", err.(verify.ErrRoleThreshold).Actual, thresholds[name])
-				_, err := printAndGetSignedMeta(name, signed.Signed)
+				_, err := PrintAndGetSignedMeta(name, signed.Signed)
 				if err != nil {
 					return err
 				}
 			} else if err.Error() == verify.ErrNoSignatures.Error() {
 				// We do not return an error here so we can log unsigned metadata
 				log.Printf("\tContains 0/%d valid signatures\n", thresholds[name])
-				_, err := printAndGetSignedMeta(name, signed.Signed)
+				_, err := PrintAndGetSignedMeta(name, signed.Signed)
 				if err != nil {
 					return err
 				}
@@ -175,7 +175,7 @@ func verifyStagedMetadata(repository string) error {
 			}
 		} else {
 			log.Printf("\tSuccess! Signatures valid and threshold achieved\n")
-			_, err := printAndGetSignedMeta(name, signed.Signed)
+			_, err := PrintAndGetSignedMeta(name, signed.Signed)
 			if err != nil {
 				return err
 			}
@@ -197,7 +197,7 @@ func getClientState(local client.LocalStore) (map[string]signedMeta, error) {
 		if err := json.Unmarshal(md, s); err != nil {
 			return nil, err
 		}
-		sm, err := printAndGetSignedMeta(role, s.Signed)
+		sm, err := PrintAndGetSignedMeta(role, s.Signed)
 		if err != nil {
 			return nil, err
 		}

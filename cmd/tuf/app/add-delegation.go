@@ -87,7 +87,7 @@ func DelegationCmd(ctx context.Context, directory, name, path string, keyRefs ke
 	keys := []*data.PublicKey{}
 	ids := []string{}
 	for _, keyRef := range keyRefs {
-		signerKey, err := pkeys.GetKmsSigningKey(ctx, keyRef)
+		signerKey, err := pkeys.GetSigningKey(ctx, keyRef)
 		if err != nil {
 			return err
 		}
@@ -117,7 +117,7 @@ func DelegationCmd(ctx context.Context, directory, name, path string, keyRefs ke
 		if err != nil {
 			return err
 		}
-		meta, err := prepo.TargetMetaFromString(targetCfg)
+		meta, err := prepo.SigstoreTargetMetaFromString(targetCfg)
 		if err != nil {
 			return err
 		}

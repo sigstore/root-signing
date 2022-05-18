@@ -1,0 +1,35 @@
+name: Cosign tests
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths:
+      - 'repository/**'
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate:
+    env:
+      COSIGN_EXPERIMENTAL: "true"
+    runs-on: ubuntu-20.04
+    steps:
+      # Install cosign
+      - uses: sigstore/cosign-installer@536b37ec5d5b543420bdfd9b744c5965bd4d8730 # v2.3.0
+      
+      # Set up a repository server with python
+      - uses: actions/setup-python@v3
+        with:
+          python-version: '3.x' 
+      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # v2.4.0
+        with:
+          fetch-depth: 2
+      - run: |
+          cd repository/repository/
+          python -m http.server 8001 &
+          echo "REPO=http://localhost:8001" >> $GITHUB_ENV
+      
+      # Test cosign initialize
+      - name: cosign initialize on published repository
+        run: cosign initialize --mirror http://localhost:8001

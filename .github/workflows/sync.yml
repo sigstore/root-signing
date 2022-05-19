@@ -1,4 +1,4 @@
-name: Sync Repository with GCS
+name: Sync Repository with GCS Preprod Bucket
 
 # Execute this on changes to repository/repository/
 on:
@@ -45,7 +45,7 @@ jobs:
           # Upload all but TUF timestamp. Once timestamp is uploaded, all other files must uploaded.
           for f in $(ls repository/repository/ -I *timestamp.json)
           do
-            gcloud alpha --quiet storage cp --cache-control=no-store -r repository/repository/$f gs://sigstore-tuf-root/
+            gcloud alpha --quiet storage cp --cache-control=no-store -r repository/repository/$f gs://sigstore-preprod-tuf-root/
           done
           # Upload timestamp
-          gcloud alpha --quiet storage cp --cache-control=no-store -r repository/repository/*timestamp.json gs://sigstore-tuf-root/
+          gcloud alpha --quiet storage cp --cache-control=no-store -r repository/repository/*timestamp.json gs://sigstore-preprod-tuf-root/

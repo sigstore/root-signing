@@ -5,7 +5,7 @@ This directory contains the programs needed to generate and verify Sigstore root
 The current published repository metadata lives in the [repository](/repository/repository) subfolder of this GitHub repository. In this repository, you will find the top-level TUF metadata files, delegations, and target files. 
 
 * [root.json](repository/repository/root.json): This is the current `root.json`. It is signed by at least 3 out of the 5 [current root keyholders](https://github.com/sigstore/root-signing#current-sigstore-root-keyholders). Other signing keys endorsed by this root include:
-  * A set of 5 targets keyholders (the root keyholders).
+  * A set of 5 offline targets keyholders. To minimize the number of offline keysets, this is the same set as the root keyholders.
   * An online [snapshotting key](https://github.com/sigstore/root-signing/blob/57ac5cd83b90ff97af78db846eea2525eb0eee81/repository/repository/root.json#L87-L97) located at `projects/project-rekor/locations/global/keyRings/sigstore-root/cryptoKeys/snapshot`. You can verify the hex-encoded public key value with the following code:
   ```
   $ gcloud kms keys versions get-public-key 1 --key snapshot --keyring sigstore-root --location global --project project-rekor | openssl ec -pubin -noout -text 
@@ -16,10 +16,10 @@ The current published repository metadata lives in the [repository](/repository/
   ```
 * [targets.json](repository/repository/targets.json): This is the list of trusted `targets.json` endorsed by the 5 root keyholders. It includes:
   * [fulcio_v1.crt.pem](repository/repository/targets/artifact.pub): This is the [Fulcio](https://github.com/sigstore/fulcio) root certificate used to issue short-lived code signing certs. It is hosted at `https://fulcio.sigstore.dev`. You can `curl` the running root CA to ensure it matches the TUF root using `curl -v https://fulcio.sigstore.dev/api/v1/rootCert`
-  * [fulcio.crt.pem](repository/repository/targets/artifact.pub): This is the 
+  * [fulcio.crt.pem](repository/repository/targets/artifact.pub): This is the Fulcio root certificate used with an older instance of Fulcio. We maintain this target to verify old certificates but no longer used to sign newly issued certificates.
   * [rekor.pub](repository/repository/targets/artifact.pub): This is the [Rekor](https://github.com/sigstore/rekor) public key used to sign entries and the tree head of the transparency log. You can retrieve the public key to ensure it matches with `curl -H 'Content-Type: application/x-pem-file' https://rekor.sigstore.dev/api/v1/log/publicKey`.
   * [rekor.0.pub](repository/repository/targets/artifact.pub): This is a dupe of `rekor.pub` and will be removed in the next root-signing event.
-  * [ctfe.pub](repository/repository/targets/artifact.pub): Certificate Transparency log key that is used for certificates issued by Fulcio.
+  * [ctfe.pub](repository/repository/targets/artifact.pub): Certificate Transparency log key that is used for certificates issued by Fulcio and used to verify signed certificate timestamps (SCTs) for inclusion into the log.
   * [artifact.pub](repository/repository/targets/artifact.pub): Key that signs Cosign releases.
 * [snapshot.json]((repository/repository/snapshot.json)): This snapshot the valid metadata files. It has a lifetime of 2 weeks and is resigned by a [GitHub workflow](https://github.com/sigstore/root-signing/blob/main/.github/workflows/snapshot-timestamp.yml).
 * [timestamp.json]((repository/repository/timestamp.json)): The timestamp refreshes the most accurate snapshot file. It has a lifetime of 2 weeks and is resigned by a [GitHub workflow](https://github.com/sigstore/root-signing/blob/main/.github/workflows/snapshot-timestamp.yml).
@@ -50,12 +50,11 @@ The ceremony will be completed in five rounds:
 ![image](https://user-images.githubusercontent.com/5194569/122459506-ffd65e80-cf7e-11eb-8915-e10ac6b50594.png)
 
 * Round 1: Add Key
+* Round 1.5: Initialize TUF metadata 
 * Round 2: Sign Root & Targets
 * Round 3: Sign Delegations
 * Round 4: Sign Snapshot & Timestamp
-
-There will be an interim step 1.5 to initialize the TUF metadata and a final step 5 to publish it.
-
+* Round 5: Publish final repository.
 
 ### Ceremony Instructions
 Before starting the root key ceremony, the community should:

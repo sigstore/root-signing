@@ -2,7 +2,7 @@ This directory contains the programs needed to generate and verify Sigstore root
 
 ## TUF Repository Structure
 
-The current published repository metadata lives in the [repository/repository] subfolder of this GitHub repository. In this repository, you will find the top-level TUF metadata files, delegations, and target files. 
+The current published repository metadata lives in the [repository](/repository/repository) subfolder of this GitHub repository. In this repository, you will find the top-level TUF metadata files, delegations, and target files. 
 
 * [root.json](repository/repository/root.json): This is the current `root.json`. It is signed by at least 3 out of the 5 [current root keyholders](https://github.com/sigstore/root-signing#current-sigstore-root-keyholders). Other signing keys endorsed by this root include:
   * A set of 5 targets keyholders (the root keyholders).
@@ -14,7 +14,7 @@ The current published repository metadata lives in the [repository/repository] s
    ```
   $ gcloud kms keys versions get-public-key 1 --key timestamp --keyring sigstore-root --location global --project project-rekor | openssl ec -pubin -noout -text 
   ```
-* [targets.json]((repository/repository/root.json)): This is the list of trusted `targets.json` endorsed by the 5 root keyholders. It includes:
+* [targets.json](repository/repository/targets.json): This is the list of trusted `targets.json` endorsed by the 5 root keyholders. It includes:
   * [fulcio_v1.crt.pem](repository/repository/targets/artifact.pub): This is the [Fulcio](https://github.com/sigstore/fulcio) root certificate used to issue short-lived code signing certs. It is hosted at `https://fulcio.sigstore.dev`. You can `curl` the running root CA to ensure it matches the TUF root using `curl -v https://fulcio.sigstore.dev/api/v1/rootCert`
   * [fulcio.crt.pem](repository/repository/targets/artifact.pub): This is the 
   * [rekor.pub](repository/repository/targets/artifact.pub): This is the [Rekor](https://github.com/sigstore/rekor) public key used to sign entries and the tree head of the transparency log. You can retrieve the public key to ensure it matches with `curl -H 'Content-Type: application/x-pem-file' https://rekor.sigstore.dev/api/v1/log/publicKey`.

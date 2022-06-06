@@ -38,7 +38,7 @@ func getExpiration(role string) time.Time {
 	if !ok {
 		times = RoleExpiration["targets"]
 		fmt.Fprintf(os.Stderr, "Explicit expiration not found, using default targets expiration in %d years, %d months, %d days\n",
-			times[9], times[1], times[2])
+			times[0], times[1], times[2])
 	}
 	return time.Now().AddDate(times[0], times[1], times[2]).UTC().Round(time.Second)
 }

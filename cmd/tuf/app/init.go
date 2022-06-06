@@ -33,7 +33,7 @@ var RoleExpiration = map[string][]int{
 }
 
 func getExpiration(role string) time.Time {
-	// Default expiration is for targets.
+	// Default expiration for any delegated role is the targets expiration.
 	times, ok := RoleExpiration[role]
 	if !ok {
 		times = RoleExpiration["targets"]

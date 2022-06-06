@@ -8,7 +8,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 
 	pkeys "github.com/sigstore/root-signing/pkg/keys"
 	prepo "github.com/sigstore/root-signing/pkg/repo"
@@ -100,13 +99,12 @@ func DelegationCmd(ctx context.Context, directory, name, path string, keyRefs ke
 		return err
 	}
 
-	expiration := time.Now().AddDate(0, 6, 0).UTC()
 	if err := repo.AddDelegatedRoleWithExpires("targets", data.DelegatedRole{
 		Name:      name,
 		KeyIDs:    ids,
 		Paths:     []string{path},
 		Threshold: 1,
-	}, keys, expiration); err != nil {
+	}, keys, getExpiration("targets")); err != nil {
 		// If delegation already added, then we just want to bump version and expiration.
 		fmt.Fprintln(os.Stdout, "Adding targets delegation: ", err)
 	}
@@ -138,7 +136,7 @@ func DelegationCmd(ctx context.Context, directory, name, path string, keyRefs ke
 				return err
 			}
 			fmt.Fprintln(os.Stderr, "Created target file at ", to.Name())
-			if err := repo.AddTargetsWithExpiresToPreferredRole([]string{base}, custom, expiration, name); err != nil {
+			if err := repo.AddTargetsWithExpiresToPreferredRole([]string{base}, custom, getExpiration("targets"), name); err != nil {
 				return fmt.Errorf("error adding targets %w", err)
 			}
 		}

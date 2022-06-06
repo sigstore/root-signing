@@ -20,7 +20,26 @@ import (
 	"github.com/theupdateframework/go-tuf/data"
 )
 
+// Threshold for root and targets signers.
 var DefaultThreshold = 3
+
+// Time to role expiration represented as a list of ints corresponding to
+// (years, months, days).
+var RoleExpiration = map[string][]int{
+	"root":      {0, 6, 0},
+	"targets":   {0, 6, 0},
+	"snapshot":  {0, 0, 21},
+	"timestamp": {0, 6, 14},
+}
+
+func getExpiration(role string) time.Time {
+	// Default expiration is for targets.
+	times, ok := RoleExpiration[role]
+	if !ok {
+		times = RoleExpiration["targets"]
+	}
+	return time.Now().AddDate(times[0], times[1], times[2]).UTC().Round(time.Second)
+}
 
 func Init() *ffcli.Command {
 	var (
@@ -103,9 +122,6 @@ func InitCmd(ctx context.Context, directory, previous string, threshold int, tar
 		fmt.Fprintln(os.Stderr, "TUF repository initialized at ", directory)
 	}
 
-	// Get the root.json file and initialize it with the expirations and thresholds
-	expiration := time.Now().AddDate(0, 6, 0).UTC()
-
 	// Add the keys we just provisioned to root and targets and revoke any removed ones.
 	root, err := prepo.GetRootFromStore(store)
 	if err != nil {
@@ -120,7 +136,7 @@ func InitCmd(ctx context.Context, directory, previous string, threshold int, tar
 		currentKeyMap := map[string]bool{}
 		for _, tufKey := range keys {
 			currentKeyMap[tufKey.IDs()[0]] = true
-			if err := repo.AddVerificationKeyWithExpiration(role, tufKey, expiration); err != nil {
+			if err := repo.AddVerificationKeyWithExpiration(role, tufKey, getExpiration(role)); err != nil {
 				return err
 			}
 		}
@@ -155,7 +171,7 @@ func InitCmd(ctx context.Context, directory, previous string, threshold int, tar
 		}
 
 		// Add key. The expiration will adjust in the snapshot/timestamp step.
-		if err := repo.AddVerificationKeyWithExpiration(role, signerKey.Key, data.DefaultExpires(role)); err != nil {
+		if err := repo.AddVerificationKeyWithExpiration(role, signerKey.Key, getExpiration(role)); err != nil {
 			return err
 		}
 
@@ -181,7 +197,7 @@ func InitCmd(ctx context.Context, directory, previous string, threshold int, tar
 			return err
 		}
 		fmt.Fprintln(os.Stderr, "Created target file at ", to.Name())
-		if err := repo.AddTargetWithExpiresToPreferredRole(base, custom, expiration, "targets"); err != nil {
+		if err := repo.AddTargetWithExpiresToPreferredRole(base, custom, getExpiration("targets"), "targets"); err != nil {
 			return fmt.Errorf("error adding targets %w", err)
 		}
 	}
@@ -206,7 +222,7 @@ func InitCmd(ctx context.Context, directory, previous string, threshold int, tar
 		return err
 	}
 	root.Version = curRootVersion + 1
-	root.Expires = expiration
+	root.Expires = getExpiration("root")
 	return setMetaWithSigKeyIDs(store, "root.json", root, keys)
 }
 

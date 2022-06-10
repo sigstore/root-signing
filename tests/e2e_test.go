@@ -29,7 +29,7 @@ import (
 //   * Fetching targets with cosign's API with/without consistent snapshotting
 
 // Create a test HSM key located in a keys/ subdirectory of testDir.
-// TODO(asraa): Generalize to create new keys programmatically.
+// TODO(asraa): Generalize to create new keys programmatically to test signing.
 func createTestHsmKey(testDir string) error {
 	keyDir := filepath.Join(testDir, "keys", "10550341")
 	if err := os.MkdirAll(keyDir, 0755); err != nil {
@@ -55,6 +55,10 @@ func createTestHsmKey(testDir string) error {
 			return ioutil.WriteFile(filepath.Join(keyDir, relPath), data, 0777)
 		}
 	})
+}
+
+func createTestHsmSigner(testDir string) error {
+
 }
 
 // Create fake key signer in testDirectory. Returns file reference to signer.
@@ -118,4 +122,10 @@ func TestInitCmd(t *testing.T) {
 			t.Errorf("expected root version 1, got %d", sm.Version)
 		}
 	}
+}
+
+func TestSignRootTargets(t *testing.T) {
+	// Initialize.
+
+	// Sign root.
 }

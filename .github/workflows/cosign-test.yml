@@ -19,7 +19,7 @@ jobs:
       - uses: sigstore/cosign-installer@536b37ec5d5b543420bdfd9b744c5965bd4d8730 # v2.3.0
       
       # Set up a repository server with python
-      - uses: actions/setup-python@v3
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.x' 
       - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # v2.4.0

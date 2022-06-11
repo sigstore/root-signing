@@ -1,3 +1,6 @@
+//go:build pivkey
+// +build pivkey
+
 package app
 
 import (

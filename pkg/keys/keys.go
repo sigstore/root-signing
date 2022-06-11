@@ -27,7 +27,7 @@ import (
 )
 
 // See https://developers.yubico.com/PIV/Introduction/PIV_attestation.html
-var oidExtensionSerialNumber = []int{1, 3, 6, 1, 4, 1, 41482, 3, 7}
+var OidExtensionSerialNumber = []int{1, 3, 6, 1, 4, 1, 41482, 3, 7}
 
 // SigningKey contains the serial number, public key, device cert, and key cert.
 type SigningKey struct {
@@ -105,7 +105,7 @@ func ToTufKey(key SigningKey) (*data.PublicKey, error) {
 func getSerialNumber(c *x509.Certificate) (*int, error) {
 	// Retrieves the serial number from the OID extension in the certificate
 	for _, e := range c.Extensions {
-		if e.Id.Equal(oidExtensionSerialNumber) {
+		if e.Id.Equal(OidExtensionSerialNumber) {
 			var serial int
 			if rest, err := asn1.Unmarshal(e.Value, &serial); err != nil {
 				return nil, err

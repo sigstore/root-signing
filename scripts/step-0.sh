@@ -15,7 +15,7 @@ print_git_state
 setup_forks
 
 # Cleanup branches
-cleanup_branchs
+cleanup_branches
 clean_state
 
 # Checkout the working branch

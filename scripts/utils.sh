@@ -7,10 +7,6 @@ check_user() {
     fi
 }
 
-check_initialization_options() {
-    exit
-}
-
 set_repository() {
     if [ -z "$REPO" ]; then
         REPO=$(pwd)/ceremony/$(date '+%Y-%m-%d')

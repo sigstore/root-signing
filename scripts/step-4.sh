@@ -3,10 +3,14 @@
 # Print all commands and stop on errors
 set -ex
 
-if [ -z "$GITHUB_USER" ]; then
-    echo "Set GITHUB_USER"
-    exit
-fi
+source "./scripts/utils.sh"
+
+# Check that a github user is set.
+check_user
+
+# Set REPO
+set_repository
+
 if [ -z "$TIMESTAMP_KEY" ]; then
     echo "Set TIMESTAMP_KEY"
     exit
@@ -15,19 +19,13 @@ if [ -z "$SNAPSHOT_KEY" ]; then
     echo "Set SNAPSHOT_KEY"
     exit
 fi
-if [ -z "$CEREMONY_DATE" ]; then
-    CEREMONY_DATE=$(date '+%Y-%m-%d')
-fi
-export REPO=$(pwd)/ceremony/$CEREMONY_DATE
 
-# Dump the git state
-git status
-git remote -v
+# Dump the git state and clean-up
+print_git_state
+clean_state
 
-git clean -d -f
-git checkout main
-git pull upstream main
-git status
+# Checkout the working branch
+checkout_branch
 
 # Snapshot and sign the snapshot with snapshot kms key
 ./tuf snapshot -repository $REPO
@@ -37,10 +35,4 @@ git status
 ./tuf timestamp -repository $REPO
 ./tuf sign -repository $REPO -roles timestamp -key ${TIMESTAMP_KEY}
 
-git checkout -b sign-snapshot
-git add ceremony/
-git commit -s -a -m "Signing snapshot for ${GITHUB_USER}"
-git push -f origin sign-snapshot
-
-# Open the browser
-open "https://github.com/${GITHUB_USER}/root-signing/pull/new/sign-snapshot" || xdg-open "https://github.com/${GITHUB_USER}/root-signing/pull/new/sign-snapshot"
+commit_and_push_changes snapshot-timestamp

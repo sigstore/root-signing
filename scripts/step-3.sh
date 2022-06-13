@@ -3,10 +3,11 @@
 # Print all commands and stop on errors
 set -ex
 
-if [ -z "$GITHUB_USER" ]; then
-    echo "Set GITHUB_USER"
-    exit
-fi
+source "./scripts/utils.sh"
+
+# Check that a github user is set.
+check_user
+
 if [ -z "$REKOR_KEY" ]; then
     echo "Set REKOR_KEY"
     exit
@@ -19,29 +20,20 @@ if [ -z "$REVOCATION_KEY" ]; then
     echo "Set REVOCATION_KEY"
     exit
 fi
-if [ -z "$CEREMONY_DATE" ]; then
-    CEREMONY_DATE=$(date '+%Y-%m-%d')
-fi
-export REPO=$(pwd)/ceremony/$CEREMONY_DATE
 
-# Dump the git state
-git status
-git remote -v
+# Set REPO
+set_repository
 
-git clean -d -f
-git checkout main
-git pull upstream main
-git status
+# Dump the git state and clean-up
+print_git_state
+clean_state
+
+# Checkout the working branch
+checkout_branch
 
 # Sign the delegations
 ./tuf sign -repository $REPO -roles rekor -key ${REKOR_KEY}
 ./tuf sign -repository $REPO -roles staging -key ${STAGING_KEY}
 ./tuf sign -repository $REPO -roles revocation -key ${REVOCATION_KEY}
 
-git checkout -b sign-delegations
-git add ceremony/
-git commit -s -a -m "Signing delegations for ${GITHUB_USER}"
-git push -f origin sign-delegations
-
-# Open the browser
-open "https://github.com/${GITHUB_USER}/root-signing/pull/new/sign-delegations" || xdg-open "https://github.com/${GITHUB_USER}/root-signing/pull/new/sign-delegations"
+commit_and_push_changes sign-delegations

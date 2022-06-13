@@ -1,3 +1,6 @@
+//go:build pivkey
+// +build pivkey
+
 package test
 
 import (
@@ -29,7 +32,6 @@ import (
 //   * Fetching targets with cosign's API with/without consistent snapshotting
 
 // Create a test HSM key located in a keys/ subdirectory of testDir.
-// TODO(asraa): Generalize to create new keys programmatically.
 func createTestHsmKey(testDir string) error {
 	keyDir := filepath.Join(testDir, "keys", "10550341")
 	if err := os.MkdirAll(keyDir, 0755); err != nil {
@@ -116,6 +118,73 @@ func TestInitCmd(t *testing.T) {
 		}
 		if sm.Version != 1 {
 			t.Errorf("expected root version 1, got %d", sm.Version)
+		}
+	}
+}
+
+func TestSignRootTargets(t *testing.T) {
+	// Initialize.
+
+	ctx := context.Background()
+	td := t.TempDir()
+
+	rootCA, rootSigner, err := CreateRootCA()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	testTarget := filepath.Join(td, "foo.txt")
+	targetsConfig := map[string]json.RawMessage{testTarget: nil}
+
+	if err := os.WriteFile(testTarget, []byte("abc"), 0600); err != nil {
+		t.Fatal(err)
+	}
+
+	serial, err := CreateTestHsmSigner(td, rootCA, rootSigner)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	snapshotKey := createTestSigner(t)
+	timestampKey := createTestSigner(t)
+
+	// Initialize with 1 succeeds.
+	if err := app.InitCmd(ctx, td, "", 1, targetsConfig, snapshotKey, timestampKey); err != nil {
+		t.Fatal(err)
+	}
+
+	// Sign root and targets.
+	signerAndKey, err := GetTestHsmSigner(ctx, td, *serial)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := app.SignCmd(ctx, td, []string{"root", "targets"}, signerAndKey); err != nil {
+		t.Fatal(err)
+	}
+
+	// Verify that root and targets have one signature.
+	store := tuf.FileSystemStore(td, nil)
+	meta, err := store.GetMeta()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, metaName := range []string{"root.json", "targets.json"} {
+		md, ok := meta[metaName]
+		if !ok {
+			t.Fatalf("missing %s", metaName)
+		}
+		signed := &data.Signed{}
+		if err := json.Unmarshal(md, signed); err != nil {
+			t.Fatal(err)
+		}
+		if len(signed.Signatures) != 1 {
+			t.Fatalf("missing signatures on %s", metaName)
+		}
+		if !signerAndKey.Key.ContainsID(signed.Signatures[0].KeyID) {
+			t.Fatalf("missing key id for signer on %s", metaName)
+		}
+		if len(signed.Signatures[0].Signature) == 0 {
+			t.Fatalf("missing signature on %s", metaName)
 		}
 	}
 }

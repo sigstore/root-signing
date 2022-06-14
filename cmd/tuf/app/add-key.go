@@ -84,12 +84,11 @@ func AddKeyCmd(ctx context.Context, directory string) error {
 		return err
 	}
 
-	fmt.Fprintf(os.Stderr, "Resetting PIN. Enter a new PIN between 6 and 8 characters: ")
+	fmt.Fprintf(os.Stderr, "Resetting PIN. Enter a new PIN between 6 and 8 characters: \n")
 	pin, err := term.ReadPassword(0)
 	if err != nil {
 		return err
 	}
-	fmt.Println(os.Stderr)
 	if err := pivcli.SetPinCmd(ctx, "", string(pin)); err != nil {
 		return err
 	}

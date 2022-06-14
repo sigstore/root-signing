@@ -193,6 +193,11 @@ func TestSnapshotUnvalidatedFails(t *testing.T) {
 	ctx := context.Background()
 	td := t.TempDir()
 
+	rootCA, rootSigner, err := CreateRootCA()
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	testTarget := filepath.Join(td, "foo.txt")
 	targetsConfig := map[string]json.RawMessage{testTarget: nil}
 
@@ -200,7 +205,12 @@ func TestSnapshotUnvalidatedFails(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := createTestHsmKey(td); err != nil {
+	rootkey1, err := CreateTestHsmSigner(td, rootCA, rootSigner)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = CreateTestHsmSigner(td, rootCA, rootSigner)
+	if err != nil {
 		t.Fatal(err)
 	}
 
@@ -213,8 +223,6 @@ func TestSnapshotUnvalidatedFails(t *testing.T) {
 	}
 
 	// Validate that root and targets have one unfilled signature.
-	// TODO: When #281 is merged, add a test with a valid threshold achieved
-	// but an additional invalid sig.
 	store := tuf.FileSystemStore(td, nil)
 	meta, err := store.GetMeta()
 	if err != nil {
@@ -229,7 +237,7 @@ func TestSnapshotUnvalidatedFails(t *testing.T) {
 		if err := json.Unmarshal(md, signed); err != nil {
 			t.Fatal(err)
 		}
-		if len(signed.Signatures) != 1 {
+		if len(signed.Signatures) != 2 {
 			t.Fatalf("expected 1 signature on %s", metaName)
 		}
 		if len(signed.Signatures[0].Signature) != 0 {
@@ -240,5 +248,42 @@ func TestSnapshotUnvalidatedFails(t *testing.T) {
 	// Try to snapshot. Expect to fail.
 	if err := app.SnapshotCmd(ctx, td); err == nil {
 		t.Fatalf("expected Snapshot command to fail")
+	}
+
+	// Now sign root and targets with 1/1 threshold key.
+	signerAndKey1, err := GetTestHsmSigner(ctx, td, *rootkey1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := app.SignCmd(ctx, td, []string{"root", "targets"}, signerAndKey1); err != nil {
+		t.Fatal(err)
+	}
+
+	// Expect that there is still one empty placeholder signature.
+	store = tuf.FileSystemStore(td, nil)
+	meta, err = store.GetMeta()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, metaName := range []string{"root.json", "targets.json"} {
+		md, ok := meta[metaName]
+		if !ok {
+			t.Fatalf("missing %s", metaName)
+		}
+		signed := &data.Signed{}
+		if err := json.Unmarshal(md, signed); err != nil {
+			t.Fatal(err)
+		}
+		if len(signed.Signatures) != 2 {
+			t.Fatalf("expected 2 signature on %s, got %d", metaName, len(signed.Signatures))
+		}
+		if len(signed.Signatures[0].Signature) != 0 && len(signed.Signatures[1].Signature) != 0 {
+			t.Fatalf("expected one empty signature")
+		}
+	}
+
+	// Snapshot success! We clear the empty placeholder signature in root/targets.
+	if err := app.SnapshotCmd(ctx, td); err != nil {
+		t.Fatalf("expected Snapshot command to pass, got err: %s", err)
 	}
 }

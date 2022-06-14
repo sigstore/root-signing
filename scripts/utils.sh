@@ -33,7 +33,7 @@ checkout_branch() {
     git rev-parse HEAD
 }
 
-cleanup_branchs() {
+cleanup_branches() {
     git branch -D setup-root || true
     git branch -D add-key || true
     git branch -D sign-root-targets || true

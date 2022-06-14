@@ -256,6 +256,24 @@ func setMetaWithSigKeyIDs(store tuf.LocalStore, role string, meta interface{}, k
 	return setSignedMeta(store, role, &data.Signed{Signatures: emptySigs, Signed: signed})
 }
 
+func ClearEmptySignatures(store tuf.LocalStore, role string) error {
+	signedMeta, err := prepo.GetSignedMeta(store, role)
+	if err != nil {
+		return err
+	}
+
+	sigs := make([]data.Signature, 0, 1)
+	for _, signature := range signedMeta.Signatures {
+		if len(signature.Signature) == 0 {
+			// Skip placeholder signatures.
+			continue
+		}
+		sigs = append(sigs, signature)
+	}
+
+	return setSignedMeta(store, role, &data.Signed{Signatures: sigs, Signed: signedMeta.Signed})
+}
+
 func jsonMarshal(v interface{}) ([]byte, error) {
 	b, err := cjson.Marshal(v)
 	if err != nil {

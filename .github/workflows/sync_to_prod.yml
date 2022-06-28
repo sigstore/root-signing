@@ -72,9 +72,8 @@ jobs:
           gcloud alpha --quiet storage cp -r gs://sigstore-tuf-root/ .
 
           diff -qr sigstore-preprod-tuf-root sigstore-tuf-root | while read l; do
-            if [[ $l =~ "sigstore-tuf-root" ]]; then
-              prefix="Only in sigstore-tuf-root: "
-              path=${l#"$prefix"}
+            if [[ $l =~ "Only in sigstore-tuf-root" ]]; then
+              path=$(python3 -c "import re; s='$l'; pattern=r'^Only in sigstore-tuf-root(\/?)(.*): (.*)$'; match=re.search(pattern, s); print('/'.join([match.group(2), match.group(3)]).lstrip('/'))")
               gcloud alpha --quiet storage rm gs://sigstore-tuf-root/$path
             fi;
           done

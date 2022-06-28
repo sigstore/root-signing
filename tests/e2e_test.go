@@ -78,6 +78,21 @@ func createTestSigner(t *testing.T) string {
 	return f.Name()
 }
 
+// Verify with the go-tuf client.
+func verifyGoTuf(t *testing.T, repo string, root []byte) (data.TargetFiles, error) {
+	remote, err := vapp.FileRemoteStore(repo)
+	if err != nil {
+		t.Fatal(err)
+	}
+	local := client.MemoryLocalStore()
+	c := client.NewClient(local, remote)
+	if err := c.InitLocal(root); err != nil {
+		t.Fatal(err)
+
+	}
+	return c.Update()
+}
+
 func TestInitCmd(t *testing.T) {
 	ctx := context.Background()
 	td := t.TempDir()
@@ -383,17 +398,7 @@ func TestPublishSuccess(t *testing.T) {
 	}
 
 	// Verify with go-tuf
-	remote, err := vapp.FileRemoteStore(td)
-	if err != nil {
-		t.Fatal(err)
-	}
-	local := client.MemoryLocalStore()
-	c := client.NewClient(local, remote)
-	if err := c.InitLocal(meta["root.json"]); err != nil {
-		t.Fatal(err)
-
-	}
-	targetFiles, err := c.Update()
+	targetFiles, err := verifyGoTuf(t, td, meta["root.json"])
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -539,5 +544,43 @@ func TestRotateRootKey(t *testing.T) {
 	// Expect version 2 for root.
 	if root.Version != 2 {
 		t.Fatalf("expected root version 2, got %d", root.Version)
+	}
+
+	// Sign root & targets
+	rootKey, err := GetTestHsmSigner(ctx, td, *rootSerial1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := app.SignCmd(ctx, td, []string{"root", "targets"}, rootKey); err != nil {
+		t.Fatal(err)
+	}
+
+	// Sign snapshot and timestamp
+	if err := app.SnapshotCmd(ctx, td); err != nil {
+		t.Fatalf("expected Snapshot command to pass, got err: %s", err)
+	}
+	if err := app.SignCmd(ctx, td, []string{"snapshot"}, snapshotSigner); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := app.TimestampCmd(ctx, td); err != nil {
+		t.Fatalf("expected Timestamp command to pass, got err: %s", err)
+	}
+	if err := app.SignCmd(ctx, td, []string{"timestamp"}, timestampSigner); err != nil {
+		t.Fatal(err)
+	}
+
+	// Successful Publishing!
+	if err := app.PublishCmd(ctx, td); err != nil {
+		t.Fatal(err)
+	}
+
+	// Verify with go-tuf
+	meta, err := store.GetMeta()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err = verifyGoTuf(t, td, meta["root.json"]); err != nil {
+		t.Fatal(err)
 	}
 }

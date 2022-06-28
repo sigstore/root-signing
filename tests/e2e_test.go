@@ -7,17 +7,21 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/sigstore/cosign/pkg/cosign"
 	"github.com/sigstore/root-signing/cmd/tuf/app"
 	vapp "github.com/sigstore/root-signing/cmd/verify/app"
 	"github.com/sigstore/root-signing/pkg/keys"
+	prepo "github.com/sigstore/root-signing/pkg/repo"
 
 	"github.com/theupdateframework/go-tuf"
 	"github.com/theupdateframework/go-tuf/client"
@@ -400,5 +404,140 @@ func TestPublishSuccess(t *testing.T) {
 		if !strings.EqualFold(name, "foo.txt") {
 			t.Fatalf("expected one target foo.txt, got %s", name)
 		}
+	}
+}
+
+func TestRotateRootKey(t *testing.T) {
+	// This tests root key rotation: we use a threshold of 1 with 2 root keys
+	// and expect to rotate one keyholder during an update.
+	ctx := context.Background()
+	td := t.TempDir()
+
+	rootCA, rootSigner, err := CreateRootCA()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	testTarget := filepath.Join(td, "foo.txt")
+	targetsConfig := map[string]json.RawMessage{testTarget: nil}
+
+	if err := os.WriteFile(testTarget, []byte("abc"), 0600); err != nil {
+		t.Fatal(err)
+	}
+
+	rootSerial1, err := CreateTestHsmSigner(td, rootCA, rootSigner)
+	if err != nil {
+		t.Fatal(err)
+	}
+	rootSerial2, err := CreateTestHsmSigner(td, rootCA, rootSigner)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	snapshotKey := createTestSigner(t)
+	timestampKey := createTestSigner(t)
+
+	// Initialize succeeds.
+	if err := app.InitCmd(ctx, td, "", 1, targetsConfig, snapshotKey, timestampKey); err != nil {
+		t.Fatal(err)
+	}
+
+	// Sign root & targets with key 1
+	rootKey1, err := GetTestHsmSigner(ctx, td, *rootSerial1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := app.SignCmd(ctx, td, []string{"root", "targets"}, rootKey1); err != nil {
+		t.Fatal(err)
+	}
+
+	// Sign snapshot and timestamp
+	if err := app.SnapshotCmd(ctx, td); err != nil {
+		t.Fatalf("expected Snapshot command to pass, got err: %s", err)
+	}
+	snapshotSigner, err := keys.GetSigningKey(ctx, snapshotKey)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := app.SignCmd(ctx, td, []string{"snapshot"}, snapshotSigner); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := app.TimestampCmd(ctx, td); err != nil {
+		t.Fatalf("expected Timestamp command to pass, got err: %s", err)
+	}
+	timestampSigner, err := keys.GetSigningKey(ctx, timestampKey)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := app.SignCmd(ctx, td, []string{"timestamp"}, timestampSigner); err != nil {
+		t.Fatal(err)
+	}
+
+	// Successful Publishing!
+	if err := app.PublishCmd(ctx, td); err != nil {
+		t.Fatal(err)
+	}
+
+	// Check that there are two root key signers: key 1 and key 2.
+	store := tuf.FileSystemStore(td, nil)
+	root, err := prepo.GetRootFromStore(store)
+	if err != nil {
+		t.Fatal(err)
+	}
+	rootRole, ok := root.Roles["root"]
+	if !ok {
+		t.Fatalf("expected root role")
+	}
+	rootKey2, err := GetTestHsmSigner(ctx, td, *rootSerial2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	expectedKeyIds := append(rootKey1.Key.IDs(), rootKey2.Key.IDs()...)
+	actualKeyIds := rootRole.KeyIDs
+	sort.Strings(expectedKeyIds)
+	sort.Strings(actualKeyIds)
+	if !cmp.Equal(expectedKeyIds, actualKeyIds) {
+		t.Fatalf("expected key IDs %s, got %s", expectedKeyIds, actualKeyIds)
+	}
+
+	// Now remove the second key and add a third key.
+	if err := os.RemoveAll(filepath.Join(td, "keys", fmt.Sprint(*rootSerial2))); err != nil {
+		t.Fatal(err)
+	}
+	rootSerial3, err := CreateTestHsmSigner(td, rootCA, rootSigner)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Create a new root.
+	if err := app.InitCmd(ctx, td, td, 1, targetsConfig, snapshotKey, timestampKey); err != nil {
+		t.Fatal(err)
+	}
+
+	// Check the root keys were rotated: expect key 1 and 3.
+	root, err = prepo.GetRootFromStore(store)
+	if err != nil {
+		t.Fatal(err)
+	}
+	rootRole, ok = root.Roles["root"]
+	if !ok {
+		t.Fatalf("expected root role")
+	}
+	rootKey3, err := GetTestHsmSigner(ctx, td, *rootSerial3)
+	if err != nil {
+		t.Fatal(err)
+	}
+	expectedKeyIds = append(rootKey1.Key.IDs(), rootKey3.Key.IDs()...)
+	actualKeyIds = rootRole.KeyIDs
+	sort.Strings(expectedKeyIds)
+	sort.Strings(actualKeyIds)
+	if !cmp.Equal(expectedKeyIds, actualKeyIds) {
+		t.Fatalf("expected key IDs %s, got %s", expectedKeyIds, actualKeyIds)
+	}
+
+	// Expect version 2 for root.
+	if root.Version != 2 {
+		t.Fatalf("expected root version 2, got %d", root.Version)
 	}
 }

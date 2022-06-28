@@ -14,6 +14,7 @@ require (
 	github.com/theupdateframework/go-tuf v0.3.1-0.20220606124518-ad96eca0239e
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211
 	gopkg.in/yaml.v2 v2.4.0
+	gotest.tools v2.2.0+incompatible
 )
 
 require (

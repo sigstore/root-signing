@@ -30,6 +30,7 @@ jobs:
       - name: Install tools
         run: |
           sudo apt-get install -y jq
+      # TODO(297): Switch to stable gcloud API, use rsync when available
       - name: sync
         run: |
           difference() {
@@ -49,7 +50,7 @@ jobs:
           timeCreatedProd=$(echo $tsMeta | jq .timeCreated)
           md5HashProd=$(echo $tsMeta | jq .md5Hash)
 
-          # if less than 2 days, do not update
+          # if less than 2 days since updates were published to preprod, do not update
           daysDiff=$(difference $timeCreatedPreprod $timeCreatedProd)
           if (($daysDiff < 2)); then
             exit 0 
@@ -59,13 +60,15 @@ jobs:
             exit 0
           fi
 
+          # download preprod bucket and copy over to production bucket
           gcloud alpha --quiet storage cp -r gs://sigstore-preprod-tuf-root/ .
 
+          # upload all but TUF timestamp. Once timestamp is uploaded, all other files must have been uploaded.
           for f in $(ls sigstore-preprod-tuf-root/ -I *timestamp.json)
           do
             gcloud alpha --quiet storage cp --cache-control=no-store -r sigstore-preprod-tuf-root/$f gs://sigstore-tuf-root/
           done
-          # Upload timestamp
+          # upload timestamp
           gcloud alpha --quiet storage cp --cache-control=no-store -r sigstore-preprod-tuf-root/*timestamp.json gs://sigstore-tuf-root/
 
           # delete any files present in sigstore-tuf-root not in sigstore-preprod-tuf-root

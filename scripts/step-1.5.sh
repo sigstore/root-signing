@@ -47,8 +47,16 @@ clean_state
 checkout_branch
 
 # Copy the previous keys and repository into the new repository.
-cp -r ${PREV_REPO}/* ${REPO}
 mkdir -p ${REPO}/staged/targets
+cp -r ${PREV_REPO}/* ${REPO}
+# Remove a key by ID that need to be removed from the root keyholders
+if [[ -n $1 ]]; then 
+    echo "Removing key: $1"
+    rm -r ${REPO}/keys/$1
+fi
+# TODO(asraa): We need to copy up-to-date snapshot and timestamp from the published
+# repository. Ideally we'd chain from `repository/repository`: see https://github.com/sigstore/root-signing/issues/288
+cp repository/repository/{snapshot.json,timestamp.json} ${REPO}/repository
 
 # Setup the root and targets
 ./tuf init -repository $REPO -target-meta config/targets-metadata.yml -snapshot ${SNAPSHOT_KEY} -timestamp ${TIMESTAMP_KEY} -previous "${PREV_REPO}"

@@ -134,6 +134,7 @@ func InitCmd(ctx context.Context, directory, previous string, threshold int, tar
 		return err
 	}
 	var allRootKeys []*data.PublicKey
+	// Add any keys in the keys/ subfolder to root and targets.
 	for _, role := range []string{"root", "targets"} {
 		currentKeyMap := map[string]bool{}
 		for _, tufKey := range keys {
@@ -144,6 +145,8 @@ func InitCmd(ctx context.Context, directory, previous string, threshold int, tar
 		}
 		if role == "root" {
 			// This retrieves all the new root keys, but before we revoke any.
+			// This is used to populate the placeholder signature key IDs, which is composed
+			// of the (old keys + current keys)
 			allRootKeys, err = repo.RootKeys()
 			if err != nil {
 				return err
@@ -165,14 +168,14 @@ func InitCmd(ctx context.Context, directory, previous string, threshold int, tar
 		}
 	}
 
-	// Revoke old root keys used for snapshot and timestamp and roles and add new keys.
+	// Add keys used for snapshot and timestamp roles.
 	for role, keyRef := range map[string]string{"snapshot": snapshotRef, "timestamp": timestampRef} {
 		signerKey, err := pkeys.GetSigningKey(ctx, keyRef)
 		if err != nil {
 			return err
 		}
 
-		// Add key. The expiration will adjust in the snapshot/timestamp step.
+		// Add key.
 		if err := repo.AddVerificationKeyWithExpiration(role, signerKey.Key, getExpiration(role)); err != nil {
 			return err
 		}

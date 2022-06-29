@@ -10,15 +10,15 @@ This playbook describes how to orchestrate a root signing event.
 
 3. Double-check the configured [role expirations](https://github.com/sigstore/root-signing/blob/e3f1fe5e487984f525afc81ac77fa5ce39737d0f/cmd/tuf/app/init.go#L28).
 
-4. Set environment variables, including previous repository and online signer references (details [here](#key-configuration)). 
+4. Set any environment variables, including previous repository and online signer references (details [here](#key-configuration)). 
 
 | Variable      | Description | Example |
 | ----------- | ----------- | ----------- | 
 | GITHUB_USER      | The GitHub user, used to create PRs and commit messages       | asraa       |
-| BRANCH   | The working branch, in case of staging script or configuration changes.        | main        |
-| LOCAL   | If enabled, keeps git state dirty and does not create pull requests. Used to run root signing locally for testing.       |         |
-| REPO   | Specifies the repository folder, see [Configuration](#configuration)       |   `ceremony/2022-02-22`      |
-| PREV_REPO   | If set, this specifies a previous repository used to chain a following root signing event (copies previous hardware keys, etc).       |    `ceremony/2022-01-22`     |
+| BRANCH   | (Optional) The working branch, in case of testing script or configuration changes.        | main        |
+| LOCAL   | (Optional) If enabled, keeps git state dirty and does not create pull requests. Used to run root signing locally for testing.       |         |
+| REPO   | Specifies the repository folder to act on, see [Configuration](#configuration). By default, uses the current date in `ceremony/YYYY-MM-DD`.       |   `ceremony/2022-02-22`      |
+| PREV_REPO   | (Optional) If set, this specifies a previous repository used to chain a following root signing event (copies previous hardware keys, etc).       |    `ceremony/2022-01-22`     |
 | SNAPSHOT_KEY   | The GCP KMS online key for snapshotting.    |     `projects/project-rekor/locations/global/keyRings/sigstore-root/cryptoKeys/snapshot`    |
 | TIMESTAMP_KEY   | The GCP KMS online key for timestamping.    |  `projects/project-rekor/locations/global/keyRings/sigstore-root/cryptoKeys/timestamp`  |
 | REKOR_KEY   | The GCP KMS online key for rekor delegation.       |     `projects/project-rekor/locations/global/keyRings/sigstore-root/cryptoKeys/rekor`    |
@@ -49,7 +49,7 @@ There are two types of keys that are used during root signing.
 
 First, we use hardware Yubikeys for root and target signers. There are 5 [root keyholders](https://github.com/sigstore/root-signing#current-sigstore-root-keyholders) each containing one key. A [default threshold](https://github.com/sigstore/root-signing/blob/e3f1fe5e487984f525afc81ac77fa5ce39737d0f/cmd/tuf/app/init.go#L24) of 3 are required to sign the root and targets. This is configurable through a `threshold` flag on [initialization](#step-2-initializing-a-root-and-targets). Configuring the hardware keyholders is done through management of the `keys/` subfolder, see [Key Management](#step-1-root-key-updates) during the ceremony.
 
-Second, online keys on GCP are used for snapshot, timestamp, and delegation roles. These are defined by a [go-cloud](https://gocloud.dev) style URI to refer to the specific provider like `gcpkms://`. See cosign [KMS integrations](https://github.com/sigstore/cosign/blob/main/KMS.md) for details. These are configured through environment variables in the `scripts/` which propogate to command line flags to the binary.
+Second, online keys on GCP are used for snapshot, timestamp, and delegation roles. These are defined by a [go-cloud](https://gocloud.dev) style URI to refer to the specific provider like `gcpkms://`. See cosign [KMS integrations](https://github.com/sigstore/cosign/blob/main/KMS.md) for details. These are configured through environment variables in the `scripts/` which propagate to command line flags to the binary.
 
 ## Step 0: Building the binary
 
@@ -70,7 +70,16 @@ export GITHUB_USER=${GITHUB_USER}
 ./scripts/step-0.sh && ./scripts/step-1.sh
 ```
 
-and verify their PRs with the PR number as the argument to the script:
+This will create the following structure.
+```
+${REPO}/keys
+└── 89957089
+    ├── 89957089_device_cert.pem
+    ├── 89957089_key_cert.pem
+    └── 89957089_pubkey.pem
+```
+
+Verify the PRs with the PR number as the argument to the script:
 
 ```bash
 ./scripts/verify.sh $PR
@@ -120,14 +129,7 @@ Next, the root and targets file must be signed. Ask each root keyholder to run:
 ./scripts/step-0.sh && ./scripts/step-2.sh
 ```
 
-This will create the following structure.
-```
-${REPO}/keys
-└── 89957089
-    ├── 89957089_device_cert.pem
-    ├── 89957089_key_cert.pem
-    └── 89957089_pubkey.pem
-```
+This will modify `root.json` and `targets.json` with an added signature.
 
 Verify their PRs with the PR number as the argument to the script:
 
@@ -198,7 +200,7 @@ This will create a PR moving the files. Verify that the TUF client can update to
 
 3. Announce the root rotation on twitter and the community meeting, and thank the keyholders!
 
-4. Schedule the next root signing event 3 months from now on the calendar. The root expires in  months. Schedule a testing event for the week before.
+4. Schedule the next root signing event one month before expiration on the calendar. Check [here](https://github.com/sigstore/root-signing/blob/e3f1fe5e487984f525afc81ac77fa5ce39737d0f/cmd/tuf/app/init.go#L29) for root expiration. Schedule a testing event for the week before.
 
 ### Other
 

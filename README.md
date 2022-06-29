@@ -67,6 +67,8 @@ Special thanks to Dan Lorenc, Trishank Kuppusamy, Marina Moore, Santiago Torres-
 ## Emeritus Sigstore Root Keyholders
 * None yet!
 
+## Initial Root Signing Ceremony
 
+A recording of the signing ceremony is available [here](https://www.youtube.com/watch?v=GEuFsc8Zm9U).
 
 

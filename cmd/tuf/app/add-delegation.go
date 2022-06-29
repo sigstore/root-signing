@@ -30,12 +30,13 @@ func (f *keysFlag) Set(value string) error {
 
 func AddDelegation() *ffcli.Command {
 	var (
-		flagset    = flag.NewFlagSet("tuf add-delegation", flag.ExitOnError)
-		repository = flagset.String("repository", "", "path to the staged repository")
-		name       = flagset.String("name", "", "name of the delegatee")
-		keys       = keysFlag{}
-		path       = flagset.String("path", "", "path for the delegation")
-		targets    = flagset.String("target-meta", "", "path to a target configuration file")
+		flagset     = flag.NewFlagSet("tuf add-delegation", flag.ExitOnError)
+		repository  = flagset.String("repository", "", "path to the staged repository")
+		name        = flagset.String("name", "", "name of the delegatee")
+		keys        = keysFlag{}
+		path        = flagset.String("path", "", "path for the delegation")
+		terminating = flagset.Bool("terminating", false, "indicated whether the delegation is terminating")
+		targets     = flagset.String("target-meta", "", "path to a target configuration file")
 	)
 	flagset.Var(&keys, "key", "key reference for the delegatee")
 	return &ffcli.Command{
@@ -60,12 +61,12 @@ but will default to the name if unspecified.
 			if len(keys) == 0 {
 				return flag.ErrHelp
 			}
-			return DelegationCmd(ctx, *repository, *name, *path, keys, *targets)
+			return DelegationCmd(ctx, *repository, *name, *path, *terminating, keys, *targets)
 		},
 	}
 }
 
-func DelegationCmd(ctx context.Context, directory, name, path string, keyRefs keysFlag, targets string) error {
+func DelegationCmd(ctx context.Context, directory, name, path string, terminating bool, keyRefs keysFlag, targets string) error {
 	store := tuf.FileSystemStore(directory, nil)
 
 	repo, err := tuf.NewRepoIndent(store, "", "\t", "sha512", "sha256")
@@ -100,10 +101,11 @@ func DelegationCmd(ctx context.Context, directory, name, path string, keyRefs ke
 	}
 
 	if err := repo.AddDelegatedRoleWithExpires("targets", data.DelegatedRole{
-		Name:      name,
-		KeyIDs:    ids,
-		Paths:     []string{path},
-		Threshold: 1,
+		Name:        name,
+		KeyIDs:      ids,
+		Paths:       []string{path},
+		Threshold:   1,
+		Terminating: terminating,
 	}, keys, getExpiration("targets")); err != nil {
 		// If delegation already added, then we just want to bump version and expiration.
 		fmt.Fprintln(os.Stdout, "Adding targets delegation: ", err)

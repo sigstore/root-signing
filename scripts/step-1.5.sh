@@ -53,7 +53,7 @@ mkdir -p ${REPO}/staged/targets
 # Setup the root and targets
 ./tuf init -repository $REPO -target-meta config/targets-metadata.yml -snapshot ${SNAPSHOT_KEY} -timestamp ${TIMESTAMP_KEY} -previous "${PREV_REPO}"
 # Add rekor delegation
-./tuf add-delegation -repository $REPO -name "rekor" -key $REKOR_KEY -path "rekor.*.pub" -target-meta config/rekor-metadata.yml
+./tuf add-delegation -repository $REPO -name "rekor" -key $REKOR_KEY -path "rekor.*.pub" -target-meta config/rekor-metadata.yml -terminating true
 # Add staging project delegation
 ./tuf add-delegation -repository $REPO -name "staging" -key $STAGING_KEY -path "*"
 # Add revoked project delegation

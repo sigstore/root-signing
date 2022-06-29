@@ -6,7 +6,7 @@ This playbook describes how to orchestrate a root signing event.
 
 1. Check the [calendar](https://calendar.google.com/calendar/u/0?cid=Y19ydjIxcDJuMzJsbmJoYW5uaXFwOXIzNTJtb0Bncm91cC5jYWxlbmRhci5nb29nbGUuY29t) for upcoming root signing events. 
 
-2. Make updates to the targets and delegation configuration files, see [configuration](#targets-and-delegation-configuration).
+2. Make updates to the targets and delegation configuration files, see [configuration](#targets-and-delegation-configuration). To add a delegation, see [Adding a Delegation](#adding-a-delegation).
 
 3. Double-check the configured [role expirations](https://github.com/sigstore/root-signing/blob/e3f1fe5e487984f525afc81ac77fa5ce39737d0f/cmd/tuf/app/init.go#L28).
 
@@ -210,7 +210,7 @@ This will create a PR moving the files. Verify that the TUF client can update to
 
 2. Create a `./config/$DELEGATION-metadata`.yml file, see [Target and Delegation configuration](#targets-and-delegation-configuration). 
 
-3. Add the delegation with the in [./scripts/step-1.5.sh] with a command like:
+3. Edit [./scripts/step-1.5.sh] to add the delegation after the root and targets are setup via `tuf init`, with a command like:
 ```bash
 # Add $DELEGATION delegation
 ./tuf add-delegation -repository $REPO -name "$DELEGATION" -key $DELEGATION_KEY -target-meta config/$DELEGATION-metadata.yml -path $PATH

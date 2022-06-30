@@ -23,7 +23,7 @@ export GITHUB_USER=${YOUR_GITHUB_USER}
 ./scripts/step-0.sh
 ```
 This will setup your fork and build the TUF binary to use for metadata generation.
-- [ ] (If you are a new keyholder) Test registering your new key: Do not use a key that you need -- this will wipe the key! Set the following environment variables, and then follow the steps in [Registering a new root key](#registering-a-new-root-key)
+- [ ] (If you are a new keyholder) Test registering your new root key: Do not use an existing key that is already in-use and you need to continue using -- this process will wipe the key! Set the following environment variables, and then follow the steps in [Registering a new root key](#registering-a-new-root-key)
 ```bash
 export LOCAL=1
 ```

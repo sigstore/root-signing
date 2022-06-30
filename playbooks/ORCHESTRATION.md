@@ -64,7 +64,7 @@ Like mentioned in [Key configuration](#key-configuration), each root key corresp
 
 ### Adding a Root Key
 
-Instruct any new root keyholder to follow [Registering a new root key](#registering-a-new-root-key)
+Instruct any new root keyholder to follow [Registering a new root key](../KEYHOLDER.md#registering-a-new-root-key)
 
 This will create the following structure.
 ```
@@ -120,7 +120,7 @@ Manually check for:
 
 ### Hardware Key Signing
 
-Next, the root and targets file must be signed. Ask each root keyholder to follow [Signing root and targets](#signing-root-and-targets).
+Next, the root and targets file must be signed. Ask each root keyholder to follow [Signing root and targets](../KEYHOLDER.md#signing-root-and-targets).
 
 This will modify `root.json` and `targets.json` with an added signature.
 

@@ -4,7 +4,7 @@ This document outlines the responsibilities of a root keyholder.
 
 ## Outline
 
-Keyholders MUST subscribe to the [Sigstore Maintainer Calendar](https://calendar.google.com/calendar/u/0?cid=Y19ydjIxcDJuMzJsbmJoYW5uaXFwOXIzNTJtb0Bncm91cC5jYWxlbmRhci5nb29nbGUuY29t) for upcoming root signing event. Root signing events are expected to occur about every 4-5 months. The next `v+1` version signing will be scheduled, and the `v+2` version will be tentatively scheduled. Testing will occur the week before the signing. Keyholders are required to communicate that they have completed the [pre-work](#signing-pre-work) to the orchestrator through [#sigstore-keyholder](https://sigstore.slack.com/archives/C03E4HP6RCK) Slack channel. All testing and signing events can occur asynchronously. Keyholders are expected to be "on-call" during the root signing window in case there is an issue.
+Keyholders MUST subscribe to the [Sigstore Maintainer Calendar](https://calendar.google.com/calendar/u/0?cid=Y19ydjIxcDJuMzJsbmJoYW5uaXFwOXIzNTJtb0Bncm91cC5jYWxlbmRhci5nb29nbGUuY29t) for upcoming root signing event. Root signing events are expected to occur about every 4-5 months. The next `v+1` version signing will be scheduled, and the `v+2` version will be tentatively scheduled. Testing will occur the week before the signing. Keyholders are required to communicate that they have completed the [pre-work](../KEYHOLDER.md#signing-pre-work) to the orchestrator through [#sigstore-keyholder](https://sigstore.slack.com/archives/C03E4HP6RCK) Slack channel. All testing and signing events can occur asynchronously. Keyholders are expected to be "on-call" during the root signing window in case there is an issue.
 
 ### Pre-requisites
 
@@ -23,7 +23,7 @@ export GITHUB_USER=${YOUR_GITHUB_USER}
 ./scripts/step-0.sh
 ```
 This will setup your fork and build the TUF binary to use for metadata generation.
-- [ ] (If you are a new keyholder) Test registering your new root key: Do not use an existing key that is already in-use and you need to continue using -- this process will wipe the key! Set the following environment variables, and then follow the steps in [Registering a new root key](#registering-a-new-root-key)
+- [ ] (If you are a new keyholder) Test registering your new root key: Do not use an existing key that is already in-use and you need to continue using -- this process will wipe the key! Set the following environment variables, and then follow the steps in [Registering a new root key](../KEYHOLDER.md#registering-a-new-root-key)
 ```bash
 export LOCAL=1
 ```
@@ -47,7 +47,7 @@ export REVOCATION_KEY=$TEST_KEYS/test
 export PREV_REPO=$(pwd)/ceremony/2022-05-10
 ./scripts/step-1.5.sh
 ```
-Now follow the instructions under [Signing root and targets](#signing-root-and-targets).
+Now follow the instructions under [Signing root and targets](../KEYHOLDER.md#signing-root-and-targets).
 
 **CONFIRM** that you created a new directory under `ceremony/$DATE/staged/`. Run 
 ```bash

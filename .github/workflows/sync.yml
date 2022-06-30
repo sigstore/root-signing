@@ -1,4 +1,4 @@
-name: Sync Repository with GCS
+name: Sync Repository with GCS Preprod Bucket
 
 # Execute this on changes to repository/repository/
 on:
@@ -39,13 +39,23 @@ jobs:
           gcloud auth login --brief --cred-file="${{ steps.auth.outputs.credentials_file_path }}"
           gcloud auth list
       # Sync
-      # TODO(asraa): Use a stable API or switch to gsutil cp when gsutil supports  workload identity federation
+      # TODO(297): Switch to stable gcloud API, use rsync when available
       - name: sync
         run: |
-          # Upload all but TUF timestamp. Once timestamp is uploaded, all other files must uploaded.
+          # Upload all but TUF timestamp. Once timestamp is uploaded, all other files must have been uploaded.
           for f in $(ls repository/repository/ -I *timestamp.json)
           do
-            gcloud alpha --quiet storage cp --cache-control=no-store -r repository/repository/$f gs://sigstore-tuf-root/
+            gcloud alpha --quiet storage cp --cache-control=no-store -r repository/repository/$f gs://sigstore-preprod-tuf-root/
           done
           # Upload timestamp
-          gcloud alpha --quiet storage cp --cache-control=no-store -r repository/repository/*timestamp.json gs://sigstore-tuf-root/
+          gcloud alpha --quiet storage cp --cache-control=no-store -r repository/repository/*timestamp.json gs://sigstore-preprod-tuf-root/
+
+          # delete any files present in sigstore-preprod-tuf-root not in repository/repository
+          gcloud alpha --quiet storage cp -r gs://sigstore-preprod-tuf-root/ .
+
+          diff -qr repository/repository sigstore-preprod-tuf-root | while read l; do
+            if [[ $l =~ "Only in sigstore-preprod-tuf-root" ]]; then
+              path=$(python3 -c "import re; s='$l'; pattern=r'^Only in sigstore-preprod-tuf-root(\/?)(.*): (.*)$'; match=re.search(pattern, s); print('/'.join([match.group(2), match.group(3)]).lstrip('/'))")
+              gcloud alpha --quiet storage rm gs://sigstore-preprod-tuf-root/$path
+            fi;
+          done

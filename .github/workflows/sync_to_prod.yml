@@ -1,0 +1,82 @@
+name: Sync Preprod Repository with GCS Prod Bucket 
+
+on:
+  schedule:
+    - cron: '0 */12 * * *' # every 12 hours
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-20.04
+    permissions:
+      id-token: 'write'
+    steps:
+      - uses: google-github-actions/setup-gcloud@877d4953d2c70a0ba7ef3290ae968eb24af233bb # v0.5.1
+        with:
+          project_id: project-rekor
+          install_components: alpha
+      # Setup OIDC->SA auth
+      - uses: google-github-actions/auth@dafc92490a98acbdec38e6eb649f05d55e632447 # v0.7.2
+        id: auth
+        with:
+          token_format: 'access_token'
+          workload_identity_provider: 'projects/237800849078/locations/global/workloadIdentityPools/root-signing-pool/providers/sigstore-root'
+          service_account: 'sigstore-root-signing@project-rekor.iam.gserviceaccount.com'
+          create_credentials_file: true
+      - name: login
+        run: |
+          gcloud auth login --brief --cred-file="${{ steps.auth.outputs.credentials_file_path }}"
+          gcloud auth list
+      - name: Install tools
+        run: |
+          sudo apt-get install -y jq
+      # TODO(297): Switch to stable gcloud API, use rsync when available
+      - name: sync
+        run: |
+          difference() {
+            date_one=$(date -d "$1" +%s)
+            date_two=$(date -d "$2" +%s)
+            echo $(( (date_one - date_two) / 86400 ))
+          }
+
+          # fetch creation time and hash for timestamp in preprod
+          # timestamp is always updated on a sync, either from the weekly updates or the signing ceremony
+          tsMetaPreprod=$(gcloud alpha storage ls --json gs://sigstore-preprod-tuf-root/timestamp.json | jq .[0].metadata)
+          timeCreatedPreprod=$(echo $tsMeta | jq .timeCreated)
+          md5HashPreprod=$(echo $tsMeta | jq .md5Hash)
+
+          # fetch creation time and hash for timestamp in prod
+          tsMetaProd=$(gcloud alpha storage ls --json gs://sigstore-tuf-root/timestamp.json | jq .[0].metadata)
+          timeCreatedProd=$(echo $tsMeta | jq .timeCreated)
+          md5HashProd=$(echo $tsMeta | jq .md5Hash)
+
+          # if less than 2 days since updates were published to preprod, do not update
+          daysDiff=$(difference $timeCreatedPreprod $timeCreatedProd)
+          if (($daysDiff < 2)); then
+            exit 0 
+          fi
+          # exit early if already updated
+          if [[ "$md5HashPreprod" == "$md5HashProd" ]]; then
+            exit 0
+          fi
+
+          # download preprod bucket and copy over to production bucket
+          gcloud alpha --quiet storage cp -r gs://sigstore-preprod-tuf-root/ .
+
+          # upload all but TUF timestamp. Once timestamp is uploaded, all other files must have been uploaded.
+          for f in $(ls sigstore-preprod-tuf-root/ -I *timestamp.json)
+          do
+            gcloud alpha --quiet storage cp --cache-control=no-store -r sigstore-preprod-tuf-root/$f gs://sigstore-tuf-root/
+          done
+          # upload timestamp
+          gcloud alpha --quiet storage cp --cache-control=no-store -r sigstore-preprod-tuf-root/*timestamp.json gs://sigstore-tuf-root/
+
+          # delete any files present in sigstore-tuf-root not in sigstore-preprod-tuf-root
+          gcloud alpha --quiet storage cp -r gs://sigstore-tuf-root/ .
+
+          diff -qr sigstore-preprod-tuf-root sigstore-tuf-root | while read l; do
+            if [[ $l =~ "Only in sigstore-tuf-root" ]]; then
+              path=$(python3 -c "import re; s='$l'; pattern=r'^Only in sigstore-tuf-root(\/?)(.*): (.*)$'; match=re.search(pattern, s); print('/'.join([match.group(2), match.group(3)]).lstrip('/'))")
+              gcloud alpha --quiet storage rm gs://sigstore-tuf-root/$path
+            fi;
+          done

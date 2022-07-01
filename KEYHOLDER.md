@@ -38,12 +38,12 @@ and confirm that there is some output with `VERIFIED KEY WITH SERIAL NUMBER XXXX
 ```bash
 export LOCAL=1
 gcloud auth application-default login
-export TEST_KEYS=gcpkms://projects/project-rekor/locations/global/keyRings/sigstore-root/cryptoKeys
-export TIMESTAMP_KEY=$TEST_KEYS/test
-export SNAPSHOT_KEY=$TEST_KEYS/test
-export REKOR_KEY=$TEST_KEYS/test
-export STAGING_KEY=$TEST_KEYS/test
-export REVOCATION_KEY=$TEST_KEYS/test
+export TEST_KEYS=gcpkms://pprojects/projectsigstore-staging/locations/global/keyRings/root-keyring/cryptoKeys/staging-test
+export TIMESTAMP_KEY=$TEST_KEY
+export SNAPSHOT_KEY=$TEST_KEY
+export REKOR_KEY=$TEST_KEY
+export STAGING_KEY=$TEST_KEY
+export REVOCATION_KEY=$TEST_KEY
 export PREV_REPO=$(pwd)/ceremony/2022-05-10
 ./scripts/step-1.5.sh
 ```

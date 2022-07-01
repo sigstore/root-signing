@@ -37,8 +37,10 @@ if [[ ! -z "$1" ]]; then
     git checkout VERIFY
 fi
 
-# Verify keys
-./verify keys --root piv-attestation-ca.pem --key-directory $REPO/keys
+# Verify keys if keys/ repository exists. It does not in the top-level published repository/
+if [ -d $REPO/keys ]; then
+    ./verify keys --root piv-attestation-ca.pem --key-directory $REPO/keys
+fi
 # If staged metadata exists, verify the staged repository
 if [ -f $REPO/staged/root.json ]; then
     ./verify repository --repository $REPO --staged

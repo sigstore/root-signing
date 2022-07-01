@@ -40,7 +40,7 @@ and confirm that there is some output with `VERIFIED KEY WITH SERIAL NUMBER XXXX
 ```bash
 export LOCAL=1
 gcloud auth application-default login
-export TEST_KEYS=gcpkms://pprojects/projectsigstore-staging/locations/global/keyRings/root-keyring/cryptoKeys/staging-test
+export TEST_KEY=gcpkms://projects/projectsigstore-staging/locations/global/keyRings/root-keyring/cryptoKeys/staging-test
 export TIMESTAMP_KEY=$TEST_KEY
 export SNAPSHOT_KEY=$TEST_KEY
 export REKOR_KEY=$TEST_KEY

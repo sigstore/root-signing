@@ -23,10 +23,12 @@ export GITHUB_USER=${YOUR_GITHUB_USER}
 ./scripts/step-0.sh
 ```
 This will setup your fork and build the TUF binary to use for metadata generation.
-- [ ] (If you are a new keyholder) Test registering your new root key: Do not use an existing key that is already in-use and you need to continue using -- this process will wipe the key! Set the following environment variables, and then follow the steps in [Registering a new root key](../KEYHOLDER.md#registering-a-new-root-key)
+- [ ] (If you are a new keyholder) Test registering your new root key: Do not use an existing key that is already in-use and you need to continue using -- this process will wipe the key! Set the following environment variables.
 ```bash
 export LOCAL=1
 ```
+
+Now follow the steps in [Registering a new root key](#registering-a-new-root-key).
 
 **CONFIRM** that you created a new directory under `ceremony/$DATE/keys/` with a new serial numbered `XXXXXX` directory. Run 
 ```bash
@@ -47,7 +49,7 @@ export REVOCATION_KEY=$TEST_KEY
 export PREV_REPO=$(pwd)/ceremony/2022-05-10
 ./scripts/step-1.5.sh
 ```
-Now follow the instructions under [Signing root and targets](../KEYHOLDER.md#signing-root-and-targets).
+Now follow the instructions under [Signing root and targets](#signing-root-and-targets).
 
 **CONFIRM** that you created a new directory under `ceremony/$DATE/staged/`. Run 
 ```bash

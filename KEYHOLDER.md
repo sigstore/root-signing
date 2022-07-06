@@ -1,39 +1,85 @@
-# TUF Generation
+# Keyholder Responsibilities
+
+This document outlines the responsibilities of a root keyholder.
+
+## Outline
+
+Keyholders MUST subscribe to the [Sigstore Maintainer Calendar](https://calendar.google.com/calendar/u/0?cid=Y19ydjIxcDJuMzJsbmJoYW5uaXFwOXIzNTJtb0Bncm91cC5jYWxlbmRhci5nb29nbGUuY29t) for upcoming root signing event. Root signing events are expected to occur about every 4-5 months. The next `v+1` version signing will be scheduled, and the `v+2` version will be tentatively scheduled. Testing will occur the week before the signing. Keyholders are required to communicate that they have completed the [pre-work](../KEYHOLDER.md#signing-pre-work) to the orchestrator through [#sigstore-keyholder](https://sigstore.slack.com/archives/C03E4HP6RCK) Slack channel. All testing and signing events can occur asynchronously. Keyholders are expected to be "on-call" during the root signing window in case there is an issue.
+
+### Pre-requisites
+
+Ensure you have the following:
+- [ ] A local Git installation and a Go development setup
+- [ ] SSH authentication for GitHub (see [here](https://docs.github.com/en/authentication/connecting-to-github-with-ssh))
+- [ ] A USB port connection for your hardware key (beware of using a remote connection; the keyholder should not assume that magic occurs during an SSH session)
+
+### Signing pre-work
+
+During a root signing test, keyholders must complete the following steps in order:
+- [ ] Fork the [root-signing](https://github.com/sigstore/root-signing) repository by clicking the "fork" button on GitHub. 
+- [ ] Test binary build: Set your `${GITHUB_USER}` with your GitHub username and execute the script:
+```bash
+export GITHUB_USER=${YOUR_GITHUB_USER}
+./scripts/step-0.sh
+```
+This will setup your fork and build the TUF binary to use for metadata generation.
+- [ ] (If you are a new keyholder) Test registering your new root key: Do not use an existing key that is already in-use and you need to continue using -- this process will wipe the key! Set the following environment variables.
+```bash
+export LOCAL=1
+```
+
+Now follow the steps in [Registering a new root key](#registering-a-new-root-key).
+
+**CONFIRM** that you created a new directory under `ceremony/$DATE/keys/` with a new serial numbered `XXXXXX` directory. Run 
+```bash
+./scripts/verify.sh
+```
+and confirm that there is some output with `VERIFIED KEY WITH SERIAL NUMBER XXXXXX`.
+
+- [ ] Test signing: Note you will need a test GCP signer. Sigstore keyholders have access to the test KMS key below. You will need to authenticate with GCP. Run the following. 
+```bash
+export LOCAL=1
+gcloud auth application-default login
+export TEST_KEY=gcpkms://projects/projectsigstore-staging/locations/global/keyRings/root-keyring/cryptoKeys/staging-test
+export TIMESTAMP_KEY=$TEST_KEY
+export SNAPSHOT_KEY=$TEST_KEY
+export REKOR_KEY=$TEST_KEY
+export STAGING_KEY=$TEST_KEY
+export REVOCATION_KEY=$TEST_KEY
+export PREV_REPO=$(pwd)/ceremony/2022-05-10
+./scripts/step-1.5.sh
+```
+Now follow the instructions under [Signing root and targets](#signing-root-and-targets).
+
+**CONFIRM** that you created a new directory under `ceremony/$DATE/staged/`. Run 
+```bash
+export REPO=$(pwd)/ceremony/$(date '+%Y-%m-%d')
+./scripts/verify.sh
+```
+and make sure that you see 1 valid signature for root and targets.
+
+### Registering a new root key
 
 Pre-requisites:
-* A local Git installation and a Go development setup
-* SSH authentication for GitHub (see [here](https://docs.github.com/en/authentication/connecting-to-github-with-ssh))
-* Keyholders: A USB port connection for your hardware key (beware of using a remote connection; the keyholder should not assume that magic occurs during an SSH session)
-
-0. **The keyholders and the conductor** should fork [this](https://github.com/sigstore/root-signing) git repository by clicking the "fork" button on GitHub. Then, set your `${GITHUB_USER}` with your GitHub username and execute the script:
-
-```
+- [ ] Ensure you have run the following during your current session.
+```bash
 export GITHUB_USER=${YOUR_GITHUB_USER}
 ./scripts/step-0.sh
 ```
 
-The conductor should also set the online snapshot and timestamp keys, and the previous repository if it exists. The key references should have the a go-cloud style URI like `gcpkms://<some key>`.
-
-```
-export PREV_REPO=${PREVIOUS CEREMONY REPO}
-export SNAPSHOT_KEY=${SNAPSHOT_KEY_REFERENCE}
-export TIMESTAMP_KEY=${TIMESTAM_KEY_REFERENCE}
-```
-
 You may need to install `libpcslite` to support hardware tokens. See [`go-piv`'s installation instructions for your platform.](https://github.com/go-piv/piv-go#installation).
 
-This will setup your fork and build the TUF binary to use for metadata generation.
+Run 
 
-
-1. **Each keyholder** should insert their hardware token and run
-
-```
+```bash
 ./scripts/step-1.sh
 ```
 
-You will be prompted to reset your hardware key and set a PIN. Choose a PIN between 6 and 8 characters that you will remember for signing in later steps.
+This step will reset your hardware key and will set a PIN. Choose a PIN between 6 and 8 characters that you will remember for signing in later steps.
 
 This will output three files (a public key, device certificate, and hardware certificate) in a directory named with your serial number `ceremony/YYYY-MM-DD/keys/${SERIAL_NUM}`.
+
+During the actual ceremony, it will push a PR to the root-signing repository.
 
 Troubleshooting: If you hit the error
 ```
@@ -46,36 +92,22 @@ systemctl start pcscd.service
 systemctl enable pcscd.service
 ```
 
-**Keyholders** should remove their hardware token.
+### Signing root and targets
 
-
-1.5. After all keys are merged, **the conductor** should initialize the TUF repository and add the targets file (including delegations). From this directory:
-```
-./scripts/step-1.5.sh
-TUF repository initialized at  $REPO
-Created target file at  $REPO/staged/targets/$TARGET
-```
-
-You should see the following directory structure created in `ceremony/YYYY-MM-DD/staged/`.
-```
-$REPO
-├── keys
-├── repository
-└── staged
-    ├── root.json
-    ├── targets
-    │   └── $TARGET
-    ├── targets.json
+Pre-requisites:
+- [ ] Ensure you have run the following during your current session.
+```bash
+export GITHUB_USER=${YOUR_GITHUB_USER}
+./scripts/step-0.sh
 ```
 
-Each metadata file will be populated with a 6 month expiration and placeholder empty signatures corresponding to the KEY_IDs generated in step 1. The `root.json` will specify all 5 keys for each top-level role with a threshold of 3. 
+After the root and targets metadata is created unsigned with placeholder signature IDs, run
 
-2. Signing root and targets: each **keyholder** should insert their hardware token and sign the root and targets file by running:
 ```
 ./scripts/step-2.sh
 ```
 
-This will prompt your for your PIN twice to sign `root.json` and `targets.json`. This will populate a signature for your key id in the `signatures` section for these two top-level roles.
+You will be prompted to insert your hardware key. Insert it and continue. Then, it will prompt you for your PIN twice to sign `root.json` and `targets.json`. This will populate a signature for your key id in the `signatures` section for these two top-level roles.
 
 ```
 {
@@ -89,40 +121,4 @@ This will prompt your for your PIN twice to sign `root.json` and `targets.json`.
 }
 ```
 
-**Keyholders** should remove their hardware token. At this point, keyholders no longer need to sign any metadata.
-
-3. The **conductor** should sign the delegation metadata.
-```
-./scripts/step-3.sh
-```
-
-4. The **conductor** should initiate the scripts to sign snapshot and timestamp with the online keys after all PRs from step 2 are merged:
-```
-./scripts/step-4.sh
-```
-
-5. After all PRs are merged, the **conductor** can verify and publish the metadata!
-
-```
-$ ./scripts/step-5.sh
-Metadata successfully validated!
-```
-
-This will move the finalized metadata to `$REPO/repository`:
-```
-$REPO
-├── keys
-│   └── 14833186
-│       ├── 14833186_device_cert.pem
-│       ├── 14833186_key_cert.pem
-│       └── 14833186_pubkey.pem
-│   └── [more]
-├── repository
-│   ├── 0.root.json
-│   ├── root.json
-│   ├── snapshot.json
-│   ├── targets
-│   │   └── fulcio.crt.pem
-│   ├── targets.json
-│   └── timestamp.json
-```
+It will then prompt you to remove the hardware token. During the actual ceremony, it will push a PR to the root-signing repository.

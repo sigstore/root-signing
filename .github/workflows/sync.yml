@@ -42,12 +42,30 @@ jobs:
       # TODO(297): Switch to stable gcloud API, use rsync when available
       - name: sync
         run: |
+          check_expiration() {
+              expiry=$(jq -r '.signed.expires' $1)
+              expires=$(date -d $expiry +%s)
+              current=$(date +%s)
+              if (( expires < current )); then
+                  echo "Detected expired metadata file $1 at $expiry!"
+                  exit 1
+              fi;
+          }
+
           # Upload all but TUF timestamp. Once timestamp is uploaded, all other files must have been uploaded.
           for f in $(ls repository/repository/ -I *timestamp.json)
           do
+            # Check for expiration if this is a non-versioned metadata file. 
+            # Versioned metadata like 1.root.json may be expired.
+            if [[ $f == [^0-9]*.json ]]; then
+                check_expiration repository/repository/$f
+            fi;
+
             gcloud alpha --quiet storage cp --cache-control=no-store -r repository/repository/$f gs://sigstore-preprod-tuf-root/
           done
-          # Upload timestamp
+
+          # Upload timestamp after checking latest timestamp expiration
+          check_expiration repository/repository/timestamp.json
           gcloud alpha --quiet storage cp --cache-control=no-store -r repository/repository/*timestamp.json gs://sigstore-preprod-tuf-root/
 
           # delete any files present in sigstore-preprod-tuf-root not in repository/repository

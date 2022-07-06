@@ -22,6 +22,6 @@ checkout_branch
 ./tuf publish -repository $REPO
 # Clear and copy into the repository/
 rm -r repository/
-cp -r $REPO/repository/ repository/
+cp -r $REPO/ repository/
 
 commit_and_push_changes publish

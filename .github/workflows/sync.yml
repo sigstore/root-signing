@@ -57,6 +57,8 @@ jobs:
           do
             # Check for expiration if this is a non-versioned metadata file. 
             # Versioned metadata like 1.root.json may be expired.
+            # TODO(asraa): When consistent snapshots are enabled, this logic must be changed so that
+            # only old versioned metadata can be expired.
             if [[ $f == [^0-9]*.json ]]; then
                 check_expiration repository/repository/$f
             fi;

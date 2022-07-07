@@ -195,6 +195,8 @@ This will create a PR moving the files. Verify that the TUF client can update to
 
 4. Schedule the next root signing event one month before expiration on the calendar. Check [here](https://github.com/sigstore/root-signing/blob/e3f1fe5e487984f525afc81ac77fa5ce39737d0f/cmd/tuf/app/init.go#L29) for root expiration. Schedule a testing event for the week before.
 
+5. Update `PREV_REPO` references to the new ceremony date in [keyholder playbooks](./keyholders/).
+
 ### Other
 
 #### Adding a Delegation

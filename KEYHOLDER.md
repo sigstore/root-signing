@@ -11,6 +11,7 @@ Keyholders MUST subscribe to the [Sigstore Maintainer Calendar](https://calendar
 Ensure you have the following:
 - [ ] A local Git installation and a Go development setup
 - [ ] SSH authentication for GitHub (see [here](https://docs.github.com/en/authentication/connecting-to-github-with-ssh))
+- [ ] [gcloud CLI](https://cloud.google.com/sdk/docs/install) installed and initialized
 - [ ] A USB port connection for your hardware key (beware of using a remote connection; the keyholder should not assume that magic occurs during an SSH session)
 
 ### Signing pre-work

@@ -34,24 +34,23 @@ jobs:
       - name: sync
         run: |
           difference() {
-            date_one=$(date -d "$1" +%s)
-            date_two=$(date -d "$2" +%s)
-            echo $(( (date_one - date_two) / 86400 ))
+            input_date=$(date -d $1 +%s)
+            now=$(date +%s)
+            echo $(( ($now - $input_date) / 86400 ))
           }
 
           # fetch creation time and hash for timestamp in preprod
           # timestamp is always updated on a sync, either from the weekly updates or the signing ceremony
           tsMetaPreprod=$(gcloud alpha storage ls --json gs://sigstore-preprod-tuf-root/timestamp.json | jq .[0].metadata)
-          timeCreatedPreprod=$(echo $tsMeta | jq .timeCreated)
-          md5HashPreprod=$(echo $tsMeta | jq .md5Hash)
+          timeCreatedPreprod=$(echo $tsMetaPreprod | jq -r .timeCreated)
+          md5HashPreprod=$(echo $tsMetaPreprod | jq -r .md5Hash)
 
-          # fetch creation time and hash for timestamp in prod
+          # fetch hash for timestamp in prod
           tsMetaProd=$(gcloud alpha storage ls --json gs://sigstore-tuf-root/timestamp.json | jq .[0].metadata)
-          timeCreatedProd=$(echo $tsMeta | jq .timeCreated)
-          md5HashProd=$(echo $tsMeta | jq .md5Hash)
+          md5HashProd=$(echo $tsMetaProd | jq -r .md5Hash)
 
           # if less than 2 days since updates were published to preprod, do not update
-          daysDiff=$(difference $timeCreatedPreprod $timeCreatedProd)
+          daysDiff=$(difference $timeCreatedPreprod)
           if (($daysDiff < 2)); then
             exit 0 
           fi

@@ -111,8 +111,8 @@ func verifySigningKeys(dirname string, rootCA *x509.Certificate) (*KeyMap, error
 
 	log.Printf("\n# Manually extract the public key for any key ID and match with published\n\n")
 	log.Printf("\texport SERIAL_NUMBER=${SERIAL_NUMBER}")
-	log.Printf("\topenssl x509 -in %s -pubkey -noout", pubkeyPath)
-	log.Printf("\tcat %s", keyPath)
+	log.Printf("\topenssl x509 -in %s -pubkey -noout", keyPath)
+	log.Printf("\tcat %s", pubkeyPath)
 
 	return &keyMap, nil
 }

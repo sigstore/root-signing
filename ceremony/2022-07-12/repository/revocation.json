@@ -1,0 +1,28 @@
+{
+	"signatures": [
+		{
+			"keyid": "9e7d813e8e16062e60a4540346aa8e7c7782afb7098af0b944ea80a4033a176f",
+			"sig": "3045022100b1de12ba9e44d0f7b16e51b57674768e38baff2480505d5792d267c61141d8c902206cdbae8cfa3ef8eb98b3f50c83afb6b53bbb8c6961798cc8d7c206782eec2231"
+		}
+	],
+	"signed": {
+		"_type": "targets",
+		"expires": "2023-01-12T18:22:03Z",
+		"spec_version": "1.0",
+		"targets": {
+			"revocation.list": {
+				"custom": {
+					"sigstore": {
+						"status": "Unknown",
+						"usage": "Unknown"
+					}
+				},
+				"hashes": {
+					"sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+					"sha512": "cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e"
+				}
+			}
+		},
+		"version": 1
+	}
+}

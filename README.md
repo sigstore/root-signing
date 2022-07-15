@@ -17,9 +17,9 @@ The current published repository metadata lives in the [repository](/repository/
 
 | Target        |  Description | 
 | ----- |--------- |  
-| [fulcio_v1.crt.pem](repository/repository/targets/fulcio_v1.crt.pem)   |  This is the [Fulcio](https://github.com/sigstore/fulcio) root certificate used to issue short-lived code signing certs. It is hosted at `https://fulcio.sigstore.dev`. You can `curl` the running root CA to ensure it matches the TUF root using `curl -v https://fulcio.sigstore.dev/api/v1/rootCert` | 
-| [fulcio_intermediate_v1.crt.pem](repository/repository/targets/fulcio__intermediate_v1.crt.pem)   |  This is the [Fulcio](https://github.com/sigstore/fulcio) intermediate certificate used to issue short-lived code signing certs. It is hosted at `https://fulcio.sigstore.dev`. You can `curl` the running CA chain to ensure it matches the TUF root using `curl -v https://fulcio.sigstore.dev/api/v1/rootCert` | 
-| [fulcio.crt.pem](repository/repository/targets/fulcio.crt.pem)        |  This is the Fulcio root certificate used with an older instance of Fulcio. We maintain this target to verify old certificates but no longer used to sign newly issued certificates. | 
+| [fulcio_v1.crt.pem](repository/repository/targets/fulcio_v1.crt.pem)   |  This is the [Fulcio](https://github.com/sigstore/fulcio) root certificate used to issue short-lived code signing certs. It is hosted at `https://fulcio.sigstore.dev`. You can `curl` the running root CA chain to ensure the first PEM-encoded certificate matches the TUF root using `curl -v https://fulcio.sigstore.dev/api/v1/rootCert` | 
+| [fulcio_intermediate_v1.crt.pem](repository/repository/targets/fulcio__intermediate_v1.crt.pem)   |  This is the [Fulcio](https://github.com/sigstore/fulcio) intermediate certificate used to issue short-lived code signing certs. It is hosted at `https://fulcio.sigstore.dev`. You can `curl` the running CA chain to ensure the second PEM-encoded certificate matches the TUF root using `curl -v https://fulcio.sigstore.dev/api/v1/rootCert` | 
+| [fulcio.crt.pem](repository/repository/targets/fulcio.crt.pem)        |  This is the Fulcio root certificate used with an older instance of Fulcio. We maintain this target to verify old certificates but is no longer used to sign newly issued certificates. | 
 | [rekor.pub](repository/repository/targets/rekor.pub)        |  This is the [Rekor](https://github.com/sigstore/rekor) public key used to sign entries and the tree head of the transparency log. You can retrieve the public key to ensure it matches with `curl -H 'Content-Type: application/x-pem-file' https://rekor.sigstore.dev/api/v1/log/publicKey`. | 
 | [rekor.0.pub](repository/repository/targets/rekor.0.pub)        |  This is a dupe of `rekor.pub` and will be removed in the next root-signing event. | 
 | [ctfe.pub](repository/repository/targets/ctfe.pub)        |  Certificate Transparency log key that is used for certificates issued by Fulcio and used to verify signed certificate timestamps (SCTs) for inclusion into the log. | 
@@ -33,14 +33,14 @@ The current published repository metadata lives in the [repository](/repository/
 
 The current root is published on a GCS bucket located at `https://storage.googleapis.com/sigstore-tuf-root`.
 
-The pre-production root is published ona GCS bucket located at `https://storage.googleapis.com/sigstore-preprod-tuf-root`.
+The pre-production root is published on a GCS bucket located at `https://storage.googleapis.com/sigstore-preprod-tuf-root`.
 
 
 ## Sigstore Root Keyholders 
 
 | Keyholder        |  TUF Key ID |  Yubikey Material| Term | 
 | ----- |--------- |  --- | ---- |
-| Joshua Locke       |  `75e867ab10e121fdef32094af634707f43ddd79c6bab8ad6c5ab9f03f4ea8c90` | [18158855](https://github.com/sigstore/root-signing/ceremony/2022-07-12/keys/18158855)  | July 2022 -  | 
+| Joshua Lock       |  `75e867ab10e121fdef32094af634707f43ddd79c6bab8ad6c5ab9f03f4ea8c90` | [18158855](https://github.com/sigstore/root-signing/ceremony/2022-07-12/keys/18158855)  | July 2022 -  | 
 | Bob Callaway        |  `f505595165a177a41750a8e864ed1719b1edfccd5a426fd2c0ffda33ce7ff209` | [15938791](https://github.com/sigstore/root-signing/tree/main/ceremony/2021-06-18/keys/15938791)  | June 2021 -  | 
 | Dan Lorenc        |  `2f64fb5eac0cf94dd39bb45308b98920055e9a0d8e012a7220787834c60aef97` | [13078778](https://github.com/sigstore/root-signing/tree/main/ceremony/2021-06-18/keys/13078778)  | June 2021 -  | 
 | Marina Moore        |  `eaf22372f417dd618a46f6c627dbc276e9fd30a004fc94f9be946e73f8bd090b` | [14470876](https://github.com/sigstore/root-signing/tree/main/ceremony/2021-06-18/keys/14470876)  | June 2021 -  | 

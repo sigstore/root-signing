@@ -2,21 +2,29 @@
 	"signatures": [
 		{
 			"keyid": "2f64fb5eac0cf94dd39bb45308b98920055e9a0d8e012a7220787834c60aef97",
-			"sig": "3046022100e7a80e4b03eb8768999d20f104925fd9149faf3f6f73ee80f8c2e8d5f998f48c022100d3f01eb8effee202a244e710dca09530b9c57c5e510ab35172bd5eddd373ccc8"
+			"sig": "3046022100f7d4abde3d694fba01af172466629249a6743efd04c3999f958494842a7aee1f022100d19a295f9225247f17650fdb4ad50b99c2326700aadd0afaec4ae418941c7c59"
 		},
 		{
 			"keyid": "eaf22372f417dd618a46f6c627dbc276e9fd30a004fc94f9be946e73f8bd090b",
-			"sig": "304502200e45fde5cf750f8c533c4f259eb1469510600993b98ae2c3cb8f1922cda96e27022100f5151760d0ef0882a96c2531ccd9f5e4a7ff2b259d8eb34ead8bfdf60cb52fee"
+			"sig": "3045022075ec28360b3e310db9d3de281a5286e37884aefd9f0b7193ad67c68ab6ee95a2022100aa08a93c58d74d9cb128cea765cae378efe86092f253b75fd427aede48ac7e22"
 		},
 		{
 			"keyid": "f40f32044071a9365505da3d1e3be6561f6f22d0e60cf51df783999f6c3429cb",
-			"sig": "304502205a7ebeac3617bfb1aca957a6f74d37a02f2854afa54e5103fb3c891bb25836db022100f06614ca8d21f968e45edc29f826d8dbeed07c51d4cb473a734a2036171900de"
+			"sig": "304502201de38b2a56a58ae046f26e3be8673063cdde8f8b6a8733bc025ebaf0e09569c50221008f8620c960fa6f9cb52b7c39ce84a5ac18224be4a876a35e1bc8f5d76aa24e86"
+		},
+		{
+			"keyid": "f505595165a177a41750a8e864ed1719b1edfccd5a426fd2c0ffda33ce7ff209",
+			"sig": "3044022070d86c3fbc3fb69783d54a451187e43776d97effe500c51f2558939c80ab2bb902201fb14ce51c6c4f40e8f2db792c3d56da18fe0c39499fa3fca9e841fc8bee17f1"
+		},
+		{
+			"keyid": "75e867ab10e121fdef32094af634707f43ddd79c6bab8ad6c5ab9f03f4ea8c90",
+			"sig": "3046022100aa1ff582569287b5160864e20bb343eff92dec316940cebe5742e47a56e8cabd0221009dc18bad12920a39b7427914ecb46e2ead58f17136935afbba488b7d6f3160ff"
 		}
 	],
 	"signed": {
 		"_type": "root",
 		"consistent_snapshot": false,
-		"expires": "2022-11-10T21:58:09.733402317Z",
+		"expires": "2023-01-12T18:22:02Z",
 		"keys": {
 			"2f64fb5eac0cf94dd39bb45308b98920055e9a0d8e012a7220787834c60aef97": {
 				"keyid_hash_algorithms": [
@@ -29,6 +37,17 @@
 				},
 				"scheme": "ecdsa-sha2-nistp256"
 			},
+			"75e867ab10e121fdef32094af634707f43ddd79c6bab8ad6c5ab9f03f4ea8c90": {
+				"keyid_hash_algorithms": [
+					"sha256",
+					"sha512"
+				],
+				"keytype": "ecdsa-sha2-nistp256",
+				"keyval": {
+					"public": "04d2086b87dd8bc3562bde27465795aa0ad30307c0b1f83f21742e30d992cd2299554685462ec9186b782178cc8e8e227c90f8b5e5a436fffecffa88fb52f24f1b"
+				},
+				"scheme": "ecdsa-sha2-nistp256"
+			},
 			"b6710623a30c010738e64c5209d367df1c0a18cf90e6ab5292fb01680f83453d": {
 				"keyid_hash_algorithms": [
 					"sha256",
@@ -37,17 +56,6 @@
 				"keytype": "ecdsa-sha2-nistp256",
 				"keyval": {
 					"public": "04fa1a3e42f2300cd3c5487a61509348feb1e936920fef2f83b7cd5dbe7ba045f538725ab8f18a666e6233edb7e0db8766c8dc336633449c5e1bbe0c182b02df0b"
-				},
-				"scheme": "ecdsa-sha2-nistp256"
-			},
-			"bdde902f5ec668179ff5ca0dabf7657109287d690bf97e230c21d65f99155c62": {
-				"keyid_hash_algorithms": [
-					"sha256",
-					"sha512"
-				],
-				"keytype": "ecdsa-sha2-nistp256",
-				"keyval": {
-					"public": "04a71aacd835dc170ba6db3fa33a1a33dee751d4f8b0217b805b9bd3242921ee93672fdcfd840576c5bb0dc0ed815edf394c1ee48c2b5e02485e59bfc512f3adc7"
 				},
 				"scheme": "ecdsa-sha2-nistp256"
 			},
@@ -100,10 +108,10 @@
 			"root": {
 				"keyids": [
 					"2f64fb5eac0cf94dd39bb45308b98920055e9a0d8e012a7220787834c60aef97",
-					"bdde902f5ec668179ff5ca0dabf7657109287d690bf97e230c21d65f99155c62",
 					"eaf22372f417dd618a46f6c627dbc276e9fd30a004fc94f9be946e73f8bd090b",
 					"f40f32044071a9365505da3d1e3be6561f6f22d0e60cf51df783999f6c3429cb",
-					"f505595165a177a41750a8e864ed1719b1edfccd5a426fd2c0ffda33ce7ff209"
+					"f505595165a177a41750a8e864ed1719b1edfccd5a426fd2c0ffda33ce7ff209",
+					"75e867ab10e121fdef32094af634707f43ddd79c6bab8ad6c5ab9f03f4ea8c90"
 				],
 				"threshold": 3
 			},
@@ -116,10 +124,10 @@
 			"targets": {
 				"keyids": [
 					"2f64fb5eac0cf94dd39bb45308b98920055e9a0d8e012a7220787834c60aef97",
-					"bdde902f5ec668179ff5ca0dabf7657109287d690bf97e230c21d65f99155c62",
 					"eaf22372f417dd618a46f6c627dbc276e9fd30a004fc94f9be946e73f8bd090b",
 					"f40f32044071a9365505da3d1e3be6561f6f22d0e60cf51df783999f6c3429cb",
-					"f505595165a177a41750a8e864ed1719b1edfccd5a426fd2c0ffda33ce7ff209"
+					"f505595165a177a41750a8e864ed1719b1edfccd5a426fd2c0ffda33ce7ff209",
+					"75e867ab10e121fdef32094af634707f43ddd79c6bab8ad6c5ab9f03f4ea8c90"
 				],
 				"threshold": 3
 			},
@@ -131,6 +139,6 @@
 			}
 		},
 		"spec_version": "1.0",
-		"version": 3
+		"version": 4
 	}
 }

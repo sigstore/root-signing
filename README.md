@@ -38,6 +38,8 @@ The pre-production root is published on a GCS bucket located at `https://storage
 
 ## Sigstore Root Keyholders 
 
+### Current Keyholders
+
 | Keyholder        |  TUF Key ID |  Yubikey Material| Term | 
 | ----- |--------- |  --- | ---- |
 | Joshua Lock       |  `75e867ab10e121fdef32094af634707f43ddd79c6bab8ad6c5ab9f03f4ea8c90` | [18158855](https://github.com/sigstore/root-signing/ceremony/2022-07-12/keys/18158855)  | July 2022 -  | 
@@ -45,6 +47,10 @@ The pre-production root is published on a GCS bucket located at `https://storage
 | Dan Lorenc        |  `2f64fb5eac0cf94dd39bb45308b98920055e9a0d8e012a7220787834c60aef97` | [13078778](https://github.com/sigstore/root-signing/tree/main/ceremony/2021-06-18/keys/13078778)  | June 2021 -  | 
 | Marina Moore        |  `eaf22372f417dd618a46f6c627dbc276e9fd30a004fc94f9be946e73f8bd090b` | [14470876](https://github.com/sigstore/root-signing/tree/main/ceremony/2021-06-18/keys/14470876)  | June 2021 -  | 
 | Santiago Torres-Arias        |  `f40f32044071a9365505da3d1e3be6561f6f22d0e60cf51df783999f6c3429cb` | [15938765](https://github.com/sigstore/root-signing/tree/main/ceremony/2021-06-18/keys/15938765) | June 2021 -  | 
+
+### Emeritus Keyholders
+| Keyholder        |  TUF Key ID |  Yubikey Material| Term | 
+| ----- |--------- |  --- | ---- |
 | Luke Hinds        |  `bdde902f5ec668179ff5ca0dabf7657109287d690bf97e230c21d65f99155c62` | [14454335](https://github.com/sigstore/root-signing/tree/main/ceremony/2021-06-18/keys/14454335)  | June 2021 - July 2022 | 
 
 

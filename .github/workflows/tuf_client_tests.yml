@@ -44,5 +44,5 @@ jobs:
       - run: |
           tuftool download out \
             --root repository/repository/2.root.json \
-            -t http://localhost:8001/targets.json \
+            -t http://localhost:8001/targets \
             -m http://localhost:8001

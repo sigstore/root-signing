@@ -1,0 +1,48 @@
+name: TUF Client tests
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths:
+      - 'repository/**'
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  client:
+    runs-on: ubuntu-20.04
+    steps:
+      # Set up a repository server with python
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.x' 
+      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # v2.4.0
+        with:
+          fetch-depth: 2
+      - run: |
+          cd repository/repository/
+          python -m http.server 8001 &
+          echo "REPO=http://localhost:8001" >> $GITHUB_ENV
+      # Test with go-tuf client
+      - uses: actions/setup-go@84cbf8094393cdc5fe1fe1671ff2647332956b1a # v2.2.0
+        with:
+          go-version: '1.17.x'
+      - run: |
+          go install github.com/theupdateframework/go-tuf/cmd/tuf-client
+      - run: |
+          tuf-client init http://localhost:8001 repository/repository/1.root.json 
+          tuf-client list http://localhost:8001 
+      # Test with rust client
+      - uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # v1.0.7
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - run: | 
+          cargo install --force tuftool
+      - run: |
+          tuftool download out \
+            --root repository/repository/2.root.json \
+            -t http://localhost:8001/targets.json \
+            -m http://localhost:8001

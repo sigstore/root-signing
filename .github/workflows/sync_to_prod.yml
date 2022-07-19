@@ -4,6 +4,12 @@ on:
   schedule:
     - cron: '0 */12 * * *' # every 12 hours
   workflow_dispatch:
+    inputs:
+      trigger_sync:
+        description: 'Whether to manually trigger a sync, otherwise only syncs pre-prod to prod with a 2 day delay'
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   sync:
@@ -31,8 +37,9 @@ jobs:
         run: |
           sudo apt-get install -y jq
       # TODO(297): Switch to stable gcloud API, use rsync when available
-      - name: sync
+      - name: check sync conditions
         run: |
+          # Determine whether a sync is necessary
           difference() {
             input_date=$(date -d $1 +%s)
             now=$(date +%s)
@@ -58,7 +65,11 @@ jobs:
           if [[ "$md5HashPreprod" == "$md5HashProd" ]]; then
             exit 0
           fi
-
+          # otherwise, indicate that a sync is needed
+          echo "trigger_sync=true" >> ${GITHUB_ENV}
+      - name: sync
+        if: ${{ github.event.inputs.trigger_sync || env.trigger_sync == 'true' }}
+        run: |
           # download preprod bucket and copy over to production bucket
           gcloud alpha --quiet storage cp -r gs://sigstore-preprod-tuf-root/ .
 

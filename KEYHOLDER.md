@@ -13,33 +13,41 @@ Ensure you have the following:
 - [ ] SSH authentication for GitHub (see [here](https://docs.github.com/en/authentication/connecting-to-github-with-ssh))
 - [ ] [gcloud CLI](https://cloud.google.com/sdk/docs/install) installed and initialized
 - [ ] A USB port connection for your hardware key (beware of using a remote connection; the keyholder should not assume that magic occurs during an SSH session)
+- [ ] A fresh environment. In particular, ensure that environment variables like `LOCAL`, `GITHUB_USER`, and `BRANCH` are unset before you begin.
 
-### Signing pre-work
+### Root Signing Test
 
-During a root signing test, keyholders must complete the following steps in order:
+To test keyholder signing, complete the following steps in order:
+
+#### Test Setup
 - [ ] Fork the [root-signing](https://github.com/sigstore/root-signing) repository by clicking the "fork" button on GitHub. 
 - [ ] Test binary build: Set your `${GITHUB_USER}` with your GitHub username and execute the script:
 ```bash
-export GITHUB_USER=${YOUR_GITHUB_USER}
+export GITHUB_USER=${GITHUB_USER}
+export LOCAL=1
 ./scripts/step-0.sh
 ```
-This will setup your fork and build the TUF binary to use for metadata generation.
-- [ ] (If you are a new keyholder) Test registering your new root key: Do not use an existing key that is already in-use and you need to continue using -- this process will wipe the key! Set the following environment variables.
-```bash
-export LOCAL=1
+This will setup your fork and build the TUF binary to use for metadata generation. This will also disable PR creations after each step and allow you to test changes locally.
+
+#### Test Registration
+**Only do this if you are using a new key to test signing, e.g. you are a new keyholder or are using a spare key.**
+
+Do not use an existing key that is already in-use and you need to continue using -- this process will wipe the key! 
+
+- [ ] Add your key with the following. See [Registering a new root key](#registering-a-new-root-key) for more information.
+```
+./scripts/step-1.sh
 ```
 
-Now follow the steps in [Registering a new root key](#registering-a-new-root-key).
-
-**CONFIRM** that you created a new directory under `ceremony/$DATE/keys/` with a new serial numbered `XXXXXX` directory. Run 
+- [ ] **CONFIRM** that you created a new directory under `ceremony/$DATE/keys/` with a new serial numbered `XXXXXX` directory. Run the following and confirm that there is some output with `VERIFIED KEY WITH SERIAL NUMBER XXXXXX`.
 ```bash
 ./scripts/verify.sh
 ```
-and confirm that there is some output with `VERIFIED KEY WITH SERIAL NUMBER XXXXXX`.
 
-- [ ] Test signing: Note you will need a test GCP signer. Sigstore keyholders have access to the test KMS key below. You will need to authenticate with GCP. Run the following. 
+#### Test Signing
+Note you will need a test GCP signer. Sigstore keyholders have access to the test KMS key below. You will need to authenticate with GCP.
+- [ ] Create new unsigned metadata with the following:
 ```bash
-export LOCAL=1
 gcloud auth application-default login
 export TEST_KEY=gcpkms://projects/projectsigstore-staging/locations/global/keyRings/root-keyring/cryptoKeys/staging-test
 export TIMESTAMP_KEY=$TEST_KEY
@@ -50,21 +58,23 @@ export REVOCATION_KEY=$TEST_KEY
 export PREV_REPO=$(pwd)/ceremony/2022-05-10
 ./scripts/step-1.5.sh
 ```
-Now follow the instructions under [Signing root and targets](#signing-root-and-targets).
+- [ ] Sign the metadata with the following command. See [Signing root and targets](#signing-root-and-targets) for more information.
+```
+./scripts/step-2.sh
+```
 
-**CONFIRM** that you created a new directory under `ceremony/$DATE/staged/`. Run 
+- [ ] **CONFIRM** that you created a new directory under `ceremony/$DATE/staged/`. Run the following and make sure that you see 1 valid signature for root and targets.
 ```bash
 export REPO=$(pwd)/ceremony/$(date '+%Y-%m-%d')
 ./scripts/verify.sh
 ```
-and make sure that you see 1 valid signature for root and targets.
 
 ### Registering a new root key
 
 Pre-requisites:
 - [ ] Ensure you have run the following during your current session.
 ```bash
-export GITHUB_USER=${YOUR_GITHUB_USER}
+export GITHUB_USER=${GITHUB_USER}
 ./scripts/step-0.sh
 ```
 
@@ -98,7 +108,7 @@ systemctl enable pcscd.service
 Pre-requisites:
 - [ ] Ensure you have run the following during your current session.
 ```bash
-export GITHUB_USER=${YOUR_GITHUB_USER}
+export GITHUB_USER=${GITHUB_USER}
 ./scripts/step-0.sh
 ```
 

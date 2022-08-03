@@ -220,6 +220,8 @@ func InitCmd(ctx context.Context, directory, previous string, threshold int, tar
 			targetsToRemove = append(targetsToRemove, path)
 		}
 	}
+	// Only call RemoveTargetsWithExpires if there are targets to remove.
+	// Calling the function with an empty slice will remove all targets.
 	if len(targetsToRemove) > 0 {
 		if err := repo.RemoveTargetsWithExpires(targetsToRemove, getExpiration("targets")); err != nil {
 			return fmt.Errorf("error removing old targets: %w", err)

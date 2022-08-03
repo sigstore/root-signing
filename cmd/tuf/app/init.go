@@ -186,6 +186,7 @@ func InitCmd(ctx context.Context, directory, previous string, threshold int, tar
 	}
 
 	// Add targets (copy them into the repository and add them to the targets.json)
+	expectedTargets := make(map[string]bool)
 	for tt, custom := range targetsConfig {
 		from, err := os.Open(tt)
 		if err != nil {
@@ -204,6 +205,24 @@ func InitCmd(ctx context.Context, directory, previous string, threshold int, tar
 		fmt.Fprintln(os.Stderr, "Created target file at ", to.Name())
 		if err := repo.AddTargetWithExpiresToPreferredRole(base, custom, getExpiration("targets"), "targets"); err != nil {
 			return fmt.Errorf("error adding targets %w", err)
+		}
+		expectedTargets[base] = true
+	}
+
+	// Remove old targets that were not included in config.
+	targetsToRemove := []string{}
+	allTargets, err := repo.Targets()
+	if err != nil {
+		return err
+	}
+	for path := range allTargets {
+		if !expectedTargets[path] {
+			targetsToRemove = append(targetsToRemove, path)
+		}
+	}
+	if len(targetsToRemove) > 0 {
+		if err := repo.RemoveTargetsWithExpires(targetsToRemove, getExpiration("targets")); err != nil {
+			return fmt.Errorf("error removing old targets: %w", err)
 		}
 	}
 

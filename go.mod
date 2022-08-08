@@ -3,7 +3,8 @@ module github.com/sigstore/root-signing
 go 1.17
 
 require (
-	github.com/go-piv/piv-go v1.9.0
+	github.com/go-piv/piv-go v1.10.0
+	github.com/google/go-cmp v0.5.8
 	github.com/peterbourgon/ff/v3 v3.1.2
 	github.com/pkg/errors v0.9.1
 	github.com/sigstore/cosign v1.9.0
@@ -14,7 +15,6 @@ require (
 	github.com/theupdateframework/go-tuf v0.3.1-0.20220606124518-ad96eca0239e
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211
 	gopkg.in/yaml.v2 v2.4.0
-	gotest.tools v2.2.0+incompatible
 )
 
 require (
@@ -85,7 +85,6 @@ require (
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/btree v1.0.1 // indirect
 	github.com/google/certificate-transparency-go v1.1.2 // indirect
-	github.com/google/go-cmp v0.5.8 // indirect
 	github.com/google/go-containerregistry v0.8.1-0.20220209165246-a44adc326839 // indirect
 	github.com/google/go-github/v42 v42.0.0 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect

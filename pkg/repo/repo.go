@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	ctuf "github.com/sigstore/cosign/pkg/cosign/tuf"
+	ctuf "github.com/sigstore/sigstore/pkg/tuf"
 	"github.com/theupdateframework/go-tuf"
 	"github.com/theupdateframework/go-tuf/data"
 	"github.com/theupdateframework/go-tuf/verify"

@@ -1,3 +1,18 @@
+//
+// Copyright 2021 The Sigstore Authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package app
 
 import (
@@ -94,13 +109,14 @@ func Init() *ffcli.Command {
 
 // InitCmd creates a new staged root.json and targets.json in the specified directory. It populates the top-level
 // roles with signers and adds targets to top-level targets.
-//   * directory: Directory to write newly staged metadata. Must contain a keys/ subdirectory with root/targets signers.
-//   * previous: Optional previous repository to chain the root from.
-//   * threshold: The root and targets threshold.
-//   * targetsConfig: A map of target file names and custom metadata to add to top-level targets.
-//                    Target file names are expected to be in the working directory.
-//   * snapshotRef: A reference (KMS, file, URL) to a snapshot signer.
-//   * timestampRef: A reference (KMS, file, URL) to a timestamp signer.
+//   - directory: Directory to write newly staged metadata. Must contain a keys/ subdirectory with root/targets signers.
+//   - previous: Optional previous repository to chain the root from.
+//   - threshold: The root and targets threshold.
+//   - targetsConfig: A map of target file names and custom metadata to add to top-level targets.
+//     Target file names are expected to be in the working directory.
+//   - snapshotRef: A reference (KMS, file, URL) to a snapshot signer.
+//   - timestampRef: A reference (KMS, file, URL) to a timestamp signer.
+//
 // The root and targets metadata will be initialized with a 6 month expiration.
 // Revoked keys will be automatically calculated given the previous root and the signers in directory.
 // Signature placeholders for each key will be added to the root.json and targets.json file.

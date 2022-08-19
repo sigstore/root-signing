@@ -99,7 +99,7 @@ jobs:
           path: repository/repository/
       # Open pull request changes
       - name: create pull request
-        uses: peter-evans/create-pull-request@20dac2ed4875a1a8422d233a68f69088637446df # v4.1.0
+        uses: peter-evans/create-pull-request@18f90432bedd2afd6a825469ffd38aa24712a91d # v4.1.0
         with:
           commit-message: update snapshot and timestamp
           title: Update Snapshot and Timestamp

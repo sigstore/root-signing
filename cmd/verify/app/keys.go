@@ -19,7 +19,6 @@ import (
 	"crypto/x509"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -51,7 +50,7 @@ func (f *file) Set(s string) error {
 }
 
 func toCert(filename string) (*x509.Certificate, error) {
-	fileBytes, err := ioutil.ReadFile(filename)
+	fileBytes, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +75,7 @@ func verifySigningKeys(dirname string, rootCA *x509.Certificate) (*KeyMap, error
 	// Get all signing keys in the directory.
 	log.Printf("\nOutputting key verification and OpenSSL commands...\n")
 
-	files, err := ioutil.ReadDir(dirname)
+	files, err := os.ReadDir(dirname)
 	if err != nil {
 		return nil, err
 	}

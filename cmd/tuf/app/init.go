@@ -22,7 +22,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"time"
@@ -329,7 +328,7 @@ func jsonMarshal(v interface{}) ([]byte, error) {
 }
 
 func getKeysFromDir(dir string) ([]*data.PublicKey, error) {
-	files, err := ioutil.ReadDir(dir)
+	files, err := os.ReadDir(dir)
 	if err != nil {
 		return nil, err
 	}

@@ -21,7 +21,6 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
-	"io/ioutil"
 	"log"
 	"net/url"
 	"os"
@@ -70,7 +69,7 @@ func FileRemoteStore(repo string) (client.RemoteStore, error) {
 		}
 		if imf {
 			name := e.Name()
-			f, err := ioutil.ReadFile(filepath.Join(repoDir, name))
+			f, err := os.ReadFile(filepath.Join(repoDir, name))
 			if err != nil {
 				return nil, err
 			}
@@ -86,15 +85,15 @@ func (r fileRemoteStore) GetMeta(name string) (io.ReadCloser, int64, error) {
 	if !ok {
 		return nil, 0, client.ErrNotFound{File: name}
 	}
-	return ioutil.NopCloser(bytes.NewReader(meta)), int64(len(meta)), nil
+	return io.NopCloser(bytes.NewReader(meta)), int64(len(meta)), nil
 }
 
 func (r fileRemoteStore) GetTarget(target string) (io.ReadCloser, int64, error) {
-	payload, err := ioutil.ReadFile(filepath.Join(r.Repo, "repository", "targets", target))
+	payload, err := os.ReadFile(filepath.Join(r.Repo, "repository", "targets", target))
 	if err != nil {
 		return nil, 0, err
 	}
-	return ioutil.NopCloser(bytes.NewReader(payload)), int64(len(payload)), nil
+	return io.NopCloser(bytes.NewReader(payload)), int64(len(payload)), nil
 }
 
 // Metadata helpers
@@ -263,7 +262,7 @@ var repositoryCmd = &cobra.Command{
 
 		log.Printf("\nVERIFYING TUF CLIENT UPDATE\n\n")
 
-		rootMeta, err := ioutil.ReadFile(root.String())
+		rootMeta, err := os.ReadFile(root.String())
 		if err != nil {
 			log.Printf("error reading trusted TUF root: %s", root.String())
 			os.Exit(1)

@@ -26,7 +26,6 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -150,17 +149,17 @@ func SigningKeyFromDir(dirname string) (*SigningKey, error) {
 			return err
 		}
 		if strings.HasSuffix(info.Name(), "_pubkey.pem") {
-			pubKey, err = ioutil.ReadFile(path)
+			pubKey, err = os.ReadFile(path)
 			if err != nil {
 				return err
 			}
 		} else if strings.HasSuffix(info.Name(), "_key_cert.pem") {
-			keyCert, err = ioutil.ReadFile(path)
+			keyCert, err = os.ReadFile(path)
 			if err != nil {
 				return err
 			}
 		} else if strings.HasSuffix(info.Name(), "_device_cert.pem") {
-			deviceCert, err = ioutil.ReadFile(path)
+			deviceCert, err = os.ReadFile(path)
 			if err != nil {
 				return err
 			}

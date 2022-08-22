@@ -16,7 +16,7 @@
 package keys
 
 import (
-	"io/ioutil"
+	"os"
 	"testing"
 )
 
@@ -159,15 +159,15 @@ func TestToSigningKey(t *testing.T) {
 }
 
 func TestVerify(t *testing.T) {
-	pubkey, err := ioutil.ReadFile("../../tests/test_data/10550341/10550341_pubkey.pem")
+	pubkey, err := os.ReadFile("../../tests/test_data/10550341/10550341_pubkey.pem")
 	if err != nil {
 		t.Fatal("error opening test data")
 	}
-	deviceCert, err := ioutil.ReadFile("../../tests/test_data/10550341/10550341_device_cert.pem")
+	deviceCert, err := os.ReadFile("../../tests/test_data/10550341/10550341_device_cert.pem")
 	if err != nil {
 		t.Fatal("error opening test data")
 	}
-	keyCert, err := ioutil.ReadFile("../../tests/test_data/10550341/10550341_key_cert.pem")
+	keyCert, err := os.ReadFile("../../tests/test_data/10550341/10550341_key_cert.pem")
 	if err != nil {
 		t.Fatal("error opening test data")
 	}

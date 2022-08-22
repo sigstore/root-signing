@@ -26,7 +26,7 @@ on:
       - 'ceremony/**'
 
 env:
-  GO_VERSION: 1.17.x
+  GO_VERSION: 1.18.x
 
 jobs:
   golangci:
@@ -41,7 +41,7 @@ jobs:
         uses: golangci/golangci-lint-action@537aa1903e5d359d0b27dbc19ddd22c5087f3fbc # v3
         with:
           # Required: the version of golangci-lint is required and must be specified without patch version: we always use the latest patch version.
-          version: v1.39
+          version: v1.48
           args: --timeout=5m
 
   test:

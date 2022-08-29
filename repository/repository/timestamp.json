@@ -2,23 +2,23 @@
 	"signatures": [
 		{
 			"keyid": "b6710623a30c010738e64c5209d367df1c0a18cf90e6ab5292fb01680f83453d",
-			"sig": "304402207be991ec289be5b455d5240aee963c641202a70b3b688d0f1607489e3b55bac30220603f3be903e9b712fd4cd79a07da3f456704bd5e94ac6c88ab7abd507d082dd5"
+			"sig": "3045022067a580dd28bf7020eb8542b5446517d64d52873cc30b4fc7fadb715c15b0e552022100fbfb4563e59e32239df61d4401f669e107dc7418d07f74737e73847f58b931c2"
 		}
 	],
 	"signed": {
 		"_type": "timestamp",
-		"expires": "2022-09-05T00:12:23Z",
+		"expires": "2022-09-12T00:11:13Z",
 		"meta": {
 			"snapshot.json": {
 				"hashes": {
-					"sha256": "f2dab947d16de1c55d1147269fbeb306cb6c4f1e9bb42e6da241d396035a0b7c",
-					"sha512": "a6bc60b262e9a44103c6257afa2fe4a7ad81602b52bfe70c73851b6f0a9e2a51d3a4b00fa9a96c4829887305af02f487f2080a0929cd9953a71c0ac82b3f079d"
+					"sha256": "55131bdcd6a1add51ee19b030c5ca1c34b597cbbe04fa90c64523478cac9d3cb",
+					"sha512": "3b9206b2ea59dc63cf2322f7c4ffe23c1502d6fced28ade85713ff921d4df47a2d2f91c49876b5b7b7b38b7c412bde7a9698f657a7a8b9c8a8bdd867d7ebb91d"
 				},
-				"length": 1975,
-				"version": 44
+				"length": 1977,
+				"version": 45
 			}
 		},
 		"spec_version": "1.0",
-		"version": 44
+		"version": 45
 	}
 }

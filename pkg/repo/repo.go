@@ -36,10 +36,7 @@ func CreateDb(store tuf.LocalStore) (db *verify.DB, thresholds map[string]int, e
 	}
 	for id, k := range root.Keys {
 		if err := db.AddKey(id, k); err != nil {
-			// ignore ErrWrongID errors by TAP-12
-			if _, ok := err.(verify.ErrWrongID); !ok {
-				return nil, nil, err
-			}
+			return nil, nil, err
 		}
 	}
 	roles := make(map[string]bool, len(root.Roles))
@@ -77,10 +74,7 @@ func CreateDb(store tuf.LocalStore) (db *verify.DB, thresholds map[string]int, e
 
 		for id, k := range t.Delegations.Keys {
 			if err := db.AddKey(id, k); err != nil {
-				// ignore ErrWrongID errors by TAP-12
-				if _, ok := err.(verify.ErrWrongID); !ok {
-					return nil, nil, err
-				}
+				return nil, nil, err
 			}
 		}
 		for _, drole := range t.Delegations.Roles {

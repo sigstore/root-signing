@@ -37,6 +37,9 @@ import (
 // Threshold for root and targets signers.
 var DefaultThreshold = 3
 
+// Enable consistent snapshotting.
+var ConsistentSnapshot = true
+
 // Time to role expiration represented as a list of ints corresponding to
 // (years, months, days).
 var RoleExpiration = map[string][]int{
@@ -133,7 +136,7 @@ func InitCmd(ctx context.Context, directory, previous string, threshold int, tar
 
 	if previous == "" {
 		// Only initialize if no previous specified.
-		if err := repo.Init(false); err != nil {
+		if err := repo.Init(ConsistentSnapshot); err != nil {
 			return err
 		}
 		fmt.Fprintln(os.Stderr, "TUF repository initialized at ", directory)
@@ -264,6 +267,7 @@ func InitCmd(ctx context.Context, directory, previous string, threshold int, tar
 	}
 	root.Version = curRootVersion + 1
 	root.Expires = getExpiration("root")
+	root.ConsistentSnapshot = ConsistentSnapshot
 	return setMetaWithSigKeyIDs(store, "root.json", root, keys)
 }
 

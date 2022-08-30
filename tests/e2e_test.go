@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"path/filepath"
 	"sort"
@@ -37,6 +38,7 @@ import (
 	vapp "github.com/sigstore/root-signing/cmd/verify/app"
 	"github.com/sigstore/root-signing/pkg/keys"
 	prepo "github.com/sigstore/root-signing/pkg/repo"
+	stuf "github.com/sigstore/sigstore/pkg/tuf"
 
 	"github.com/theupdateframework/go-tuf"
 	"github.com/theupdateframework/go-tuf/client"
@@ -106,6 +108,27 @@ func verifyGoTuf(t *testing.T, repo string, root []byte) (data.TargetFiles, erro
 
 	}
 	return c.Update()
+}
+
+// Verify with sigstore TUF
+func verifySigstoreTuf(t *testing.T, repo string, root []byte) error {
+	t.Setenv(stuf.SigstoreNoCache, "1")
+	ctx := context.Background()
+
+	srv := &http.Server{
+		Addr:    ":8080",
+		Handler: http.FileServer(http.Dir(filepath.Join(repo, "repository"))),
+	}
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			panic(err)
+		}
+	}()
+
+	if err := stuf.Initialize(ctx, "http://localhost:8080", root); err != nil {
+		t.Fatal(err)
+	}
+	return srv.Shutdown(ctx)
 }
 
 func TestInitCmd(t *testing.T) {
@@ -424,6 +447,9 @@ func TestPublishSuccess(t *testing.T) {
 		if !strings.EqualFold(name, "foo.txt") {
 			t.Fatalf("expected one target foo.txt, got %s", name)
 		}
+	}
+	if err := verifySigstoreTuf(t, td, meta["root.json"]); err != nil {
+		t.Fatal(err)
 	}
 }
 
@@ -778,5 +804,203 @@ func TestRotateTarget(t *testing.T) {
 		if !strings.EqualFold(name, "bar.txt") {
 			t.Fatalf("expected one target bar.txt, got %s", name)
 		}
+	}
+}
+
+// Tests that enabling consistent snapshots at version > 1 works.
+func TestConsistentSnapshotFlip(t *testing.T) {
+	ctx := context.Background()
+	td := t.TempDir()
+
+	rootCA, rootSigner, err := CreateRootCA()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	testTarget := filepath.Join(td, "foo.txt")
+	targetsConfig := map[string]json.RawMessage{testTarget: nil}
+
+	if err := os.WriteFile(testTarget, []byte("abc"), 0600); err != nil {
+		t.Fatal(err)
+	}
+
+	rootSerial, err := CreateTestHsmSigner(td, rootCA, rootSigner)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	snapshotKey := createTestSigner(t)
+	timestampKey := createTestSigner(t)
+
+	// Initialize succeeds with consistent snapshot off.
+	app.ConsistentSnapshot = false
+	if err := app.InitCmd(ctx, td, "", 1, targetsConfig, snapshotKey, timestampKey); err != nil {
+		t.Fatal(err)
+	}
+
+	// Sign root & targets
+	rootKey, err := GetTestHsmSigner(ctx, td, *rootSerial)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := app.SignCmd(ctx, td, []string{"root", "targets"}, rootKey); err != nil {
+		t.Fatal(err)
+	}
+
+	// Sign snapshot and timestamp
+	if err := app.SnapshotCmd(ctx, td); err != nil {
+		t.Fatalf("expected Snapshot command to pass, got err: %s", err)
+	}
+	snapshotSigner, err := keys.GetSigningKey(ctx, snapshotKey)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := app.SignCmd(ctx, td, []string{"snapshot"}, snapshotSigner); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := app.TimestampCmd(ctx, td); err != nil {
+		t.Fatalf("expected Timestamp command to pass, got err: %s", err)
+	}
+	timestampSigner, err := keys.GetSigningKey(ctx, timestampKey)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := app.SignCmd(ctx, td, []string{"timestamp"}, timestampSigner); err != nil {
+		t.Fatal(err)
+	}
+
+	// Successful Publishing!
+	if err := app.PublishCmd(ctx, td); err != nil {
+		t.Fatal(err)
+	}
+
+	// Check versions.
+	store := tuf.FileSystemStore(td, nil)
+	meta, err := store.GetMeta()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, metaName := range []string{"root.json", "targets.json", "snapshot.json", "timestamp.json"} {
+		md, ok := meta[metaName]
+		if !ok {
+			t.Fatalf("missing %s", metaName)
+		}
+		signed := &data.Signed{}
+		if err := json.Unmarshal(md, signed); err != nil {
+			t.Fatal(err)
+		}
+		sm, err := vapp.PrintAndGetSignedMeta(metaName, signed.Signed)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if sm.Version != 1 {
+			t.Errorf("expected metadata version 1, got %d", sm.Version)
+		}
+	}
+
+	// Verify with go-tuf
+	targetFiles, err := verifyGoTuf(t, td, meta["root.json"])
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(targetFiles) != 1 {
+		t.Fatalf("expected one target, got %d", len(targetFiles))
+	}
+	for name := range targetFiles {
+		if !strings.EqualFold(name, "foo.txt") {
+			t.Fatalf("expected one target foo.txt, got %s", name)
+		}
+	}
+
+	// Flip consistent snapshot on.
+	app.ConsistentSnapshot = true
+	// Initialize succeeds.
+	if err := app.InitCmd(ctx, td, td, 1, targetsConfig, snapshotKey, timestampKey); err != nil {
+		t.Fatal(err)
+	}
+
+	// Sign root & targets
+	if err := app.SignCmd(ctx, td, []string{"root", "targets"}, rootKey); err != nil {
+		t.Fatal(err)
+	}
+
+	// Sign snapshot and timestamp
+	if err := app.SnapshotCmd(ctx, td); err != nil {
+		t.Fatalf("expected Snapshot command to pass, got err: %s", err)
+	}
+	if err := app.SignCmd(ctx, td, []string{"snapshot"}, snapshotSigner); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := app.TimestampCmd(ctx, td); err != nil {
+		t.Fatalf("expected Timestamp command to pass, got err: %s", err)
+	}
+	if err := app.SignCmd(ctx, td, []string{"timestamp"}, timestampSigner); err != nil {
+		t.Fatal(err)
+	}
+
+	// Successful Publishing!
+	if err := app.PublishCmd(ctx, td); err != nil {
+		t.Fatal(err)
+	}
+
+	// Check versions.
+	store = tuf.FileSystemStore(td, nil)
+	meta, err = store.GetMeta()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, metaName := range []string{"root.json", "targets.json", "snapshot.json", "timestamp.json"} {
+		md, ok := meta[metaName]
+		if !ok {
+			t.Fatalf("missing %s", metaName)
+		}
+		signed := &data.Signed{}
+		if err := json.Unmarshal(md, signed); err != nil {
+			t.Fatal(err)
+		}
+		sm, err := vapp.PrintAndGetSignedMeta(metaName, signed.Signed)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if sm.Version != 2 {
+			t.Errorf("expected metadata version 2, got %d", sm.Version)
+		}
+	}
+
+	// Verify with go-tuf
+	targetFiles, err = verifyGoTuf(t, td, meta["root.json"])
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(targetFiles) != 1 {
+		t.Fatalf("expected one target, got %d", len(targetFiles))
+	}
+	for name := range targetFiles {
+		if !strings.EqualFold(name, "foo.txt") {
+			t.Fatalf("expected one target foo.txt, got %s", name)
+		}
+	}
+	// Verify with sigstore tuf
+	if err := verifySigstoreTuf(t, td, meta["root.json"]); err != nil {
+		t.Fatalf("verifying with sigstore tuf %s", err)
+	}
+
+	// Verify consistent snapshotting was enabled by
+	// checking that 2.snapshot.json is present.
+	repoFiles, err := ioutil.ReadDir(filepath.Join(td, "repository"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	foundSnapshot := false
+	for _, file := range repoFiles {
+		if file.Name() == "2.snapshot.json" {
+			foundSnapshot = true
+			break
+		}
+	}
+	if !foundSnapshot {
+		t.Fatal("expected 2.snapshot.json in consistent snapshotted repo")
 	}
 }

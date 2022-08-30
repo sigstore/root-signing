@@ -83,6 +83,16 @@ jobs:
           path: repository/repository/
           retention-days: 5
 
+  if-failed:
+    runs-on: ubuntu-latest
+    needs: [snapshot_and_timestamp]
+    if: needs.snapshot_and_timestamp.result == 'failure'
+    steps:
+      - uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579 # v2.4.0
+      - run: |
+          set -euo pipefail
+          ./.github/workflows/scripts/report-failure.sh  
+
   push:
     needs: snapshot_and_timestamp
     runs-on: ubuntu-20.04
@@ -107,3 +117,13 @@ jobs:
           branch: update-snapshot-timestamp
           signoff: true
           reviewers: asraa,dlorenc
+
+  if-push-failed:
+    runs-on: ubuntu-latest
+    needs: [push]
+    if: needs.push.result == 'failure'
+    steps:
+      - uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579 # v2.4.0
+      - run: |
+          set -euo pipefail
+          ./.github/workflows/scripts/report-failure.sh  

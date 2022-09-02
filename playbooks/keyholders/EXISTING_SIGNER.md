@@ -17,11 +17,11 @@ Complete the following steps in order:
 ### Pre-requisites
 
 Ensure you have the following:
-- [ ] A local Git installation and a Go development setup
+- [ ] A local Git installation and a Go development setup with support for the Go version [here](https://github.com/sigstore/root-signing/blob/1d4462a5deaffbe3055b5e3fe3c53d1918594159/go.mod#L3)
 - [ ] SSH authentication for GitHub (see [here](https://docs.github.com/en/authentication/connecting-to-github-with-ssh))
 - [ ] A USB port connection for your hardware key (beware of using a remote connection; the keyholder should not assume that magic occurs during an SSH session)
 - [ ] A fresh environment. In particular, ensure that environment variables like `LOCAL`, `GITHUB_USER`, and `BRANCH` are unset before you begin.
-- [ ] A fork of the [root-signing](https://github.com/sigstore/root-signing) repository. Click the "fork" button on GitHub and clone the repository.
+- [ ] A fork of the [root-signing](https://github.com/sigstore/root-signing) repository. Click the "fork" button on GitHub and clone the forked repository.
 
 ### Setup 
 
@@ -31,7 +31,7 @@ export GITHUB_USER=${GITHUB_USER}
 export LOCAL=1
 ./scripts/step-0.sh
 ```
-This will setup your fork and build the TUF binary to use for metadata generation. This will also disable PR creations after each step and allow you to test changes locally.
+This will setup your clone and build the TUF binary to use for metadata generation. This will also disable PR creations after each step and allow you to test changes locally.
  
 ### Metadata Creation
 
@@ -85,7 +85,7 @@ During the actual ceremony, you will need to renew the [setup](#setup-1) and per
 ### Pre-requisites
 
 Ensure you have the following:
-- [ ] A local Git installation and a Go development setup
+- [ ] A local Git installation and a Go development setup with support for the Go version [here](https://github.com/sigstore/root-signing/blob/1d4462a5deaffbe3055b5e3fe3c53d1918594159/go.mod#L3)
 - [ ] SSH authentication for GitHub (see [here](https://docs.github.com/en/authentication/connecting-to-github-with-ssh))
 - [ ] A USB port connection for your hardware key (beware of using a remote connection; the keyholder should not assume that magic occurs during an SSH session)
 - [ ] A fresh environment. In particular, ensure that environment variables like `LOCAL`, `GITHUB_USER`, and `BRANCH` are unset before you begin.
@@ -97,7 +97,7 @@ Ensure you have the following:
 export GITHUB_USER=${GITHUB_USER}
 ./scripts/step-0.sh
 ```
-This will setup your fork and build the TUF binary to use for metadata generation.
+This will setup your clone and build the TUF binary to use for metadata generation.
 
 ### Signing
 

@@ -1,7 +1,7 @@
 At any point, a verifier can run a script to verify each incoming PR and verify the hashes of the targets files.
 
 Pre-requisites:
-* A local Git installation and a Go development setup
+- [ ] A local Git installation and a Go development setup with support for the Go version [here](https://github.com/sigstore/root-signing/blob/1d4462a5deaffbe3055b5e3fe3c53d1918594159/go.mod#L3)
 * SSH authentication for GitHub (see [here](https://docs.github.com/en/authentication/connecting-to-github-with-ssh))
 
 0. **Verifiers** should fork [this](https://github.com/sigstore/root-signing) git repository by clicking the "fork" button on GitHub.

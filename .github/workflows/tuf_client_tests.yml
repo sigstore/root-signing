@@ -44,7 +44,7 @@ jobs:
         with:
           go-version: '1.18.x'
       - run: |
-          go install github.com/theupdateframework/go-tuf/cmd/tuf-client@latest
+          go install github.com/theupdateframework/go-tuf/cmd/tuf-client@v0.4.0
       - run: |
           tuf-client init http://localhost:8001 repository/repository/1.root.json 
           tuf-client list http://localhost:8001 

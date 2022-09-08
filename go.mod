@@ -12,7 +12,7 @@ require (
 	github.com/spf13/cobra v1.5.0
 	github.com/spf13/viper v1.13.0
 	github.com/tent/canonical-json-go v0.0.0-20130607151641-96e4ba3a7613
-	github.com/theupdateframework/go-tuf v0.3.1
+	github.com/theupdateframework/go-tuf v0.5.0
 	golang.org/x/term v0.0.0-20220526004731-065cf7ba2467
 	gopkg.in/yaml.v2 v2.4.0
 )
@@ -147,7 +147,7 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/stretchr/testify v1.8.0 // indirect
 	github.com/subosito/gotenv v1.4.1 // indirect
-	github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7 // indirect
+	github.com/syndtr/goleveldb v1.0.1-0.20220721030215-126854af5e6d // indirect
 	github.com/thales-e-security/pool v0.0.2 // indirect
 	github.com/titanous/rocacheck v0.0.0-20171023193734-afe73141d399 // indirect
 	github.com/tmc/grpc-websocket-proxy v0.0.0-20201229170055-e5319fda7802 // indirect

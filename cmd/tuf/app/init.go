@@ -188,7 +188,8 @@ func InitCmd(ctx context.Context, directory, previous string, threshold int, tar
 
 	// Add keys used for snapshot and timestamp roles.
 	for role, keyRef := range map[string]string{"snapshot": snapshotRef, "timestamp": timestampRef} {
-		signerKey, err := pkeys.GetSigningKey(ctx, keyRef)
+		// Snapshot and Timestamp roles may use the new PEM format!
+		signerKey, err := pkeys.GetSigningKey(ctx, keyRef, false)
 		if err != nil {
 			return err
 		}
@@ -331,6 +332,8 @@ func jsonMarshal(v interface{}) ([]byte, error) {
 	return out.Bytes(), nil
 }
 
+// getKeysFromDir will return the TUF public keys for each key in the
+// directory.
 func getKeysFromDir(dir string) ([]*data.PublicKey, error) {
 	files, err := os.ReadDir(dir)
 	if err != nil {
@@ -343,11 +346,14 @@ func getKeysFromDir(dir string) ([]*data.PublicKey, error) {
 			if err != nil {
 				return nil, err
 			}
-			tufKey, err := pkeys.ToTufKey(*key)
+			// v5 note!
+			// We are now returning PEM-encoded ECDSA keys from the directories.
+			tufKey, err := pkeys.ToTufKey(*key, false)
 			if err != nil {
 				return nil, err
 			}
 			tufKeys = append(tufKeys, tufKey)
+
 		}
 	}
 	return tufKeys, err

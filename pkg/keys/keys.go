@@ -35,6 +35,7 @@ import (
 	"github.com/sigstore/sigstore/pkg/signature"
 	"github.com/sigstore/sigstore/pkg/signature/options"
 	"github.com/theupdateframework/go-tuf/data"
+	"github.com/theupdateframework/go-tuf/pkg/keys"
 
 	// Register the provider-specific plugins
 	_ "github.com/sigstore/sigstore/pkg/signature/kms/gcp"
@@ -102,9 +103,16 @@ func ToSigningKey(serialNumber int, pubKey []byte, deviceCert []byte, keyCert []
 	return &key, nil
 }
 
-func ToTufKey(key SigningKey) (*data.PublicKey, error) {
-	pub := key.PublicKey
-	keyValBytes, err := json.Marshal(EcdsaPublic{PublicKey: elliptic.Marshal(pub.Curve, pub.X, pub.Y)})
+func EcdsaTufKey(pub *ecdsa.PublicKey, deprecated bool) (*data.PublicKey, error) {
+	var keyValBytes []byte
+	var err error
+	if deprecated {
+		keyValBytes, err = json.Marshal(EcdsaPublic{
+			PublicKey: elliptic.Marshal(pub.Curve, pub.X, pub.Y)})
+	} else {
+		keyValBytes, err = json.Marshal(keys.EcdsaVerifier{
+			PublicKey: &keys.PKIXPublicKey{PublicKey: pub}})
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -114,6 +122,11 @@ func ToTufKey(key SigningKey) (*data.PublicKey, error) {
 		Algorithms: data.HashAlgorithms,
 		Value:      keyValBytes,
 	}, nil
+}
+
+func ToTufKey(key SigningKey, deprecated bool) (*data.PublicKey, error) {
+	pub := key.PublicKey
+	return EcdsaTufKey(pub, deprecated)
 }
 
 func getSerialNumber(c *x509.Certificate) (*int, error) {
@@ -200,7 +213,7 @@ func (key SigningKey) Verify(root *x509.Certificate) error {
 	return nil
 }
 
-func GetSigningKey(ctx context.Context, keyRef string) (*SignerAndTufKey, error) {
+func GetSigningKey(ctx context.Context, keyRef string, deprecated bool) (*SignerAndTufKey, error) {
 	key, err := csignature.SignerVerifierFromKeyRef(ctx, keyRef, nil)
 	if err != nil {
 		return nil, err
@@ -211,16 +224,13 @@ func GetSigningKey(ctx context.Context, keyRef string) (*SignerAndTufKey, error)
 	}
 	switch kt := pub.(type) {
 	case *ecdsa.PublicKey:
-		keyValBytes, err := json.Marshal(EcdsaPublic{PublicKey: elliptic.Marshal(kt.Curve, kt.X, kt.Y)})
+		tufKey, err := EcdsaTufKey(kt, deprecated)
 		if err != nil {
 			return nil, err
 		}
-		return &SignerAndTufKey{Key: &data.PublicKey{
-			Type:       data.KeyTypeECDSA_SHA2_P256,
-			Scheme:     data.KeySchemeECDSA_SHA2_P256,
-			Algorithms: data.HashAlgorithms,
-			Value:      keyValBytes,
-		}, Signer: key}, nil
+		return &SignerAndTufKey{
+			Key:    tufKey,
+			Signer: key}, nil
 	case *rsa.PublicKey:
 		return nil, errors.New("RSA keys not supported")
 

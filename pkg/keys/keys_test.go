@@ -18,6 +18,8 @@ package keys
 import (
 	"os"
 	"testing"
+
+	"github.com/theupdateframework/go-tuf/pkg/keys"
 )
 
 // Generated with:
@@ -150,9 +152,28 @@ func TestToSigningKey(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := ToSigningKey(123, tt.pub, tt.deviceCert, tt.keyCert)
+			key, err := ToSigningKey(123, tt.pub, tt.deviceCert, tt.keyCert)
 			if tt.expectSuccess != (err == nil) {
 				t.Errorf("unexpected error generating signing key (%s): %s", tt.name, err)
+			}
+			if tt.expectSuccess {
+				hexPubKey, err := ToTufKey(*key, true)
+				if err != nil {
+					t.Errorf("unexpected error generating hex TUF public key: %s", err)
+				}
+				pemPubKey, err := ToTufKey(*key, false)
+				if err != nil {
+					t.Errorf("unexpected error generating PEM TUF public key: %s", err)
+				}
+				// True to get verifiers.
+				_, err = keys.GetVerifier(hexPubKey)
+				if err != nil {
+					t.Errorf("unexpected error getting TUF hex ecdsa verifier: %s", err)
+				}
+				_, err = keys.GetVerifier(pemPubKey)
+				if err != nil {
+					t.Errorf("unexpected error getting TUF PEM ecdsa verifier: %s", err)
+				}
 			}
 		})
 	}

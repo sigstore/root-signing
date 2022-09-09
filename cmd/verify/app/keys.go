@@ -22,6 +22,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/sigstore/root-signing/pkg/keys"
 	"github.com/spf13/cobra"
@@ -60,15 +61,22 @@ func toCert(filename string) (*x509.Certificate, error) {
 // Map from Key ID to Signing Key
 type KeyMap map[string]*keys.SigningKey
 
-func getKeyID(key keys.SigningKey) (string, error) {
-	pk, err := keys.ToTufKey(key)
-	if err != nil {
-		return "", err
+func getKeyIDs(key keys.SigningKey) ([]string, error) {
+	// v5 temporary!
+	// Temporarily, some keys will have multiple Key IDs because they
+	// are rendered as PEM and hex encoded TUF keys.
+	var keyIDs []string
+	for _, deprecatedStatus := range []bool{true, false} {
+		pk, err := keys.ToTufKey(key, deprecatedStatus)
+		if err != nil {
+			return nil, err
+		}
+		if len(pk.IDs()) == 0 {
+			return nil, errors.New("error getting key ID")
+		}
+		keyIDs = append(keyIDs, pk.IDs()...)
 	}
-	if len(pk.IDs()) == 0 {
-		return "", errors.New("error getting key ID")
-	}
-	return pk.IDs()[0], nil
+	return keyIDs, nil
 }
 
 func verifySigningKeys(dirname string, rootCA *x509.Certificate) (*KeyMap, error) {
@@ -90,15 +98,17 @@ func verifySigningKeys(dirname string, rootCA *x509.Certificate) (*KeyMap, error
 				log.Printf("error verifying key %d: %s", key.SerialNumber, err)
 				return nil, err
 			}
-			id, err := getKeyID(*key)
+			ids, err := getKeyIDs(*key)
 			if err != nil {
 				return nil, err
 			}
 
 			log.Printf("\nVERIFIED KEY WITH SERIAL NUMBER %d\n", key.SerialNumber)
-			log.Printf("\tTUF key id: %s\n", id)
+			log.Printf("\tTUF key ids: \n\t%s\n", strings.Join(ids, "\n\t"))
 
-			keyMap[id] = key
+			for _, id := range ids {
+				keyMap[id] = key
+			}
 		}
 	}
 	// Note we use relative path here to simplify things.

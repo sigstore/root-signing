@@ -47,8 +47,6 @@ import (
 
 // TODO(asraa): Add more unit tests, including
 //   * Custom metadata included in targets
-//   * Updating a root version
-//   * Rotating a keyholder
 //   * Fetching targets with cosign's API with/without consistent snapshotting
 //   * Rotate a target file
 
@@ -134,11 +132,11 @@ func verifySigstoreTuf(t *testing.T, repo string, root []byte) error {
 // Snapshot & Timestamp
 func snapshotTimestampAndPublish(t *testing.T, ctx context.Context,
 	repo string, snapshotKey, timestampKey string) {
-	snapshotSigner, err := keys.GetSigningKey(ctx, snapshotKey)
+	snapshotSigner, err := keys.GetSigningKey(ctx, snapshotKey, false)
 	if err != nil {
 		t.Fatal(err)
 	}
-	timestampSigner, err := keys.GetSigningKey(ctx, timestampKey)
+	timestampSigner, err := keys.GetSigningKey(ctx, timestampKey, false)
 	if err != nil {
 		t.Fatal(err)
 	}

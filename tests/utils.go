@@ -141,15 +141,9 @@ func GetTestHsmSigner(ctx context.Context, testDir string, serial uint32) (*keys
 	cryptoPub, _ := signer.PublicKey()
 	pub := cryptoPub.(*ecdsa.PublicKey)
 
-	keyValBytes, err := json.Marshal(keys.EcdsaPublic{PublicKey: elliptic.Marshal(pub.Curve, pub.X, pub.Y)})
+	pk, err := keys.EcdsaTufKey(pub, false)
 	if err != nil {
 		return nil, err
-	}
-	pk := &data.PublicKey{
-		Type:       data.KeyTypeECDSA_SHA2_P256,
-		Scheme:     data.KeySchemeECDSA_SHA2_P256,
-		Algorithms: data.HashAlgorithms,
-		Value:      keyValBytes,
 	}
 
 	return &keys.SignerAndTufKey{Signer: signer, Key: pk}, nil

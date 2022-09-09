@@ -103,7 +103,7 @@ func verifyGoTuf(t *testing.T, repo string, root []byte) (data.TargetFiles, erro
 	}
 	local := client.MemoryLocalStore()
 	c := client.NewClient(local, remote)
-	if err := c.InitLocal(root); err != nil {
+	if err := c.Init(root); err != nil {
 		t.Fatal(err)
 
 	}
@@ -129,6 +129,38 @@ func verifySigstoreTuf(t *testing.T, repo string, root []byte) error {
 		t.Fatal(err)
 	}
 	return srv.Shutdown(ctx)
+}
+
+// Snapshot & Timestamp
+func snapshotTimestampAndPublish(t *testing.T, ctx context.Context,
+	repo string, snapshotKey, timestampKey string) {
+	snapshotSigner, err := keys.GetSigningKey(ctx, snapshotKey)
+	if err != nil {
+		t.Fatal(err)
+	}
+	timestampSigner, err := keys.GetSigningKey(ctx, timestampKey)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Sign snapshot and timestamp
+	if err := app.SnapshotCmd(ctx, repo); err != nil {
+		t.Fatalf("expected Snapshot command to pass, got err: %s", err)
+	}
+	if err := app.SignCmd(ctx, repo, []string{"snapshot"}, snapshotSigner); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := app.TimestampCmd(ctx, repo); err != nil {
+		t.Fatalf("expected Timestamp command to pass, got err: %s", err)
+	}
+	if err := app.SignCmd(ctx, repo, []string{"timestamp"}, timestampSigner); err != nil {
+		t.Fatal(err)
+	}
+
+	// Successful Publishing!
+	if err := app.PublishCmd(ctx, repo); err != nil {
+		t.Fatal(err)
+	}
 }
 
 func TestInitCmd(t *testing.T) {
@@ -384,32 +416,7 @@ func TestPublishSuccess(t *testing.T) {
 	}
 
 	// Sign snapshot and timestamp
-	if err := app.SnapshotCmd(ctx, td); err != nil {
-		t.Fatalf("expected Snapshot command to pass, got err: %s", err)
-	}
-	snapshotSigner, err := keys.GetSigningKey(ctx, snapshotKey)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := app.SignCmd(ctx, td, []string{"snapshot"}, snapshotSigner); err != nil {
-		t.Fatal(err)
-	}
-
-	if err := app.TimestampCmd(ctx, td); err != nil {
-		t.Fatalf("expected Timestamp command to pass, got err: %s", err)
-	}
-	timestampSigner, err := keys.GetSigningKey(ctx, timestampKey)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := app.SignCmd(ctx, td, []string{"timestamp"}, timestampSigner); err != nil {
-		t.Fatal(err)
-	}
-
-	// Successful Publishing!
-	if err := app.PublishCmd(ctx, td); err != nil {
-		t.Fatal(err)
-	}
+	snapshotTimestampAndPublish(t, ctx, td, snapshotKey, timestampKey)
 
 	// Check versions.
 	store := tuf.FileSystemStore(td, nil)
@@ -498,32 +505,7 @@ func TestRotateRootKey(t *testing.T) {
 	}
 
 	// Sign snapshot and timestamp
-	if err := app.SnapshotCmd(ctx, td); err != nil {
-		t.Fatalf("expected Snapshot command to pass, got err: %s", err)
-	}
-	snapshotSigner, err := keys.GetSigningKey(ctx, snapshotKey)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := app.SignCmd(ctx, td, []string{"snapshot"}, snapshotSigner); err != nil {
-		t.Fatal(err)
-	}
-
-	if err := app.TimestampCmd(ctx, td); err != nil {
-		t.Fatalf("expected Timestamp command to pass, got err: %s", err)
-	}
-	timestampSigner, err := keys.GetSigningKey(ctx, timestampKey)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := app.SignCmd(ctx, td, []string{"timestamp"}, timestampSigner); err != nil {
-		t.Fatal(err)
-	}
-
-	// Successful Publishing!
-	if err := app.PublishCmd(ctx, td); err != nil {
-		t.Fatal(err)
-	}
+	snapshotTimestampAndPublish(t, ctx, td, snapshotKey, timestampKey)
 
 	// Check that there are two root key signers: key 1 and key 2.
 	store := tuf.FileSystemStore(td, nil)
@@ -597,24 +579,7 @@ func TestRotateRootKey(t *testing.T) {
 	}
 
 	// Sign snapshot and timestamp
-	if err := app.SnapshotCmd(ctx, td); err != nil {
-		t.Fatalf("expected Snapshot command to pass, got err: %s", err)
-	}
-	if err := app.SignCmd(ctx, td, []string{"snapshot"}, snapshotSigner); err != nil {
-		t.Fatal(err)
-	}
-
-	if err := app.TimestampCmd(ctx, td); err != nil {
-		t.Fatalf("expected Timestamp command to pass, got err: %s", err)
-	}
-	if err := app.SignCmd(ctx, td, []string{"timestamp"}, timestampSigner); err != nil {
-		t.Fatal(err)
-	}
-
-	// Successful Publishing!
-	if err := app.PublishCmd(ctx, td); err != nil {
-		t.Fatal(err)
-	}
+	snapshotTimestampAndPublish(t, ctx, td, snapshotKey, timestampKey)
 
 	// Verify with go-tuf
 	meta, err := store.GetMeta()
@@ -665,32 +630,7 @@ func TestRotateTarget(t *testing.T) {
 	}
 
 	// Sign snapshot and timestamp
-	if err := app.SnapshotCmd(ctx, td); err != nil {
-		t.Fatalf("expected Snapshot command to pass, got err: %s", err)
-	}
-	snapshotSigner, err := keys.GetSigningKey(ctx, snapshotKey)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := app.SignCmd(ctx, td, []string{"snapshot"}, snapshotSigner); err != nil {
-		t.Fatal(err)
-	}
-
-	if err := app.TimestampCmd(ctx, td); err != nil {
-		t.Fatalf("expected Timestamp command to pass, got err: %s", err)
-	}
-	timestampSigner, err := keys.GetSigningKey(ctx, timestampKey)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := app.SignCmd(ctx, td, []string{"timestamp"}, timestampSigner); err != nil {
-		t.Fatal(err)
-	}
-
-	// Successful Publishing!
-	if err := app.PublishCmd(ctx, td); err != nil {
-		t.Fatal(err)
-	}
+	snapshotTimestampAndPublish(t, ctx, td, snapshotKey, timestampKey)
 
 	// Check versions.
 	store := tuf.FileSystemStore(td, nil)
@@ -749,24 +689,7 @@ func TestRotateTarget(t *testing.T) {
 	}
 
 	// Sign snapshot and timestamp
-	if err := app.SnapshotCmd(ctx, td); err != nil {
-		t.Fatalf("expected Snapshot command to pass, got err: %s", err)
-	}
-	if err := app.SignCmd(ctx, td, []string{"snapshot"}, snapshotSigner); err != nil {
-		t.Fatal(err)
-	}
-
-	if err := app.TimestampCmd(ctx, td); err != nil {
-		t.Fatalf("expected Timestamp command to pass, got err: %s", err)
-	}
-	if err := app.SignCmd(ctx, td, []string{"timestamp"}, timestampSigner); err != nil {
-		t.Fatal(err)
-	}
-
-	// Successful Publishing!
-	if err := app.PublishCmd(ctx, td); err != nil {
-		t.Fatal(err)
-	}
+	snapshotTimestampAndPublish(t, ctx, td, snapshotKey, timestampKey)
 
 	// Check versions.
 	store = tuf.FileSystemStore(td, nil)
@@ -848,32 +771,7 @@ func TestConsistentSnapshotFlip(t *testing.T) {
 	}
 
 	// Sign snapshot and timestamp
-	if err := app.SnapshotCmd(ctx, td); err != nil {
-		t.Fatalf("expected Snapshot command to pass, got err: %s", err)
-	}
-	snapshotSigner, err := keys.GetSigningKey(ctx, snapshotKey)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := app.SignCmd(ctx, td, []string{"snapshot"}, snapshotSigner); err != nil {
-		t.Fatal(err)
-	}
-
-	if err := app.TimestampCmd(ctx, td); err != nil {
-		t.Fatalf("expected Timestamp command to pass, got err: %s", err)
-	}
-	timestampSigner, err := keys.GetSigningKey(ctx, timestampKey)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := app.SignCmd(ctx, td, []string{"timestamp"}, timestampSigner); err != nil {
-		t.Fatal(err)
-	}
-
-	// Successful Publishing!
-	if err := app.PublishCmd(ctx, td); err != nil {
-		t.Fatal(err)
-	}
+	snapshotTimestampAndPublish(t, ctx, td, snapshotKey, timestampKey)
 
 	// Check versions.
 	store := tuf.FileSystemStore(td, nil)
@@ -925,25 +823,8 @@ func TestConsistentSnapshotFlip(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// Sign snapshot and timestamp
-	if err := app.SnapshotCmd(ctx, td); err != nil {
-		t.Fatalf("expected Snapshot command to pass, got err: %s", err)
-	}
-	if err := app.SignCmd(ctx, td, []string{"snapshot"}, snapshotSigner); err != nil {
-		t.Fatal(err)
-	}
-
-	if err := app.TimestampCmd(ctx, td); err != nil {
-		t.Fatalf("expected Timestamp command to pass, got err: %s", err)
-	}
-	if err := app.SignCmd(ctx, td, []string{"timestamp"}, timestampSigner); err != nil {
-		t.Fatal(err)
-	}
-
-	// Successful Publishing!
-	if err := app.PublishCmd(ctx, td); err != nil {
-		t.Fatal(err)
-	}
+	// Sign snapshot and timestamp & publish
+	snapshotTimestampAndPublish(t, ctx, td, snapshotKey, timestampKey)
 
 	// Check versions.
 	store = tuf.FileSystemStore(td, nil)

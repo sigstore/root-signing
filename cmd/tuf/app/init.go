@@ -29,7 +29,6 @@ import (
 	"github.com/peterbourgon/ff/v3/ffcli"
 	pkeys "github.com/sigstore/root-signing/pkg/keys"
 	prepo "github.com/sigstore/root-signing/pkg/repo"
-	cjson "github.com/tent/canonical-json-go"
 	"github.com/theupdateframework/go-tuf"
 	"github.com/theupdateframework/go-tuf/data"
 )
@@ -256,7 +255,7 @@ func InitCmd(ctx context.Context, directory, previous string, threshold int, tar
 	if err != nil {
 		return err
 	}
-	if err := setMetaWithSigKeyIDs(store, "targets.json", t, allRootKeys); err != nil {
+	if err := setMetaWithSigKeyIDs(store, "targets.json", t, keys); err != nil {
 		return err
 	}
 
@@ -269,7 +268,8 @@ func InitCmd(ctx context.Context, directory, previous string, threshold int, tar
 	root.Version = curRootVersion + 1
 	root.Expires = getExpiration("root")
 	root.ConsistentSnapshot = ConsistentSnapshot
-	return setMetaWithSigKeyIDs(store, "root.json", root, keys)
+	// TODO: Add a test that makes sure that root has allRootKeys
+	return setMetaWithSigKeyIDs(store, "root.json", root, allRootKeys)
 }
 
 func setSignedMeta(store tuf.LocalStore, role string, s *data.Signed) error {
@@ -319,7 +319,8 @@ func ClearEmptySignatures(store tuf.LocalStore, role string) error {
 }
 
 func jsonMarshal(v interface{}) ([]byte, error) {
-	b, err := cjson.Marshal(v)
+	// Note we no longer need to store canonicalized JSON in the store.
+	b, err := json.Marshal(v)
 	if err != nil {
 		return nil, err
 	}

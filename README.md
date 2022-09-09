@@ -75,7 +75,9 @@ Before starting the root key ceremony, the community should:
 * Identify the targets to sign and update the `targets/` directory (these may include Fulcio's CA certificate, the rekor transparency log key, the CTFE key, and SigStore's artifact signing key)
 * Identify the online keys for snapshot and timestamp roles. The key references should be updated in `scripts/step-1.5.sh`.
 
-If you are a keyholder or ceremony conductor, follow instructions [KEYHOLDER.md](keyholders/OVERVIEW.md).
+If you are a keyholder follow instructions on the landing page [KEYHOLDER.md](playbooks/keyholders/OVERVIEW.md).
+
+If you are an orchestrator, follow instructions on [ORCHESTRATION.md](playbooks/ORCHESTRATION.md).
 
 If you are a verifier, follow instructions at [VERIFIER.md](VERIFIER.md).
 

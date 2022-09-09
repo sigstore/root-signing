@@ -102,7 +102,9 @@ func DelegationCmd(ctx context.Context, directory, name, path string, terminatin
 	keys := []*data.PublicKey{}
 	ids := []string{}
 	for _, keyRef := range keyRefs {
-		signerKey, err := pkeys.GetSigningKey(ctx, keyRef)
+		// v5 note!
+		// We don't need to handle deprecated formats for delegation keys.
+		signerKey, err := pkeys.GetSigningKey(ctx, keyRef, false)
 		if err != nil {
 			return err
 		}

@@ -77,6 +77,8 @@ func Sign() *ffcli.Command {
 			if !*sk && *key == "" {
 				return flag.ErrHelp
 			}
+			// v5 note!
+			// TODO: Root keys will actually have two signers. One PEM and one hex.
 			signerAndKey, err := getSigner(ctx, *sk, *key)
 			if err != nil {
 				return err
@@ -140,7 +142,7 @@ func getSigner(ctx context.Context, sk bool, keyRef string) (*keys.SignerAndTufK
 		return &keys.SignerAndTufKey{Signer: signer, Key: keyAndAttestations.Key}, nil
 	}
 	// A key reference was provided.
-	return keys.GetSigningKey(ctx, keyRef)
+	return keys.GetSigningKey(ctx, keyRef, false)
 }
 
 func SignCmd(ctx context.Context, directory string, roles []string, signer *keys.SignerAndTufKey) error {

@@ -149,7 +149,7 @@ func InitCmd(ctx context.Context, directory, previous string, threshold int, tar
 	}
 	keys, err := getKeysFromDir(directory + "/keys")
 	if err != nil {
-		return err
+		return fmt.Errorf("getting HSM keys: %s", err)
 	}
 	var allRootKeys []*data.PublicKey
 	// Add any keys in the keys/ subfolder to root and targets.
@@ -188,7 +188,7 @@ func InitCmd(ctx context.Context, directory, previous string, threshold int, tar
 
 	// Add keys used for snapshot and timestamp roles.
 	for role, keyRef := range map[string]string{"snapshot": snapshotRef, "timestamp": timestampRef} {
-		signerKey, err := pkeys.GetSigningKey(ctx, keyRef)
+		signerKey, err := pkeys.GetSigningKey(ctx, keyRef, true)
 		if err != nil {
 			return err
 		}
@@ -343,7 +343,7 @@ func getKeysFromDir(dir string) ([]*data.PublicKey, error) {
 			if err != nil {
 				return nil, err
 			}
-			tufKey, err := pkeys.ToTufKey(*key)
+			tufKey, err := pkeys.ToTufKey(*key, true)
 			if err != nil {
 				return nil, err
 			}

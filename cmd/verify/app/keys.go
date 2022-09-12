@@ -24,6 +24,7 @@ import (
 	"path/filepath"
 
 	"github.com/sigstore/root-signing/pkg/keys"
+	"github.com/sigstore/sigstore/pkg/cryptoutils"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -54,14 +55,22 @@ func toCert(filename string) (*x509.Certificate, error) {
 	if err != nil {
 		return nil, err
 	}
-	return keys.ToCert(fileBytes)
+	certs, err := cryptoutils.UnmarshalCertificatesFromPEMLimited(
+		fileBytes, 2)
+	if err != nil {
+		return nil, err
+	}
+	if len(certs) != 1 {
+		return nil, errors.New("expected one PEM-encoded certificate")
+	}
+	return certs[0], nil
 }
 
 // Map from Key ID to Signing Key
 type KeyMap map[string]*keys.SigningKey
 
 func getKeyID(key keys.SigningKey) (string, error) {
-	pk, err := keys.ToTufKey(key)
+	pk, err := keys.ToTufKey(key, false)
 	if err != nil {
 		return "", err
 	}

@@ -27,7 +27,6 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/asn1"
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"math/big"
@@ -40,7 +39,6 @@ import (
 	"github.com/sigstore/root-signing/pkg/keys"
 	"github.com/sigstore/sigstore/pkg/cryptoutils"
 	"github.com/sigstore/sigstore/pkg/signature"
-	"github.com/theupdateframework/go-tuf/data"
 )
 
 func CreateRootCA() (*x509.Certificate, crypto.PrivateKey, error) {
@@ -141,15 +139,9 @@ func GetTestHsmSigner(ctx context.Context, testDir string, serial uint32) (*keys
 	cryptoPub, _ := signer.PublicKey()
 	pub := cryptoPub.(*ecdsa.PublicKey)
 
-	keyValBytes, err := json.Marshal(keys.EcdsaPublic{PublicKey: elliptic.Marshal(pub.Curve, pub.X, pub.Y)})
+	pk, err := keys.EcdsaTufKey(pub)
 	if err != nil {
 		return nil, err
-	}
-	pk := &data.PublicKey{
-		Type:       data.KeyTypeECDSA_SHA2_P256,
-		Scheme:     data.KeySchemeECDSA_SHA2_P256,
-		Algorithms: data.HashAlgorithms,
-		Value:      keyValBytes,
 	}
 
 	return &keys.SignerAndTufKey{Signer: signer, Key: pk}, nil
@@ -169,15 +161,9 @@ func CreateTestHsmSigner(testDir string, root *x509.Certificate, rootSigner cryp
 		return nil, err
 	}
 
-	keyValBytes, err := json.Marshal(keys.EcdsaPublic{PublicKey: elliptic.Marshal(pub.Curve, pub.X, pub.Y)})
+	pk, err := keys.EcdsaTufKey(pub)
 	if err != nil {
 		return nil, err
-	}
-	pk := &data.PublicKey{
-		Type:       data.KeyTypeECDSA_SHA2_P256,
-		Scheme:     data.KeySchemeECDSA_SHA2_P256,
-		Algorithms: data.HashAlgorithms,
-		Value:      keyValBytes,
 	}
 
 	deviceCertPem, err := cryptoutils.MarshalCertificateToPEM(deviceCert)

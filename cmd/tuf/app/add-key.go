@@ -21,9 +21,7 @@ package app
 import (
 	"context"
 	"crypto/ecdsa"
-	"crypto/elliptic"
 	"crypto/x509"
-	"encoding/json"
 	"encoding/pem"
 	"flag"
 	"fmt"
@@ -76,15 +74,9 @@ func GetKeyAndAttestation(ctx context.Context) (*KeyAndAttestations, error) {
 	}
 
 	pub := attestations.KeyCert.PublicKey.(*ecdsa.PublicKey)
-	keyValBytes, err := json.Marshal(keys.EcdsaPublic{PublicKey: elliptic.Marshal(pub.Curve, pub.X, pub.Y)})
+	pk, err := keys.EcdsaTufKey(pub)
 	if err != nil {
 		return nil, err
-	}
-	pk := &data.PublicKey{
-		Type:       data.KeyTypeECDSA_SHA2_P256,
-		Scheme:     data.KeySchemeECDSA_SHA2_P256,
-		Algorithms: data.HashAlgorithms,
-		Value:      keyValBytes,
 	}
 
 	return &KeyAndAttestations{Attestations: *attestations, Key: pk}, nil

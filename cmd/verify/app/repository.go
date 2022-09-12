@@ -294,7 +294,7 @@ var repositoryCmd = &cobra.Command{
 		}
 		c := client.NewClient(local, remote)
 
-		if err := c.InitLocal(rootMeta); err != nil {
+		if err := c.Init(rootMeta); err != nil {
 			log.Printf("error initializing client: %s", err)
 			os.Exit(1)
 		}

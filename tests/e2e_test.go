@@ -33,6 +33,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/secure-systems-lab/go-securesystemslib/cjson"
 	"github.com/sigstore/cosign/pkg/cosign"
 	"github.com/sigstore/root-signing/cmd/tuf/app"
 	vapp "github.com/sigstore/root-signing/cmd/verify/app"
@@ -43,6 +44,7 @@ import (
 	"github.com/theupdateframework/go-tuf"
 	"github.com/theupdateframework/go-tuf/client"
 	"github.com/theupdateframework/go-tuf/data"
+	tufkeys "github.com/theupdateframework/go-tuf/pkg/keys"
 )
 
 // TODO(asraa): Add more unit tests, including
@@ -103,7 +105,7 @@ func verifyGoTuf(t *testing.T, repo string, root []byte) (data.TargetFiles, erro
 	}
 	local := client.MemoryLocalStore()
 	c := client.NewClient(local, remote)
-	if err := c.InitLocal(root); err != nil {
+	if err := c.Init(root); err != nil {
 		t.Fatal(err)
 
 	}
@@ -1002,5 +1004,88 @@ func TestConsistentSnapshotFlip(t *testing.T) {
 	}
 	if !foundSnapshot {
 		t.Fatal("expected 2.snapshot.json in consistent snapshotted repo")
+	}
+}
+
+func TestSignWithEcdsaHexHSM(t *testing.T) {
+	ctx := context.Background()
+	td := t.TempDir()
+
+	rootCA, rootSigner, err := CreateRootCA()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	testTarget := filepath.Join(td, "foo.txt")
+	targetsConfig := map[string]json.RawMessage{testTarget: nil}
+
+	if err := os.WriteFile(testTarget, []byte("abc"), 0600); err != nil {
+		t.Fatal(err)
+	}
+
+	rootSerial, err := CreateTestHsmSigner(td, rootCA, rootSigner)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	snapshotKey := createTestSigner(t)
+	timestampKey := createTestSigner(t)
+
+	// Initialize succeeds with consistent snapshot off.
+	app.ConsistentSnapshot = false
+	if err := app.InitCmd(ctx, td, "", 1, targetsConfig, snapshotKey, timestampKey); err != nil {
+		t.Fatal(err)
+	}
+
+	// Sign root
+	rootKey, err := GetTestHsmSigner(ctx, td, *rootSerial)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := app.SignCmd(ctx, td, []string{"root"}, rootKey); err != nil {
+		t.Fatal(err)
+	}
+
+	// Verify that root has one signature using hex-encoded key.
+	store := tuf.FileSystemStore(td, nil)
+	meta, err := store.GetMeta()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	md, ok := meta["root.json"]
+	if !ok {
+		t.Fatalf("missing root")
+	}
+	signed := &data.Signed{}
+	if err := json.Unmarshal(md, signed); err != nil {
+		t.Fatal(err)
+	}
+	if len(signed.Signatures) != 1 {
+		t.Fatalf("missing signatures on root")
+	}
+	if !rootKey.Key.ContainsID(signed.Signatures[0].KeyID) {
+		t.Fatalf("missing key id for signer on root")
+	}
+	if len(signed.Signatures[0].Signature) == 0 {
+		t.Fatalf("missing signature on root")
+	}
+
+	var decoded map[string]interface{}
+	if err := json.Unmarshal(signed.Signed, &decoded); err != nil {
+		t.Fatal(err)
+	}
+	msg, err := cjson.EncodeCanonical(decoded)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Use the deprecated ECDSA verifier from TUF that uses hex-encoded keys.
+	deprecatedVerifier := tufkeys.NewDeprecatedEcdsaVerifier()
+	if err := deprecatedVerifier.UnmarshalPublicKey(rootKey.Key); err != nil {
+		t.Fatalf("error unmarshalling deprecated hex key")
+	}
+	if err := deprecatedVerifier.Verify(msg, signed.Signatures[0].Signature); err != nil {
+		t.Fatalf("error verifying signature")
 	}
 }

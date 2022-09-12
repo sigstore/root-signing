@@ -102,8 +102,7 @@ func ToSigningKey(serialNumber int, pubKey []byte, deviceCert []byte, keyCert []
 	return &key, nil
 }
 
-func ToTufKey(key SigningKey) (*data.PublicKey, error) {
-	pub := key.PublicKey
+func EcdsaTufKey(pub *ecdsa.PublicKey) (*data.PublicKey, error) {
 	keyValBytes, err := json.Marshal(EcdsaPublic{PublicKey: elliptic.Marshal(pub.Curve, pub.X, pub.Y)})
 	if err != nil {
 		return nil, err
@@ -114,6 +113,10 @@ func ToTufKey(key SigningKey) (*data.PublicKey, error) {
 		Algorithms: data.HashAlgorithms,
 		Value:      keyValBytes,
 	}, nil
+}
+
+func ToTufKey(key SigningKey) (*data.PublicKey, error) {
+	return EcdsaTufKey(key.PublicKey)
 }
 
 func getSerialNumber(c *x509.Certificate) (*int, error) {
@@ -211,16 +214,13 @@ func GetSigningKey(ctx context.Context, keyRef string) (*SignerAndTufKey, error)
 	}
 	switch kt := pub.(type) {
 	case *ecdsa.PublicKey:
-		keyValBytes, err := json.Marshal(EcdsaPublic{PublicKey: elliptic.Marshal(kt.Curve, kt.X, kt.Y)})
+		pk, err := EcdsaTufKey(kt)
 		if err != nil {
 			return nil, err
 		}
-		return &SignerAndTufKey{Key: &data.PublicKey{
-			Type:       data.KeyTypeECDSA_SHA2_P256,
-			Scheme:     data.KeySchemeECDSA_SHA2_P256,
-			Algorithms: data.HashAlgorithms,
-			Value:      keyValBytes,
-		}, Signer: key}, nil
+		return &SignerAndTufKey{
+			Key:    pk,
+			Signer: key}, nil
 	case *rsa.PublicKey:
 		return nil, errors.New("RSA keys not supported")
 

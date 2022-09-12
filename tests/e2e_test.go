@@ -1080,9 +1080,10 @@ func TestSignWithEcdsaHexHSM(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	deprecatedVerifier, err := tufkeys.GetVerifier(rootKey.Key)
-	if err != nil {
-		t.Fatalf("error getting verifier for key")
+	// Use the deprecated ECDSA verifier from TUF that uses hex-encoded keys.
+	deprecatedVerifier := tufkeys.NewDeprecatedEcdsaVerifier()
+	if err := deprecatedVerifier.UnmarshalPublicKey(rootKey.Key); err != nil {
+		t.Fatalf("error unmarshalling deprecated hex key")
 	}
 	if err := deprecatedVerifier.Verify(msg, signed.Signatures[0].Signature); err != nil {
 		t.Fatalf("error verifying signature")

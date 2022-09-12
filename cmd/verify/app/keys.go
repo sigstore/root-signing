@@ -23,8 +23,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/sigstore/root-signing/cmd/tuf/app"
 	"github.com/sigstore/root-signing/pkg/keys"
-	"github.com/sigstore/sigstore/pkg/cryptoutils"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -50,35 +50,8 @@ func (f *file) Set(s string) error {
 	return nil
 }
 
-func toCert(filename string) (*x509.Certificate, error) {
-	fileBytes, err := os.ReadFile(filename)
-	if err != nil {
-		return nil, err
-	}
-	certs, err := cryptoutils.UnmarshalCertificatesFromPEMLimited(
-		fileBytes, 2)
-	if err != nil {
-		return nil, err
-	}
-	if len(certs) != 1 {
-		return nil, errors.New("expected one PEM-encoded certificate")
-	}
-	return certs[0], nil
-}
-
 // Map from Key ID to Signing Key
 type KeyMap map[string]*keys.SigningKey
-
-func getKeyID(key keys.SigningKey) (string, error) {
-	pk, err := keys.ToTufKey(key, false)
-	if err != nil {
-		return "", err
-	}
-	if len(pk.IDs()) == 0 {
-		return "", errors.New("error getting key ID")
-	}
-	return pk.IDs()[0], nil
-}
 
 func verifySigningKeys(dirname string, rootCA *x509.Certificate) (*KeyMap, error) {
 	// Get all signing keys in the directory.
@@ -99,15 +72,18 @@ func verifySigningKeys(dirname string, rootCA *x509.Certificate) (*KeyMap, error
 				log.Printf("error verifying key %d: %s", key.SerialNumber, err)
 				return nil, err
 			}
-			id, err := getKeyID(*key)
+			tufKey, err := keys.ToTufKey(*key, app.DeprecatedEcdsaFormat)
 			if err != nil {
 				return nil, err
 			}
+			if len(tufKey.IDs()[0]) == 0 {
+				return nil, errors.New("error getting key ID")
+			}
 
 			log.Printf("\nVERIFIED KEY WITH SERIAL NUMBER %d\n", key.SerialNumber)
-			log.Printf("\tTUF key id: %s\n", id)
+			log.Printf("\tTUF key id: %s\n", tufKey.IDs()[0])
 
-			keyMap[id] = key
+			keyMap[tufKey.IDs()[0]] = key
 		}
 	}
 	// Note we use relative path here to simplify things.
@@ -158,7 +134,13 @@ var keyCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		log.SetFlags(0)
 
-		rootCA, err := toCert(rootFile.String())
+		rootBytes, err := os.ReadFile(rootFile.String())
+		if err != nil {
+			log.Printf("failed to read root CA file: %s", err)
+			os.Exit(1)
+		}
+
+		rootCA, err := keys.ToCert(rootBytes)
 		if err != nil {
 			log.Printf("failed to parse root CA: %s", err)
 			os.Exit(1)

@@ -40,6 +40,9 @@ var DefaultThreshold = 3
 // Enable consistent snapshotting.
 var ConsistentSnapshot = true
 
+// Use deprecated hex-encoded ECDSA keys.
+var DeprecatedEcdsaFormat = true
+
 // Time to role expiration represented as a list of ints corresponding to
 // (years, months, days).
 var RoleExpiration = map[string][]int{
@@ -188,7 +191,7 @@ func InitCmd(ctx context.Context, directory, previous string, threshold int, tar
 
 	// Add keys used for snapshot and timestamp roles.
 	for role, keyRef := range map[string]string{"snapshot": snapshotRef, "timestamp": timestampRef} {
-		signerKey, err := pkeys.GetSigningKey(ctx, keyRef, true)
+		signerKey, err := pkeys.GetSigningKey(ctx, keyRef, DeprecatedEcdsaFormat)
 		if err != nil {
 			return err
 		}
@@ -343,7 +346,7 @@ func getKeysFromDir(dir string) ([]*data.PublicKey, error) {
 			if err != nil {
 				return nil, err
 			}
-			tufKey, err := pkeys.ToTufKey(*key, true)
+			tufKey, err := pkeys.ToTufKey(*key, DeprecatedEcdsaFormat)
 			if err != nil {
 				return nil, err
 			}

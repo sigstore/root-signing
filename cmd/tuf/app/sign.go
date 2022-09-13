@@ -21,6 +21,7 @@ package app
 import (
 	"bytes"
 	"context"
+	"crypto/ecdsa"
 	"errors"
 	"flag"
 	"fmt"
@@ -77,7 +78,8 @@ func Sign() *ffcli.Command {
 			if !*sk && *key == "" {
 				return flag.ErrHelp
 			}
-			signerAndKey, err := getSigner(ctx, *sk, *key)
+			// TODO(asraa): Get both formats when using an sk for root role.
+			signerAndKey, err := getSigner(ctx, *sk, *key, DeprecatedEcdsaFormat)
 			if err != nil {
 				return err
 			}
@@ -122,13 +124,8 @@ func checkMetaForRole(store tuf.LocalStore, role []string) error {
 	return nil
 }
 
-func getSigner(ctx context.Context, sk bool, keyRef string) (*keys.SignerAndTufKey, error) {
+func getSigner(ctx context.Context, sk bool, keyRef string, deprecatedKeyFormat bool) (*keys.SignerAndTufKey, error) {
 	if sk {
-		// This will give us the data.PublicKey with the correct id.
-		keyAndAttestations, err := GetKeyAndAttestation(ctx)
-		if err != nil {
-			return nil, err
-		}
 		pivKey, err := pivkey.GetKeyWithSlot("signature")
 		if err != nil {
 			return nil, err
@@ -137,7 +134,16 @@ func getSigner(ctx context.Context, sk bool, keyRef string) (*keys.SignerAndTufK
 		if err != nil {
 			return nil, err
 		}
-		return &keys.SignerAndTufKey{Signer: signer, Key: keyAndAttestations.Key}, nil
+		ecdsaPub, ok := pivKey.Pub.(*ecdsa.PublicKey)
+		if !ok {
+			return nil, errors.New("expected ecdsa public key from Yubikey")
+		}
+		// This will give us the data.PublicKey with the correct id.
+		tufKey, err := keys.EcdsaTufKey(ecdsaPub, deprecatedKeyFormat)
+		if err != nil {
+			return nil, err
+		}
+		return &keys.SignerAndTufKey{Signer: signer, Key: tufKey}, nil
 	}
 	// A key reference was provided.
 	return keys.GetSigningKey(ctx, keyRef, DeprecatedEcdsaFormat)
@@ -188,15 +194,17 @@ func SignMeta(ctx context.Context, store tuf.LocalStore, name string, signer sig
 	sigs := make([]data.Signature, 0, len(s.Signatures))
 
 	// Add it to your key entry
+	var added bool
 	for _, id := range key.IDs() {
 		// If pre-entries are defined.
-		if s.Signatures != nil {
+		if arePreEntriesDefined(s) {
 			for _, entry := range s.Signatures {
 				if entry.KeyID == id {
 					sigs = append(sigs, data.Signature{
 						KeyID:     id,
 						Signature: sig,
 					})
+					added = true
 				} else {
 					sigs = append(sigs, entry)
 				}
@@ -206,8 +214,27 @@ func SignMeta(ctx context.Context, store tuf.LocalStore, name string, signer sig
 				KeyID:     id,
 				Signature: sig,
 			})
+			added = true
 		}
 	}
 
+	if !added {
+		return fmt.Errorf("expected key ID %s for metadata role %s", key.IDs()[0], name)
+	}
+
 	return setSignedMeta(store, name, &data.Signed{Signatures: sigs, Signed: s.Signed})
+}
+
+// Pre-entries are defined when there are Signatures in the Signed metadata
+// in which Key IDs are defined with empty signatures.
+// TODO(asraa): Add unit testing for pre-entries.
+func arePreEntriesDefined(s *data.Signed) bool {
+	if s.Signatures != nil {
+		for _, entry := range s.Signatures {
+			if len(entry.KeyID) != 0 && len(entry.Signature) == 0 {
+				return true
+			}
+		}
+	}
+	return false
 }

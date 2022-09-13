@@ -126,7 +126,8 @@ func createTestAttestations(root *x509.Certificate, rootSigner crypto.PrivateKey
 	return deviceCert, keyCert, nil
 }
 
-func GetTestHsmSigner(ctx context.Context, testDir string, serial uint32) (*keys.SignerAndTufKey, error) {
+func GetTestHsmSigner(ctx context.Context, testDir string, serial uint32,
+	deprecatedKeyFormat bool) (*keys.SignerAndTufKey, error) {
 	// read private key from file.
 	serialStr := fmt.Sprint(serial)
 	privKeyFile := filepath.Join(testDir, "keys", serialStr, serialStr+"_privkey.pem")
@@ -139,7 +140,7 @@ func GetTestHsmSigner(ctx context.Context, testDir string, serial uint32) (*keys
 	cryptoPub, _ := signer.PublicKey()
 	pub := cryptoPub.(*ecdsa.PublicKey)
 
-	pk, err := keys.EcdsaTufKey(pub, app.DeprecatedEcdsaFormat)
+	pk, err := keys.EcdsaTufKey(pub, deprecatedKeyFormat)
 	if err != nil {
 		return nil, err
 	}
@@ -161,11 +162,6 @@ func CreateTestHsmSigner(testDir string, root *x509.Certificate, rootSigner cryp
 		return nil, err
 	}
 
-	pk, err := keys.EcdsaTufKey(pub, app.DeprecatedEcdsaFormat)
-	if err != nil {
-		return nil, err
-	}
-
 	deviceCertPem, err := cryptoutils.MarshalCertificateToPEM(deviceCert)
 	if err != nil {
 		return nil, err
@@ -176,7 +172,7 @@ func CreateTestHsmSigner(testDir string, root *x509.Certificate, rootSigner cryp
 	}
 
 	keyAndAttestations := &app.KeyAndAttestations{
-		Key: pk,
+		Key: pub,
 		Attestations: pivcli.Attestations{
 			DeviceCert:    deviceCert,
 			DeviceCertPem: string(deviceCertPem),

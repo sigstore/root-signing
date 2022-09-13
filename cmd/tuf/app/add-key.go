@@ -29,9 +29,7 @@ import (
 
 	"github.com/peterbourgon/ff/v3/ffcli"
 	"github.com/sigstore/cosign/cmd/cosign/cli/pivcli"
-	"github.com/sigstore/root-signing/pkg/keys"
 	"github.com/sigstore/sigstore/pkg/cryptoutils"
-	"github.com/theupdateframework/go-tuf/data"
 	"golang.org/x/term"
 )
 
@@ -63,7 +61,7 @@ func AddKey() *ffcli.Command {
 
 type KeyAndAttestations struct {
 	Attestations pivcli.Attestations
-	Key          *data.PublicKey
+	Key          *ecdsa.PublicKey
 }
 
 func GetKeyAndAttestation(ctx context.Context) (*KeyAndAttestations, error) {
@@ -73,12 +71,8 @@ func GetKeyAndAttestation(ctx context.Context) (*KeyAndAttestations, error) {
 	}
 
 	pub := attestations.KeyCert.PublicKey.(*ecdsa.PublicKey)
-	pk, err := keys.EcdsaTufKey(pub, true)
-	if err != nil {
-		return nil, err
-	}
 
-	return &KeyAndAttestations{Attestations: *attestations, Key: pk}, nil
+	return &KeyAndAttestations{Attestations: *attestations, Key: pub}, nil
 }
 
 func AddKeyCmd(ctx context.Context, directory string) error {

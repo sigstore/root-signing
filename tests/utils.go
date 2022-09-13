@@ -139,7 +139,7 @@ func GetTestHsmSigner(ctx context.Context, testDir string, serial uint32) (*keys
 	cryptoPub, _ := signer.PublicKey()
 	pub := cryptoPub.(*ecdsa.PublicKey)
 
-	pk, err := keys.EcdsaTufKey(pub)
+	pk, err := keys.EcdsaTufKey(pub, app.DeprecatedEcdsaFormat)
 	if err != nil {
 		return nil, err
 	}
@@ -161,7 +161,7 @@ func CreateTestHsmSigner(testDir string, root *x509.Certificate, rootSigner cryp
 		return nil, err
 	}
 
-	pk, err := keys.EcdsaTufKey(pub)
+	pk, err := keys.EcdsaTufKey(pub, app.DeprecatedEcdsaFormat)
 	if err != nil {
 		return nil, err
 	}

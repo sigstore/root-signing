@@ -21,8 +21,6 @@ package app
 import (
 	"context"
 	"crypto/ecdsa"
-	"crypto/x509"
-	"encoding/pem"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -32,6 +30,7 @@ import (
 	"github.com/peterbourgon/ff/v3/ffcli"
 	"github.com/sigstore/cosign/cmd/cosign/cli/pivcli"
 	"github.com/sigstore/root-signing/pkg/keys"
+	"github.com/sigstore/sigstore/pkg/cryptoutils"
 	"github.com/theupdateframework/go-tuf/data"
 	"golang.org/x/term"
 )
@@ -74,7 +73,7 @@ func GetKeyAndAttestation(ctx context.Context) (*KeyAndAttestations, error) {
 	}
 
 	pub := attestations.KeyCert.PublicKey.(*ecdsa.PublicKey)
-	pk, err := keys.EcdsaTufKey(pub)
+	pk, err := keys.EcdsaTufKey(pub, true)
 	if err != nil {
 		return nil, err
 	}
@@ -117,14 +116,10 @@ func WriteKeyData(keyAndAttestations *KeyAndAttestations, directory string) erro
 		return err
 	}
 
-	b, err := x509.MarshalPKIXPublicKey(keyAndAttestations.Attestations.KeyCert.PublicKey)
+	pemBytes, err := cryptoutils.MarshalPublicKeyToPEM(keyAndAttestations.Attestations.KeyCert.PublicKey)
 	if err != nil {
 		return err
 	}
-	pemBytes := pem.EncodeToMemory(&pem.Block{
-		Type:  "PUBLIC KEY",
-		Bytes: b,
-	})
 	pubKeyFile := filepath.Join(keyDir, serial+"_pubkey.pem")
 	if err := ioutil.WriteFile(pubKeyFile, pemBytes, 0644); err != nil {
 		return err

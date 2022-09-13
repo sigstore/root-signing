@@ -389,7 +389,7 @@ func TestPublishSuccess(t *testing.T) {
 	if err := app.SnapshotCmd(ctx, td); err != nil {
 		t.Fatalf("expected Snapshot command to pass, got err: %s", err)
 	}
-	snapshotSigner, err := keys.GetSigningKey(ctx, snapshotKey)
+	snapshotSigner, err := keys.GetSigningKey(ctx, snapshotKey, app.DeprecatedEcdsaFormat)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -400,7 +400,7 @@ func TestPublishSuccess(t *testing.T) {
 	if err := app.TimestampCmd(ctx, td); err != nil {
 		t.Fatalf("expected Timestamp command to pass, got err: %s", err)
 	}
-	timestampSigner, err := keys.GetSigningKey(ctx, timestampKey)
+	timestampSigner, err := keys.GetSigningKey(ctx, timestampKey, app.DeprecatedEcdsaFormat)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -503,7 +503,7 @@ func TestRotateRootKey(t *testing.T) {
 	if err := app.SnapshotCmd(ctx, td); err != nil {
 		t.Fatalf("expected Snapshot command to pass, got err: %s", err)
 	}
-	snapshotSigner, err := keys.GetSigningKey(ctx, snapshotKey)
+	snapshotSigner, err := keys.GetSigningKey(ctx, snapshotKey, app.DeprecatedEcdsaFormat)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -514,7 +514,7 @@ func TestRotateRootKey(t *testing.T) {
 	if err := app.TimestampCmd(ctx, td); err != nil {
 		t.Fatalf("expected Timestamp command to pass, got err: %s", err)
 	}
-	timestampSigner, err := keys.GetSigningKey(ctx, timestampKey)
+	timestampSigner, err := keys.GetSigningKey(ctx, timestampKey, app.DeprecatedEcdsaFormat)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -670,7 +670,7 @@ func TestRotateTarget(t *testing.T) {
 	if err := app.SnapshotCmd(ctx, td); err != nil {
 		t.Fatalf("expected Snapshot command to pass, got err: %s", err)
 	}
-	snapshotSigner, err := keys.GetSigningKey(ctx, snapshotKey)
+	snapshotSigner, err := keys.GetSigningKey(ctx, snapshotKey, app.DeprecatedEcdsaFormat)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -681,7 +681,7 @@ func TestRotateTarget(t *testing.T) {
 	if err := app.TimestampCmd(ctx, td); err != nil {
 		t.Fatalf("expected Timestamp command to pass, got err: %s", err)
 	}
-	timestampSigner, err := keys.GetSigningKey(ctx, timestampKey)
+	timestampSigner, err := keys.GetSigningKey(ctx, timestampKey, app.DeprecatedEcdsaFormat)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -853,7 +853,7 @@ func TestConsistentSnapshotFlip(t *testing.T) {
 	if err := app.SnapshotCmd(ctx, td); err != nil {
 		t.Fatalf("expected Snapshot command to pass, got err: %s", err)
 	}
-	snapshotSigner, err := keys.GetSigningKey(ctx, snapshotKey)
+	snapshotSigner, err := keys.GetSigningKey(ctx, snapshotKey, app.DeprecatedEcdsaFormat)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -864,7 +864,7 @@ func TestConsistentSnapshotFlip(t *testing.T) {
 	if err := app.TimestampCmd(ctx, td); err != nil {
 		t.Fatalf("expected Timestamp command to pass, got err: %s", err)
 	}
-	timestampSigner, err := keys.GetSigningKey(ctx, timestampKey)
+	timestampSigner, err := keys.GetSigningKey(ctx, timestampKey, app.DeprecatedEcdsaFormat)
 	if err != nil {
 		t.Fatal(err)
 	}

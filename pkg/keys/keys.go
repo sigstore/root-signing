@@ -23,7 +23,6 @@ import (
 	"crypto/x509"
 	"encoding/asn1"
 	"encoding/json"
-	"encoding/pem"
 	"errors"
 	"fmt"
 	"os"
@@ -32,9 +31,11 @@ import (
 	"strings"
 
 	csignature "github.com/sigstore/cosign/pkg/signature"
+	"github.com/sigstore/sigstore/pkg/cryptoutils"
 	"github.com/sigstore/sigstore/pkg/signature"
 	"github.com/sigstore/sigstore/pkg/signature/options"
 	"github.com/theupdateframework/go-tuf/data"
+	"github.com/theupdateframework/go-tuf/pkg/keys"
 
 	// Register the provider-specific plugins
 	_ "github.com/sigstore/sigstore/pkg/signature/kms/gcp"
@@ -60,50 +61,55 @@ type EcdsaPublic struct {
 	PublicKey data.HexBytes `json:"public"`
 }
 
-func toPubKey(pemBytes []byte) (*ecdsa.PublicKey, error) {
-	if pemBytes == nil {
-		return nil, errors.New("failed to get public key")
-	}
-	block, rest := pem.Decode(pemBytes)
-	if len(rest) != 0 {
-		return nil, errors.New("failed to parse public key PEM block")
-	}
-	pubkey, err := x509.ParsePKIXPublicKey(block.Bytes)
+func ToCert(pemBytes []byte) (*x509.Certificate, error) {
+	certs, err := cryptoutils.UnmarshalCertificatesFromPEMLimited(pemBytes, 2)
 	if err != nil {
 		return nil, err
 	}
-	return pubkey.(*ecdsa.PublicKey), nil
-}
-
-func ToCert(pemBytes []byte) (*x509.Certificate, error) {
-	if pemBytes == nil {
-		return nil, errors.New("failed to get cert")
+	if len(certs) != 1 {
+		return nil, errors.New("expected one PEM encoded certificate")
 	}
-	block, rest := pem.Decode(pemBytes)
-	if len(rest) != 0 {
-		return nil, errors.New("failed to parse certificate PEM block")
-	}
-	return x509.ParseCertificate(block.Bytes)
+	return certs[0], nil
 }
 
 func ToSigningKey(serialNumber int, pubKey []byte, deviceCert []byte, keyCert []byte) (*SigningKey, error) {
 	// Creates a signing key from the PEM bytes of the public key, device cert, and key cert
-	key := SigningKey{SerialNumber: serialNumber}
 	var err error
-	if key.PublicKey, err = toPubKey(pubKey); err != nil {
+	pk, err := cryptoutils.UnmarshalPEMToPublicKey(pubKey)
+	if err != nil {
 		return nil, err
 	}
-	if key.DeviceCert, err = ToCert(deviceCert); err != nil {
+	ecdsapk, ok := pk.(*ecdsa.PublicKey)
+	if !ok {
+		return nil, errors.New("expected ecdsa public key")
+	}
+	key := &SigningKey{
+		SerialNumber: serialNumber,
+		PublicKey:    ecdsapk}
+	key.DeviceCert, err = ToCert(deviceCert)
+	if err != nil {
 		return nil, err
 	}
-	if key.KeyCert, err = ToCert(keyCert); err != nil {
+	key.KeyCert, err = ToCert(keyCert)
+	if err != nil {
 		return nil, err
 	}
-	return &key, nil
+	return key, nil
 }
 
-func EcdsaTufKey(pub *ecdsa.PublicKey) (*data.PublicKey, error) {
-	keyValBytes, err := json.Marshal(EcdsaPublic{PublicKey: elliptic.Marshal(pub.Curve, pub.X, pub.Y)})
+// EcdsaTufKey returns a TUF public key for an ecdsa key.
+// If deprecated is true, returns a hex-encoded public key. Otherwise
+// returns a PEM-encoded public key.
+func EcdsaTufKey(pub *ecdsa.PublicKey, deprecated bool) (*data.PublicKey, error) {
+	var keyValBytes []byte
+	var err error
+	if deprecated {
+		keyValBytes, err = json.Marshal(EcdsaPublic{
+			PublicKey: elliptic.Marshal(pub.Curve, pub.X, pub.Y)})
+	} else {
+		keyValBytes, err = json.Marshal(keys.EcdsaVerifier{
+			PublicKey: &keys.PKIXPublicKey{PublicKey: pub}})
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -115,8 +121,8 @@ func EcdsaTufKey(pub *ecdsa.PublicKey) (*data.PublicKey, error) {
 	}, nil
 }
 
-func ToTufKey(key SigningKey) (*data.PublicKey, error) {
-	return EcdsaTufKey(key.PublicKey)
+func ToTufKey(key SigningKey, deprecated bool) (*data.PublicKey, error) {
+	return EcdsaTufKey(key.PublicKey, deprecated)
 }
 
 func getSerialNumber(c *x509.Certificate) (*int, error) {
@@ -203,7 +209,7 @@ func (key SigningKey) Verify(root *x509.Certificate) error {
 	return nil
 }
 
-func GetSigningKey(ctx context.Context, keyRef string) (*SignerAndTufKey, error) {
+func GetSigningKey(ctx context.Context, keyRef string, deprecated bool) (*SignerAndTufKey, error) {
 	key, err := csignature.SignerVerifierFromKeyRef(ctx, keyRef, nil)
 	if err != nil {
 		return nil, err
@@ -214,7 +220,7 @@ func GetSigningKey(ctx context.Context, keyRef string) (*SignerAndTufKey, error)
 	}
 	switch kt := pub.(type) {
 	case *ecdsa.PublicKey:
-		pk, err := EcdsaTufKey(kt)
+		pk, err := EcdsaTufKey(kt, deprecated)
 		if err != nil {
 			return nil, err
 		}

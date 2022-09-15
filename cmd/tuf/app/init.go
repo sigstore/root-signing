@@ -29,7 +29,6 @@ import (
 	"github.com/peterbourgon/ff/v3/ffcli"
 	pkeys "github.com/sigstore/root-signing/pkg/keys"
 	prepo "github.com/sigstore/root-signing/pkg/repo"
-	cjson "github.com/tent/canonical-json-go"
 	"github.com/theupdateframework/go-tuf"
 	"github.com/theupdateframework/go-tuf/data"
 )
@@ -41,6 +40,7 @@ var DefaultThreshold = 3
 var ConsistentSnapshot = true
 
 // Use deprecated hex-encoded ECDSA keys.
+// TODO(asraa): Flip this to false or v5 when migration code complete.
 var DeprecatedEcdsaFormat = true
 
 // Time to role expiration represented as a list of ints corresponding to
@@ -107,7 +107,7 @@ func Init() *ffcli.Command {
 			if err != nil {
 				return err
 			}
-			return InitCmd(ctx, *repository, *previous, *threshold, targetsConfig, *snapshot, *timestamp)
+			return InitCmd(ctx, *repository, *previous, *threshold, targetsConfig, *snapshot, *timestamp, DeprecatedEcdsaFormat)
 		},
 	}
 }
@@ -125,7 +125,10 @@ func Init() *ffcli.Command {
 // The root and targets metadata will be initialized with a 6 month expiration.
 // Revoked keys will be automatically calculated given the previous root and the signers in directory.
 // Signature placeholders for each key will be added to the root.json and targets.json file.
-func InitCmd(ctx context.Context, directory, previous string, threshold int, targetsConfig map[string]json.RawMessage, snapshotRef string, timestampRef string) error {
+func InitCmd(ctx context.Context, directory, previous string,
+	threshold int, targetsConfig map[string]json.RawMessage,
+	snapshotRef string, timestampRef string,
+	deprecatdKeyFormat bool) error {
 	// TODO: Validate directory is a good path.
 	store := tuf.FileSystemStore(directory, nil)
 	repo, err := tuf.NewRepoIndent(store, "", "\t", "sha512", "sha256")
@@ -150,7 +153,7 @@ func InitCmd(ctx context.Context, directory, previous string, threshold int, tar
 	if err != nil {
 		return err
 	}
-	keys, err := getKeysFromDir(directory + "/keys")
+	keys, err := getKeysFromDir(directory+"/keys", deprecatdKeyFormat)
 	if err != nil {
 		return fmt.Errorf("getting HSM keys: %s", err)
 	}
@@ -191,7 +194,7 @@ func InitCmd(ctx context.Context, directory, previous string, threshold int, tar
 
 	// Add keys used for snapshot and timestamp roles.
 	for role, keyRef := range map[string]string{"snapshot": snapshotRef, "timestamp": timestampRef} {
-		signerKey, err := pkeys.GetSigningKey(ctx, keyRef, DeprecatedEcdsaFormat)
+		signerKey, err := pkeys.GetSigningKey(ctx, keyRef, deprecatdKeyFormat)
 		if err != nil {
 			return err
 		}
@@ -258,7 +261,7 @@ func InitCmd(ctx context.Context, directory, previous string, threshold int, tar
 	if err != nil {
 		return err
 	}
-	if err := setMetaWithSigKeyIDs(store, "targets.json", t, allRootKeys); err != nil {
+	if err := setMetaWithSigKeyIDs(store, "targets.json", t, keys); err != nil {
 		return err
 	}
 
@@ -271,7 +274,7 @@ func InitCmd(ctx context.Context, directory, previous string, threshold int, tar
 	root.Version = curRootVersion + 1
 	root.Expires = getExpiration("root")
 	root.ConsistentSnapshot = ConsistentSnapshot
-	return setMetaWithSigKeyIDs(store, "root.json", root, keys)
+	return setMetaWithSigKeyIDs(store, "root.json", root, allRootKeys)
 }
 
 func setSignedMeta(store tuf.LocalStore, role string, s *data.Signed) error {
@@ -321,7 +324,8 @@ func ClearEmptySignatures(store tuf.LocalStore, role string) error {
 }
 
 func jsonMarshal(v interface{}) ([]byte, error) {
-	b, err := cjson.Marshal(v)
+	// We don't need to canonically encode the payload in the store.
+	b, err := json.Marshal(v)
 	if err != nil {
 		return nil, err
 	}
@@ -334,7 +338,7 @@ func jsonMarshal(v interface{}) ([]byte, error) {
 	return out.Bytes(), nil
 }
 
-func getKeysFromDir(dir string) ([]*data.PublicKey, error) {
+func getKeysFromDir(dir string, deprecatdKeyFormat bool) ([]*data.PublicKey, error) {
 	files, err := os.ReadDir(dir)
 	if err != nil {
 		return nil, err
@@ -346,7 +350,7 @@ func getKeysFromDir(dir string) ([]*data.PublicKey, error) {
 			if err != nil {
 				return nil, err
 			}
-			tufKey, err := pkeys.ToTufKey(*key, DeprecatedEcdsaFormat)
+			tufKey, err := pkeys.ToTufKey(*key, deprecatdKeyFormat)
 			if err != nil {
 				return nil, err
 			}

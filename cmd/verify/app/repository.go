@@ -242,111 +242,34 @@ var repositoryCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		log.SetFlags(0)
 
-		if staged {
-			// Assumes a local repository!
-			// This will include staged metadata and verify partial signatures
-			log.Printf("STAGED METADATA")
-			if err := verifyStagedMetadata(repository); err != nil {
-				log.Printf("error verifying metadata: %s", err)
-				os.Exit(1)
-			}
-			return
-		}
-
-		// Otherwise verify a repository in full.
-		if root.String() == "" {
+		if !staged && root.String() == "" {
 			log.Println("must specify a trusted root file for full verification")
 			_ = cmd.Usage()
 			os.Exit(1)
 		}
 
-		log.Printf("\nVERIFYING TUF CLIENT UPDATE\n\n")
-
-		rootMeta, err := os.ReadFile(root.String())
-		if err != nil {
-			log.Printf("error reading trusted TUF root: %s", root.String())
-			os.Exit(1)
-		}
-		local := client.MemoryLocalStore()
-		if err := local.SetMeta("root.json", rootMeta); err != nil {
-			log.Printf("error setting root metadata: %s", err)
-			os.Exit(1)
-		}
-
-		var remote client.RemoteStore
-		u, err := url.ParseRequestURI(repository)
-		if err != nil {
-			log.Printf("error parsing remote repository location: %s", err)
-			os.Exit(1)
-		}
-		if u.IsAbs() {
-			remote, err = client.HTTPRemoteStore(repository, nil, nil)
-			if err != nil {
-				log.Printf("error reading trusted TUF HTTP remote: %s", err)
-				os.Exit(1)
-			}
-		} else {
-			remote, err = FileRemoteStore(repository)
-			if err != nil {
-				log.Printf("error reading trusted TUF local file remote: %s", err)
-				os.Exit(1)
-			}
-		}
-		c := client.NewClient(local, remote)
-
-		if err := c.Init(rootMeta); err != nil {
-			log.Printf("error initializing client: %s", err)
-			os.Exit(1)
-		}
-
-		log.Printf("Client successfully initialized, updating and downloading targets...")
-		targetFiles, err := c.Update()
-		if err != nil {
-			log.Printf("error updating client: %s", err)
-			os.Exit(1)
-		}
-		log.Printf("Client updated to...")
-		clientState, err := getClientState(local)
-		if err != nil {
-			log.Printf("error getting client state: %s", err)
-			os.Exit(1)
-		}
-		for name := range targetFiles {
-			var dest bufferDestination
-			if err := c.Download(name, &dest); err != nil {
-				log.Printf("error downloading target: %s", err)
-				os.Exit(1)
-			}
-			log.Printf("\nRetrieved target %s...", name)
-			log.Printf("%s", dest.Bytes())
-		}
-
-		// If verified, check expiration
+		var validUntil *time.Time
 		if expiration != "" {
-			validUntil, err := time.Parse("2006/01/02", expiration)
+			parsedTime, err := time.Parse("2006/01/02", expiration)
 			if err != nil {
 				log.Printf("must specify a valid time, got %s", expiration)
 				_ = cmd.Usage()
 				os.Exit(1)
 			}
-			for role, sm := range clientState {
-				if !checkRoleExpiry(role) {
-					continue
-				}
-				if sm.Expires.Before(validUntil) {
-					fmt.Printf("error: %s will expire on %s\n", role, sm.Expires.Format("2006/01/02"))
-					os.Exit(1)
-				}
-			}
+			validUntil = &parsedTime
+		}
+
+		if err := VerifyCmd(staged, root.String(), repository, validUntil, roles); err != nil {
+			log.Println(err.Error())
 		}
 	},
 }
 
-func checkRoleExpiry(role string) bool {
+func checkRoleExpiry(role string, toCheck []string) bool {
 	if roles == nil {
 		return true
 	}
-	for _, r := range roles {
+	for _, r := range toCheck {
 		if r == role {
 			return true
 		}
@@ -363,4 +286,84 @@ func init() {
 	_ = repositoryCmd.MarkFlagRequired("repository")
 
 	rootCmd.AddCommand(repositoryCmd)
+}
+
+func VerifyCmd(staged bool, repository string, rootFile string,
+	validUntil *time.Time, rolesToCheck []string) error {
+	if staged {
+		// Assumes a local repository!
+		// This will include staged metadata and verify partial signatures
+		log.Printf("STAGED METADATA")
+		if err := verifyStagedMetadata(repository); err != nil {
+			return fmt.Errorf("error verifying metadata: %s", err)
+		}
+		return nil
+	}
+
+	// Otherwise verify a repository in full.
+	log.Printf("\nVERIFYING TUF CLIENT UPDATE\n\n")
+
+	rootMeta, err := os.ReadFile(rootFile)
+	if err != nil {
+		return fmt.Errorf("error reading trusted TUF root %s: %w", root, err)
+	}
+	local := client.MemoryLocalStore()
+	if err := local.SetMeta("root.json", rootMeta); err != nil {
+		return fmt.Errorf("error setting root metadata: %s", err)
+	}
+
+	var remote client.RemoteStore
+	u, err := url.ParseRequestURI(repository)
+	if err != nil {
+		return fmt.Errorf("error parsing remote repository location: %s", err)
+	}
+	if u.IsAbs() {
+		remote, err = client.HTTPRemoteStore(repository, nil, nil)
+		if err != nil {
+			return fmt.Errorf("error reading trusted TUF HTTP remote: %s", err)
+		}
+	} else {
+		remote, err = FileRemoteStore(repository)
+		if err != nil {
+			return fmt.Errorf("error reading trusted TUF local file remote: %s", err)
+		}
+	}
+	c := client.NewClient(local, remote)
+
+	if err := c.Init(rootMeta); err != nil {
+		return fmt.Errorf("error initializing client: %s", err)
+	}
+
+	// TODO: Update only returns top-level targets!
+	log.Printf("Client successfully initialized, updating and downloading targets...")
+	targetFiles, err := c.Update()
+	if err != nil {
+		return fmt.Errorf("error updating client: %s", err)
+	}
+	log.Printf("Client updated to...")
+	clientState, err := getClientState(local)
+	if err != nil {
+		return fmt.Errorf("error getting client state: %s", err)
+	}
+	for name := range targetFiles {
+		var dest bufferDestination
+		if err := c.Download(name, &dest); err != nil {
+			return fmt.Errorf("error downloading target: %s", err)
+		}
+		log.Printf("\nRetrieved target %s...", name)
+		log.Printf("%s", dest.Bytes())
+	}
+
+	// If verified, check expiration
+	if validUntil != nil {
+		for role, sm := range clientState {
+			if !checkRoleExpiry(role, rolesToCheck) {
+				continue
+			}
+			if sm.Expires.Before(*validUntil) {
+				return fmt.Errorf("error: %s will expire on %s\n", role, sm.Expires.Format("2006/01/02"))
+			}
+		}
+	}
+	return nil
 }

@@ -8,7 +8,7 @@ require (
 	github.com/peterbourgon/ff/v3 v3.3.0
 	github.com/pkg/errors v0.9.1
 	github.com/secure-systems-lab/go-securesystemslib v0.4.0
-	github.com/sigstore/cosign v1.11.1
+	github.com/sigstore/cosign v1.12.0
 	github.com/sigstore/sigstore v1.4.1-0.20220909202425-f5f1384d6cf4
 	github.com/spf13/cobra v1.5.0
 	github.com/spf13/viper v1.13.0
@@ -193,7 +193,7 @@ require (
 	google.golang.org/api v0.95.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20220805133916-01dd62135a58 // indirect
-	google.golang.org/grpc v1.48.0 // indirect
+	google.golang.org/grpc v1.49.0 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/cheggaaa/pb.v1 v1.0.28 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect

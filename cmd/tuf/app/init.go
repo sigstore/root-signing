@@ -40,7 +40,7 @@ var DefaultThreshold = 3
 var ConsistentSnapshot = true
 
 // Use deprecated hex-encoded ECDSA keys.
-// TODO(asraa): Flip this to false or v5 when migration code complete.
+// TODO(asraa): Flip this to false for v5 when migration code complete.
 var DeprecatedEcdsaFormat = true
 
 // Time to role expiration represented as a list of ints corresponding to
@@ -128,7 +128,7 @@ func Init() *ffcli.Command {
 func InitCmd(ctx context.Context, directory, previous string,
 	threshold int, targetsConfig map[string]json.RawMessage,
 	snapshotRef string, timestampRef string,
-	deprecatdKeyFormat bool) error {
+	deprecatedKeyFormat bool) error {
 	// TODO: Validate directory is a good path.
 	store := tuf.FileSystemStore(directory, nil)
 	repo, err := tuf.NewRepoIndent(store, "", "\t", "sha512", "sha256")
@@ -153,7 +153,7 @@ func InitCmd(ctx context.Context, directory, previous string,
 	if err != nil {
 		return err
 	}
-	keys, err := getKeysFromDir(directory+"/keys", deprecatdKeyFormat)
+	keys, err := getKeysFromDir(directory+"/keys", deprecatedKeyFormat)
 	if err != nil {
 		return fmt.Errorf("getting HSM keys: %s", err)
 	}
@@ -194,7 +194,7 @@ func InitCmd(ctx context.Context, directory, previous string,
 
 	// Add keys used for snapshot and timestamp roles.
 	for role, keyRef := range map[string]string{"snapshot": snapshotRef, "timestamp": timestampRef} {
-		signerKey, err := pkeys.GetSigningKey(ctx, keyRef, deprecatdKeyFormat)
+		signerKey, err := pkeys.GetSigningKey(ctx, keyRef, deprecatedKeyFormat)
 		if err != nil {
 			return err
 		}
@@ -338,7 +338,7 @@ func jsonMarshal(v interface{}) ([]byte, error) {
 	return out.Bytes(), nil
 }
 
-func getKeysFromDir(dir string, deprecatdKeyFormat bool) ([]*data.PublicKey, error) {
+func getKeysFromDir(dir string, deprecatedKeyFormat bool) ([]*data.PublicKey, error) {
 	files, err := os.ReadDir(dir)
 	if err != nil {
 		return nil, err
@@ -350,7 +350,7 @@ func getKeysFromDir(dir string, deprecatdKeyFormat bool) ([]*data.PublicKey, err
 			if err != nil {
 				return nil, err
 			}
-			tufKey, err := pkeys.ToTufKey(*key, deprecatdKeyFormat)
+			tufKey, err := pkeys.ToTufKey(*key, deprecatedKeyFormat)
 			if err != nil {
 				return nil, err
 			}

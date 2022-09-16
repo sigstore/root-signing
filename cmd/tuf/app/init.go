@@ -27,6 +27,7 @@ import (
 	"time"
 
 	"github.com/peterbourgon/ff/v3/ffcli"
+	csignature "github.com/sigstore/cosign/pkg/signature"
 	pkeys "github.com/sigstore/root-signing/pkg/keys"
 	prepo "github.com/sigstore/root-signing/pkg/repo"
 	"github.com/theupdateframework/go-tuf"
@@ -41,7 +42,7 @@ var ConsistentSnapshot = true
 
 // Use deprecated hex-encoded ECDSA keys.
 // TODO(asraa): Flip this to false for v5 when migration code complete.
-var DeprecatedEcdsaFormat = true
+var DeprecatedEcdsaFormat = false
 
 // Time to role expiration represented as a list of ints corresponding to
 // (years, months, days).
@@ -194,13 +195,16 @@ func InitCmd(ctx context.Context, directory, previous string,
 
 	// Add keys used for snapshot and timestamp roles.
 	for role, keyRef := range map[string]string{"snapshot": snapshotRef, "timestamp": timestampRef} {
-		signerKey, err := pkeys.GetSigningKey(ctx, keyRef, deprecatedKeyFormat)
+		signer, err := csignature.SignerVerifierFromKeyRef(ctx, keyRef, nil)
 		if err != nil {
 			return err
 		}
 
+		// Construct TUF key.
+		tufKey, err := pkeys.ConstructTufKey(ctx, signer, deprecatedKeyFormat)
+
 		// Add key.
-		if err := repo.AddVerificationKeyWithExpiration(role, signerKey.Key, getExpiration(role)); err != nil {
+		if err := repo.AddVerificationKeyWithExpiration(role, tufKey, getExpiration(role)); err != nil {
 			return err
 		}
 

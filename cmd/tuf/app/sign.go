@@ -21,14 +21,13 @@ package app
 import (
 	"bytes"
 	"context"
-	"crypto/ecdsa"
-	"errors"
 	"flag"
 	"fmt"
 	"strings"
 
 	"github.com/peterbourgon/ff/v3/ffcli"
 	"github.com/sigstore/cosign/pkg/cosign/pivkey"
+	csignature "github.com/sigstore/cosign/pkg/signature"
 	"github.com/sigstore/root-signing/pkg/keys"
 	"github.com/sigstore/root-signing/pkg/repo"
 	"github.com/sigstore/sigstore/pkg/signature"
@@ -51,11 +50,12 @@ func (f *roleFlag) Set(value string) error {
 
 func Sign() *ffcli.Command {
 	var (
-		flagset    = flag.NewFlagSet("tuf sign", flag.ExitOnError)
-		roles      = roleFlag{}
-		repository = flagset.String("repository", "", "path to the staged repository")
-		sk         = flagset.Bool("sk", false, "indicates use of a hardware key for signing")
-		key        = flagset.String("key", "", "reference to an onine signer for signing")
+		flagset                = flag.NewFlagSet("tuf sign", flag.ExitOnError)
+		roles                  = roleFlag{}
+		repository             = flagset.String("repository", "", "path to the staged repository")
+		sk                     = flagset.Bool("sk", false, "indicates use of a hardware key for signing")
+		key                    = flagset.String("key", "", "reference to an onine signer for signing")
+		addDeprecatedKeyFormat = flagset.Bool("add-deprecated", false, "adds the deprecated ecdsa key format to associate signatures")
 	)
 	flagset.Var(&roles, "roles", "role(s) to sign")
 	return &ffcli.Command{
@@ -78,12 +78,11 @@ func Sign() *ffcli.Command {
 			if !*sk && *key == "" {
 				return flag.ErrHelp
 			}
-			// TODO(asraa): Get both formats when using an sk for root role.
-			signerAndKey, err := getSigner(ctx, *sk, *key, DeprecatedEcdsaFormat)
+			signer, err := getSigner(ctx, *sk, *key)
 			if err != nil {
 				return err
 			}
-			return SignCmd(ctx, *repository, roles, signerAndKey)
+			return SignCmd(ctx, *repository, roles, signer, *addDeprecatedKeyFormat)
 		},
 	}
 }
@@ -124,32 +123,20 @@ func checkMetaForRole(store tuf.LocalStore, role []string) error {
 	return nil
 }
 
-func getSigner(ctx context.Context, sk bool, keyRef string, deprecatedKeyFormat bool) (*keys.SignerAndTufKey, error) {
+func getSigner(ctx context.Context, sk bool, keyRef string) (signature.Signer, error) {
 	if sk {
 		pivKey, err := pivkey.GetKeyWithSlot("signature")
 		if err != nil {
 			return nil, err
 		}
-		signer, err := pivKey.SignerVerifier()
-		if err != nil {
-			return nil, err
-		}
-		ecdsaPub, ok := pivKey.Pub.(*ecdsa.PublicKey)
-		if !ok {
-			return nil, errors.New("expected ecdsa public key from Yubikey")
-		}
-		// This will give us the data.PublicKey with the correct id.
-		tufKey, err := keys.EcdsaTufKey(ecdsaPub, deprecatedKeyFormat)
-		if err != nil {
-			return nil, err
-		}
-		return &keys.SignerAndTufKey{Signer: signer, Key: tufKey}, nil
+		return pivKey.SignerVerifier()
 	}
 	// A key reference was provided.
-	return keys.GetSigningKey(ctx, keyRef, DeprecatedEcdsaFormat)
+	return csignature.SignerVerifierFromKeyRef(ctx, keyRef, nil)
 }
 
-func SignCmd(ctx context.Context, directory string, roles []string, signer *keys.SignerAndTufKey) error {
+func SignCmd(ctx context.Context, directory string, roles []string, signer signature.Signer,
+	addDeprecatedKeyFormat bool) error {
 	store := tuf.FileSystemStore(directory, nil)
 
 	if err := checkMetaForRole(store, roles); err != nil {
@@ -157,7 +144,7 @@ func SignCmd(ctx context.Context, directory string, roles []string, signer *keys
 	}
 
 	for _, name := range roles {
-		if err := SignMeta(ctx, store, name+".json", signer.Signer, signer.Key); err != nil {
+		if err := SignMeta(ctx, store, name+".json", signer, addDeprecatedKeyFormat); err != nil {
 			return err
 		}
 	}
@@ -165,15 +152,21 @@ func SignCmd(ctx context.Context, directory string, roles []string, signer *keys
 	return nil
 }
 
-func SignMeta(ctx context.Context, store tuf.LocalStore, name string, signer signature.Signer, key *data.PublicKey) error {
+// Sign metadata. We always associate signatures with the TUF compliant key IDs.
+// addDeprecatedKeyFormat allows additionally specifying the deprecated hex ECDSA keys.
+// Note that if you were using old format exclusively (for testing), then this will
+// have no impact on repository validity: extraneous signatures should be ignored.
+func SignMeta(ctx context.Context, store tuf.LocalStore, name string, signer signature.Signer,
+	addDeprecatedKeyFormat bool) error {
 	fmt.Printf("Signing metadata for %s... \n", name)
 	s, err := repo.GetSignedMeta(store, name)
 	if err != nil {
 		return err
 	}
-	if (name == "root.json" || name == "targets.json") && s.Signatures == nil {
+	if (name == "root.json" || name == "targets.json") &&
+		!arePreEntriesDefined(s) {
 		// init-repo should have pre-populated these. don't lose them.
-		return errors.New("pre-entries not defined")
+		return fmt.Errorf("pre-entries not defined in %s", name)
 	}
 
 	// Sign payload
@@ -191,12 +184,34 @@ func SignMeta(ctx context.Context, store tuf.LocalStore, name string, signer sig
 		return err
 	}
 
-	sigs := make([]data.Signature, 0, len(s.Signatures))
+	// Get TUF public IDs associated to the signer.
+	var keyIDs []string
+	pubKey, err := keys.ConstructTufKey(ctx, signer, false)
+	if err != nil {
+		return err
+	}
+	keyIDs = append(keyIDs, pubKey.IDs()...)
+	if addDeprecatedKeyFormat {
+		oldPubKey, err := keys.ConstructTufKey(ctx, signer, true)
+		if err != nil {
+			return err
+		}
+		keyIDs = append(keyIDs, oldPubKey.IDs()...)
+	}
+
+	roleSigningKeys, err := repo.GetSigningKeyIDsForRole(name, store)
+	if err != nil {
+		return err
+	}
 
 	// Add it to your key entry
 	var added bool
-	for _, id := range key.IDs() {
-		// If pre-entries are defined.
+	sigs := make([]data.Signature, 0, len(s.Signatures))
+	for _, id := range keyIDs {
+		if _, ok := roleSigningKeys[id]; !ok {
+			continue
+		}
+		// If pre-entries are defined, update the entry with the new signature.
 		if arePreEntriesDefined(s) {
 			for _, entry := range s.Signatures {
 				if entry.KeyID == id {
@@ -219,7 +234,8 @@ func SignMeta(ctx context.Context, store tuf.LocalStore, name string, signer sig
 	}
 
 	if !added {
-		return fmt.Errorf("expected key ID %s for metadata role %s", key.IDs()[0], name)
+		return fmt.Errorf("expected key IDs %s for metadata role %s, got %v",
+			strings.Join(keyIDs, ", "), name, roleSigningKeys)
 	}
 
 	return setSignedMeta(store, name, &data.Signed{Signatures: sigs, Signed: s.Signed})

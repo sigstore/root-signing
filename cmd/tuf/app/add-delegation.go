@@ -24,6 +24,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	csignature "github.com/sigstore/cosign/pkg/signature"
 	pkeys "github.com/sigstore/root-signing/pkg/keys"
 	prepo "github.com/sigstore/root-signing/pkg/repo"
 	"github.com/theupdateframework/go-tuf/data"
@@ -102,12 +103,19 @@ func DelegationCmd(ctx context.Context, directory, name, path string, terminatin
 	keys := []*data.PublicKey{}
 	ids := []string{}
 	for _, keyRef := range keyRefs {
-		signerKey, err := pkeys.GetSigningKey(ctx, keyRef, DeprecatedEcdsaFormat)
+		signer, err := csignature.SignerVerifierFromKeyRef(ctx, keyRef, nil)
 		if err != nil {
 			return err
 		}
-		keys = append(keys, signerKey.Key)
-		ids = append(ids, signerKey.Key.IDs()...)
+
+		// Construct TUF key.
+		tufKey, err := pkeys.ConstructTufKey(ctx, signer, DeprecatedEcdsaFormat)
+		if err != nil {
+			return err
+		}
+
+		keys = append(keys, tufKey)
+		ids = append(ids, tufKey.IDs()...)
 	}
 	// Don't increment targets version multiple times.
 	version, err := repo.TargetsVersion()

@@ -19,7 +19,6 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"crypto/elliptic"
-	"crypto/rsa"
 	"crypto/x509"
 	"encoding/asn1"
 	"encoding/json"
@@ -30,7 +29,6 @@ import (
 	"strconv"
 	"strings"
 
-	csignature "github.com/sigstore/cosign/pkg/signature"
 	"github.com/sigstore/sigstore/pkg/cryptoutils"
 	"github.com/sigstore/sigstore/pkg/signature"
 	"github.com/sigstore/sigstore/pkg/signature/options"
@@ -50,11 +48,6 @@ type SigningKey struct {
 	PublicKey    *ecdsa.PublicKey
 	DeviceCert   *x509.Certificate
 	KeyCert      *x509.Certificate
-}
-
-type SignerAndTufKey struct {
-	Signer signature.Signer
-	Key    *data.PublicKey
 }
 
 type EcdsaPublic struct {
@@ -209,27 +202,17 @@ func (key SigningKey) Verify(root *x509.Certificate) error {
 	return nil
 }
 
-func GetSigningKey(ctx context.Context, keyRef string, deprecated bool) (*SignerAndTufKey, error) {
-	key, err := csignature.SignerVerifierFromKeyRef(ctx, keyRef, nil)
-	if err != nil {
-		return nil, err
-	}
-	pub, err := key.PublicKey(options.WithContext(ctx))
+// ConstructTufKey constructs a TUF public key from a given signer.
+func ConstructTufKey(ctx context.Context, signer signature.Signer,
+	deprecated bool) (*data.PublicKey, error) {
+	pub, err := signer.PublicKey(options.WithContext(ctx))
 	if err != nil {
 		return nil, err
 	}
 	switch kt := pub.(type) {
 	case *ecdsa.PublicKey:
-		pk, err := EcdsaTufKey(kt, deprecated)
-		if err != nil {
-			return nil, err
-		}
-		return &SignerAndTufKey{
-			Key:    pk,
-			Signer: key}, nil
-	case *rsa.PublicKey:
-		return nil, errors.New("RSA keys not supported")
-
+		return EcdsaTufKey(kt, deprecated)
+	default:
+		return nil, fmt.Errorf("key type %s not supported", kt)
 	}
-	return nil, errors.New("not an ecdsa or rsa key")
 }

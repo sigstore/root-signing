@@ -101,8 +101,32 @@ func GetRootFromStore(store tuf.LocalStore) (*data.Root, error) {
 	return root, nil
 }
 
+func GetVersionedRootFromStore(store tuf.LocalStore, version int) (*data.Root, error) {
+	s, err := GetSignedMeta(store, fmt.Sprintf("%d.root.json", version))
+	if err != nil {
+		return nil, err
+	}
+	root := &data.Root{}
+	if err := json.Unmarshal(s.Signed, root); err != nil {
+		return nil, err
+	}
+	return root, nil
+}
+
 func GetTargetsFromStore(store tuf.LocalStore) (*data.Targets, error) {
 	s, err := GetSignedMeta(store, "targets.json")
+	if err != nil {
+		return nil, err
+	}
+	t := &data.Targets{}
+	if err := json.Unmarshal(s.Signed, t); err != nil {
+		return nil, err
+	}
+	return t, nil
+}
+
+func GetDelegatedTargetsFromStore(store tuf.LocalStore, manifest string) (*data.Targets, error) {
+	s, err := GetSignedMeta(store, manifest)
 	if err != nil {
 		return nil, err
 	}
@@ -185,4 +209,64 @@ func IsVersionedManifest(name string) bool {
 
 	_, err := strconv.Atoi(parts[0])
 	return err == nil
+}
+
+// GetSigningKeyIDsForRole gets a map of signing key IDs for the given role.
+// When this is a root role, checks if a previous root version exists
+// and adds those: these keys should sign the role.
+func GetSigningKeyIDsForRole(manifest string, store tuf.LocalStore) (map[string]bool, error) {
+	res := make(map[string]bool, 0)
+	name := strings.TrimSuffix(manifest, ".json")
+	root, err := GetRootFromStore(store)
+	if err != nil {
+		return nil, err
+	}
+	role, ok := root.Roles[name]
+	if ok {
+		for _, id := range role.KeyIDs {
+			res[id] = true
+		}
+		if name != "root" {
+			// Return the root role keys.
+			return res, nil
+		}
+		// If this is a root role, check if there is a previous root.
+		previousRoot, err := GetVersionedRootFromStore(store, int(root.Version-1))
+		if err != nil {
+			// No previous root.
+			return res, nil
+		}
+		previousRootRole, ok := previousRoot.Roles[name]
+		if !ok {
+			return nil, fmt.Errorf("missing role %s on previous root", err)
+		}
+		for _, id := range previousRootRole.KeyIDs {
+			res[id] = true
+		}
+		return res, nil
+	}
+	// This is a delegation.
+	meta, err := store.GetMeta()
+	if err != nil {
+		return nil, err
+	}
+	for metaName := range meta {
+		t, err := GetDelegatedTargetsFromStore(store, metaName)
+		if err != nil {
+			// This may not be a targets file.
+			continue
+		}
+		if t.Delegations == nil {
+			continue
+		}
+		for _, role := range t.Delegations.Roles {
+			if name == role.Name {
+				for _, id := range role.KeyIDs {
+					res[id] = true
+				}
+				return res, nil
+			}
+		}
+	}
+	return res, fmt.Errorf("role %s not found", name)
 }

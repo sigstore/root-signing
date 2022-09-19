@@ -68,9 +68,6 @@ if [[ -n $1 ]]; then
     echo "Removing key: $1"
     rm -r ${REPO}/keys/$1
 fi
-# TODO(asraa): We need to copy up-to-date snapshot and timestamp from the published
-# repository. Ideally we'd chain from `repository/repository`: see https://github.com/sigstore/root-signing/issues/288
-cp -r repository/repository/* ${REPO}/repository
 
 # Setup the root and targets
 ./tuf init -repository $REPO -target-meta config/targets-metadata.yml -snapshot ${SNAPSHOT_KEY} -timestamp ${TIMESTAMP_KEY} -previous "${PREV_REPO}"

@@ -72,7 +72,7 @@ export SNAPSHOT_KEY=$TEST_KEY
 export REKOR_KEY=$TEST_KEY
 export STAGING_KEY=$TEST_KEY
 export REVOCATION_KEY=$TEST_KEY
-export PREV_REPO=$(pwd)/ceremony/2022-07-12
+export PREV_REPO=$(pwd)/repository
 ./scripts/step-1.5.sh
 ```
 

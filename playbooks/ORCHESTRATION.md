@@ -18,7 +18,7 @@ This playbook describes how to orchestrate a root signing event.
 | BRANCH   | (Optional) The working branch, in case of testing script or configuration changes.        | main        |
 | LOCAL   | (Optional) If enabled, keeps git state dirty and does not create pull requests. Used to run root signing locally for testing.       |         |
 | REPO   | Specifies the repository folder to act on, see [Configuration](#configuration). By default, uses the current date in `ceremony/YYYY-MM-DD`.       |   `ceremony/2022-02-22`      |
-| PREV_REPO   | (Optional) If set, this specifies a previous repository used to chain a following root signing event (copies previous hardware keys, etc).       |    `ceremony/2022-01-22`     |
+| PREV_REPO   | (Optional) If set, this specifies a previous repository used to chain a following root signing event (copies previous hardware keys, etc).       |    `repository/`     |
 | SNAPSHOT_KEY   | The GCP KMS online key for snapshotting.    |     `projects/project-rekor/locations/global/keyRings/sigstore-root/cryptoKeys/snapshot`    |
 | TIMESTAMP_KEY   | The GCP KMS online key for timestamping.    |  `projects/project-rekor/locations/global/keyRings/sigstore-root/cryptoKeys/timestamp`  |
 | REKOR_KEY   | The GCP KMS online key for rekor delegation.       |     `projects/project-rekor/locations/global/keyRings/sigstore-root/cryptoKeys/rekor`    |
@@ -194,8 +194,6 @@ This will create a PR moving the files. Verify that the TUF client can update to
 3. Announce the root rotation on twitter and the community meeting, and thank the keyholders!
 
 4. Schedule the next root signing event one month before expiration on the calendar. Check [here](https://github.com/sigstore/root-signing/blob/e3f1fe5e487984f525afc81ac77fa5ce39737d0f/cmd/tuf/app/init.go#L29) for root expiration. Schedule a testing event for the week before.
-
-5. Update `PREV_REPO` references to the new ceremony date in [keyholder playbooks](./keyholders/).
 
 ### Other
 

@@ -16,7 +16,6 @@
 package repo
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -83,10 +82,7 @@ func TestGetSigningKeyIDs(t *testing.T) {
 			}
 			dirPath := filepath.Join(wd, tt.dir)
 			store := tuf.FileSystemStore(dirPath, nil)
-			meta, _ := store.GetMeta()
-			for metaName := range meta {
-				fmt.Printf(metaName)
-			}
+
 			keys, err := GetSigningKeyIDsForRole(tt.role, store)
 			if tt.shouldErr != (err != nil) {
 				t.Fatalf("GetSigningKeyIDsForRole() error: expected shouldErr %t, got %s",
@@ -95,6 +91,7 @@ func TestGetSigningKeyIDs(t *testing.T) {
 			if err != nil {
 				return
 			}
+
 			for _, key := range tt.expectedKeyIds {
 				if _, ok := keys[key]; !ok {
 					t.Errorf("expected key %s in signing keys for role %s", key, tt.role)

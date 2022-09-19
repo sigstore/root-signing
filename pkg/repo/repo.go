@@ -214,9 +214,9 @@ func IsVersionedManifest(name string) bool {
 // GetSigningKeyIDsForRole gets a map of signing key IDs for the given role.
 // When this is a root role, checks if a previous root version exists
 // and adds those: these keys should sign the role.
-func GetSigningKeyIDsForRole(manifest string, store tuf.LocalStore) (map[string]bool, error) {
+func GetSigningKeyIDsForRole(name string, store tuf.LocalStore) (
+	map[string]bool, error) {
 	res := make(map[string]bool, 0)
-	name := strings.TrimSuffix(manifest, ".json")
 	root, err := GetRootFromStore(store)
 	if err != nil {
 		return nil, err

@@ -50,11 +50,12 @@ func (f *roleFlag) Set(value string) error {
 
 func Sign() *ffcli.Command {
 	var (
-		flagset                = flag.NewFlagSet("tuf sign", flag.ExitOnError)
-		roles                  = roleFlag{}
-		repository             = flagset.String("repository", "", "path to the staged repository")
-		sk                     = flagset.Bool("sk", false, "indicates use of a hardware key for signing")
-		key                    = flagset.String("key", "", "reference to an onine signer for signing")
+		flagset    = flag.NewFlagSet("tuf sign", flag.ExitOnError)
+		roles      = roleFlag{}
+		repository = flagset.String("repository", "", "path to the staged repository")
+		sk         = flagset.Bool("sk", false, "indicates use of a hardware key for signing")
+		key        = flagset.String("key", "", "reference to an onine signer for signing")
+		// TODO(asraa): This can be removed after v5 root-signing is complete.
 		addDeprecatedKeyFormat = flagset.Bool("add-deprecated", false, "adds the deprecated ecdsa key format to associate signatures")
 	)
 	flagset.Var(&roles, "roles", "role(s) to sign")
@@ -153,9 +154,12 @@ func SignCmd(ctx context.Context, directory string, roles []string, signer signa
 }
 
 // Sign metadata. We always associate signatures with the TUF compliant key IDs.
-// addDeprecatedKeyFormat allows additionally specifying the deprecated hex ECDSA keys.
+// addDeprecatedKeyFormat allows additionally associated the signature with the
+// deprecated hex ECDSA key ID.
+//
 // Note that if you were using old format exclusively (for testing), then this will
-// have no impact on repository validity: extraneous signatures should be ignored.
+// have no impact on repository validity: extraneous key IDs for the role that are
+// not attested to in the trusted root or parent delegation will be ignored.
 func SignMeta(ctx context.Context, store tuf.LocalStore, name string, signer signature.Signer,
 	addDeprecatedKeyFormat bool) error {
 	fmt.Printf("Signing metadata for %s... \n", name)
@@ -199,7 +203,8 @@ func SignMeta(ctx context.Context, store tuf.LocalStore, name string, signer sig
 		keyIDs = append(keyIDs, oldPubKey.IDs()...)
 	}
 
-	roleSigningKeys, err := repo.GetSigningKeyIDsForRole(name, store)
+	role := strings.TrimSuffix(name, ".json")
+	roleSigningKeys, err := repo.GetSigningKeyIDsForRole(role, store)
 	if err != nil {
 		return err
 	}
@@ -243,6 +248,7 @@ func SignMeta(ctx context.Context, store tuf.LocalStore, name string, signer sig
 
 // Pre-entries are defined when there are Signatures in the Signed metadata
 // in which Key IDs are defined with empty signatures.
+//
 // TODO(asraa): Add unit testing for pre-entries.
 func arePreEntriesDefined(s *data.Signed) bool {
 	if s.Signatures != nil {

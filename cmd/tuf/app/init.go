@@ -41,7 +41,7 @@ var DefaultThreshold = 3
 var ConsistentSnapshot = true
 
 // Use deprecated hex-encoded ECDSA keys.
-// TODO(asraa): Flip this to false for v5 when migration code complete.
+// TODO(asraa): This can be removed after v5 root-signing is executed.
 var DeprecatedEcdsaFormat = false
 
 // Time to role expiration represented as a list of ints corresponding to
@@ -202,6 +202,9 @@ func InitCmd(ctx context.Context, directory, previous string,
 
 		// Construct TUF key.
 		tufKey, err := pkeys.ConstructTufKey(ctx, signer, deprecatedKeyFormat)
+		if err != nil {
+			return err
+		}
 
 		// Add key.
 		if err := repo.AddVerificationKeyWithExpiration(role, tufKey, getExpiration(role)); err != nil {

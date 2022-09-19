@@ -36,7 +36,8 @@ checkout_branch
 read -n1 -r -s -p "Insert your Yubikey, then press any key to continue...\n" 
 
 # Sign the root and targets with hardware key
-# TODO(asraa): Adding the explicit deprecated flag can be removed after v5 root-signing
+# TODO(https://github.com/sigstore/root-signing/issues/381): 
+# Adding the explicit deprecated flag can be removed after v5 root-signing
 ./tuf sign -repository $REPO -roles root -roles targets -sk -add-deprecated true
 
 # Ask user to remove key (and replace with SSH security key)

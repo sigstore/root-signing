@@ -41,7 +41,8 @@ var DefaultThreshold = 3
 var ConsistentSnapshot = true
 
 // Use deprecated hex-encoded ECDSA keys.
-// TODO(asraa): This can be removed after v5 root-signing is executed.
+// TODO(https://github.com/sigstore/root-signing/issues/381):
+// This can be removed after v5 root-signing is executed.
 var DeprecatedEcdsaFormat = false
 
 // Time to role expiration represented as a list of ints corresponding to

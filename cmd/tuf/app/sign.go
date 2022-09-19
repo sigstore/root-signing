@@ -55,7 +55,8 @@ func Sign() *ffcli.Command {
 		repository = flagset.String("repository", "", "path to the staged repository")
 		sk         = flagset.Bool("sk", false, "indicates use of a hardware key for signing")
 		key        = flagset.String("key", "", "reference to an onine signer for signing")
-		// TODO(asraa): This can be removed after v5 root-signing is complete.
+		// TODO(https://github.com/sigstore/root-signing/issues/381):
+		// This can be removed after v5 root-signing is complete.
 		addDeprecatedKeyFormat = flagset.Bool("add-deprecated", false, "adds the deprecated ecdsa key format to associate signatures")
 	)
 	flagset.Var(&roles, "roles", "role(s) to sign")

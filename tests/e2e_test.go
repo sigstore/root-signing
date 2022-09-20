@@ -1054,7 +1054,7 @@ func TestEcdsaHexToPEMMigration(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, roleName := range []string{"root", "targets"} {
-		role, ok := root.Roles["root"]
+		role, ok := root.Roles[roleName]
 		if !ok {
 			t.Fatalf("expected %s role", roleName)
 		}
@@ -1106,6 +1106,45 @@ func TestEcdsaHexToPEMMigration(t *testing.T) {
 		t.Fatalf("expected key IDs %s, got %s", expectedKeyIds, preEntries)
 	}
 
+	// Check that snapshot and timestamp only have 1 key, the new PEM format.
+	meta, err = store.GetMeta()
+	if err != nil {
+		t.Fatal(err)
+	}
+	root, err = prepo.GetRootFromStore(store)
+	if err != nil {
+		t.Fatal(err)
+	}
+	snapshotSigner, err := csignature.SignerVerifierFromKeyRef(ctx, snapshotKey, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	snapshotKeyPEM, err := keys.ConstructTufKey(ctx, snapshotSigner, deprecatedEcdsaFormat)
+	if err != nil {
+		t.Fatal(err)
+	}
+	timestampSigner, err := csignature.SignerVerifierFromKeyRef(ctx, timestampKey, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	timestampKeyPEM, err := keys.ConstructTufKey(ctx, timestampSigner, deprecatedEcdsaFormat)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for roleName, roleKey := range map[string]*data.PublicKey{"snapshot": snapshotKeyPEM,
+		"timestamp": timestampKeyPEM} {
+		role, ok := root.Roles[roleName]
+		if !ok {
+			t.Fatalf("expected %s role", roleName)
+		}
+		if len(role.KeyIDs) != 1 {
+			t.Fatalf("expected 1 key IDs on role %s", roleName)
+		}
+		if role.KeyIDs[0] != roleKey.IDs()[0] {
+			t.Fatal("expected PEM ECDSA TUF key")
+		}
+	}
+
 	// Now sign with both key types.
 	if err := app.SignCmd(ctx, td, []string{"root", "targets"}, rootKeyPEM, true); err != nil {
 		t.Fatal(err)
@@ -1126,4 +1165,112 @@ func TestEcdsaHexToPEMMigration(t *testing.T) {
 		t.Fatal(err)
 	}
 	verifyTuf(t, td, meta["root.json"])
+}
+
+// Tests snapshot key rotation.
+func TestSnapshotKeyRotate(t *testing.T) {
+	ctx := context.Background()
+	td := t.TempDir()
+
+	rootCA, rootSigner, err := CreateRootCA()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	testTarget := filepath.Join(td, "foo.txt")
+	targetsConfig := map[string]json.RawMessage{testTarget: nil}
+
+	if err := os.WriteFile(testTarget, []byte("abc"), 0600); err != nil {
+		t.Fatal(err)
+	}
+
+	rootSerial, err := CreateTestHsmSigner(td, rootCA, rootSigner)
+	if err != nil {
+		t.Fatal(err)
+	}
+	snapshotKey1 := createTestSigner(t)
+	timestampKey := createTestSigner(t)
+
+	// Initialize succeeds.
+	if err := app.InitCmd(ctx, td, "", 1, targetsConfig, snapshotKey1, timestampKey, app.DeprecatedEcdsaFormat); err != nil {
+		t.Fatal(err)
+	}
+
+	// Sign root & targets with key 1
+	rootKey, err := GetTestHsmSigner(ctx, td, *rootSerial)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := app.SignCmd(ctx, td, []string{"root", "targets"}, rootKey, app.DeprecatedEcdsaFormat); err != nil {
+		t.Fatal(err)
+	}
+
+	// Sign snapshot and timestamp
+	snapshotTimestampPublish(ctx, t, td, snapshotKey1, timestampKey, app.DeprecatedEcdsaFormat)
+
+	// Verify that the snapshot role contains the initial snapshot key id
+	store := tuf.FileSystemStore(td, nil)
+	root, err := prepo.GetRootFromStore(store)
+	if err != nil {
+		t.Fatal(err)
+	}
+	snapshotRole, ok := root.Roles["snapshot"]
+	if !ok {
+		t.Fatalf("expected snapshot role")
+	}
+	snapshotSigner1, err := csignature.SignerVerifierFromKeyRef(ctx, snapshotKey1, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	snapshotTufKey1, err := keys.ConstructTufKey(ctx, snapshotSigner1, app.DeprecatedEcdsaFormat)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(snapshotRole.KeyIDs) != 1 {
+		t.Errorf("expected one snapshot key")
+	}
+	if snapshotRole.KeyIDs[0] != snapshotTufKey1.IDs()[0] {
+		t.Errorf("expected snapshot key %s, got %s", snapshotTufKey1.IDs()[0],
+			snapshotRole.KeyIDs[0])
+	}
+
+	// Now rotate the snapshot signer out.
+	snapshotKey2 := createTestSigner(t)
+	// Initialize succeeds.
+	if err := app.InitCmd(ctx, td, td, 1, targetsConfig, snapshotKey2, timestampKey, app.DeprecatedEcdsaFormat); err != nil {
+		t.Fatal(err)
+	}
+
+	// Sign root & targets with key 1
+	if err := app.SignCmd(ctx, td, []string{"root", "targets"}, rootKey, app.DeprecatedEcdsaFormat); err != nil {
+		t.Fatal(err)
+	}
+
+	// Sign snapshot and timestamp
+	snapshotTimestampPublish(ctx, t, td, snapshotKey2, timestampKey, app.DeprecatedEcdsaFormat)
+
+	// Expect only the new snapshot key.
+	root, err = prepo.GetRootFromStore(store)
+	if err != nil {
+		t.Fatal(err)
+	}
+	snapshotRole, ok = root.Roles["snapshot"]
+	if !ok {
+		t.Fatalf("expected snapshot role")
+	}
+	snapshotSigner2, err := csignature.SignerVerifierFromKeyRef(ctx, snapshotKey2, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	snapshotTufKey2, err := keys.ConstructTufKey(ctx, snapshotSigner2, app.DeprecatedEcdsaFormat)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(snapshotRole.KeyIDs) != 1 {
+		t.Errorf("expected one snapshot key")
+	}
+	if snapshotRole.KeyIDs[0] != snapshotTufKey2.IDs()[0] {
+		t.Errorf("expected snapshot key %s, got %s", snapshotTufKey2.IDs()[0],
+			snapshotRole.KeyIDs[0])
+	}
 }

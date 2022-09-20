@@ -35,6 +35,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/secure-systems-lab/go-securesystemslib/cjson"
 	"github.com/sigstore/cosign/pkg/cosign"
+	csignature "github.com/sigstore/cosign/pkg/signature"
 	"github.com/sigstore/root-signing/cmd/tuf/app"
 	vapp "github.com/sigstore/root-signing/cmd/verify/app"
 	"github.com/sigstore/root-signing/pkg/keys"
@@ -194,26 +195,26 @@ func verifySigstoreTuf(t *testing.T, repo string, root []byte,
 }
 
 func snapshotTimestampPublish(ctx context.Context, t *testing.T, repo string,
-	snapshotKey, timestampKey string) {
+	snapshotKey, timestampKey string, deprecated bool) {
 	if err := app.SnapshotCmd(ctx, repo); err != nil {
 		t.Fatalf("expected Snapshot command to pass, got err: %s", err)
 	}
-	snapshotSigner, err := keys.GetSigningKey(ctx, snapshotKey, app.DeprecatedEcdsaFormat)
+	snapshotSigner, err := csignature.SignerVerifierFromKeyRef(ctx, snapshotKey, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := app.SignCmd(ctx, repo, []string{"snapshot"}, snapshotSigner); err != nil {
+	if err := app.SignCmd(ctx, repo, []string{"snapshot"}, snapshotSigner, deprecated); err != nil {
 		t.Fatal(err)
 	}
 
 	if err := app.TimestampCmd(ctx, repo); err != nil {
 		t.Fatalf("expected Timestamp command to pass, got err: %s", err)
 	}
-	timestampSigner, err := keys.GetSigningKey(ctx, timestampKey, app.DeprecatedEcdsaFormat)
+	timestampSigner, err := csignature.SignerVerifierFromKeyRef(ctx, timestampKey, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := app.SignCmd(ctx, repo, []string{"timestamp"}, timestampSigner); err != nil {
+	if err := app.SignCmd(ctx, repo, []string{"timestamp"}, timestampSigner, deprecated); err != nil {
 		t.Fatal(err)
 	}
 
@@ -284,11 +285,15 @@ func TestSignRootTargets(t *testing.T) {
 	}
 
 	// Sign root and targets.
-	signerAndKey, err := GetTestHsmSigner(ctx, td, *serial, app.DeprecatedEcdsaFormat)
+	signer, err := GetTestHsmSigner(ctx, td, *serial)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := app.SignCmd(ctx, td, []string{"root", "targets"}, signerAndKey); err != nil {
+	if err := app.SignCmd(ctx, td, []string{"root", "targets"}, signer, app.DeprecatedEcdsaFormat); err != nil {
+		t.Fatal(err)
+	}
+	pubKey, err := keys.ConstructTufKey(ctx, signer, app.DeprecatedEcdsaFormat)
+	if err != nil {
 		t.Fatal(err)
 	}
 
@@ -310,7 +315,7 @@ func TestSignRootTargets(t *testing.T) {
 		if len(signed.Signatures) != 1 {
 			t.Fatalf("missing signatures on %s", metaName)
 		}
-		if !signerAndKey.Key.ContainsID(signed.Signatures[0].KeyID) {
+		if !pubKey.ContainsID(signed.Signatures[0].KeyID) {
 			t.Fatalf("missing key id for signer on %s", metaName)
 		}
 		if len(signed.Signatures[0].Signature) == 0 {
@@ -381,11 +386,11 @@ func TestSnapshotUnvalidatedFails(t *testing.T) {
 	}
 
 	// Now sign root and targets with 1/1 threshold key.
-	signerAndKey1, err := GetTestHsmSigner(ctx, td, *rootkey1, app.DeprecatedEcdsaFormat)
+	signer, err := GetTestHsmSigner(ctx, td, *rootkey1)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := app.SignCmd(ctx, td, []string{"root", "targets"}, signerAndKey1); err != nil {
+	if err := app.SignCmd(ctx, td, []string{"root", "targets"}, signer, app.DeprecatedEcdsaFormat); err != nil {
 		t.Fatal(err)
 	}
 
@@ -448,16 +453,16 @@ func TestPublishSuccess(t *testing.T) {
 	}
 
 	// Sign root & targets
-	rootKey, err := GetTestHsmSigner(ctx, td, *rootSerial, app.DeprecatedEcdsaFormat)
+	rootKey, err := GetTestHsmSigner(ctx, td, *rootSerial)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := app.SignCmd(ctx, td, []string{"root", "targets"}, rootKey); err != nil {
+	if err := app.SignCmd(ctx, td, []string{"root", "targets"}, rootKey, app.DeprecatedEcdsaFormat); err != nil {
 		t.Fatal(err)
 	}
 
 	// Sign snapshot and timestamp
-	snapshotTimestampPublish(ctx, t, td, snapshotKey, timestampKey)
+	snapshotTimestampPublish(ctx, t, td, snapshotKey, timestampKey, app.DeprecatedEcdsaFormat)
 
 	// Check versions.
 	store := tuf.FileSystemStore(td, nil)
@@ -534,16 +539,20 @@ func TestRotateRootKey(t *testing.T) {
 	}
 
 	// Sign root & targets with key 1
-	rootKey1, err := GetTestHsmSigner(ctx, td, *rootSerial1, app.DeprecatedEcdsaFormat)
+	rootKey1, err := GetTestHsmSigner(ctx, td, *rootSerial1)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := app.SignCmd(ctx, td, []string{"root", "targets"}, rootKey1); err != nil {
+	rootTufKey1, err := keys.ConstructTufKey(ctx, rootKey1, app.DeprecatedEcdsaFormat)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := app.SignCmd(ctx, td, []string{"root", "targets"}, rootKey1, app.DeprecatedEcdsaFormat); err != nil {
 		t.Fatal(err)
 	}
 
 	// Sign snapshot and timestamp
-	snapshotTimestampPublish(ctx, t, td, snapshotKey, timestampKey)
+	snapshotTimestampPublish(ctx, t, td, snapshotKey, timestampKey, app.DeprecatedEcdsaFormat)
 
 	// Check that there are two root key signers: key 1 and key 2.
 	store := tuf.FileSystemStore(td, nil)
@@ -555,11 +564,15 @@ func TestRotateRootKey(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected root role")
 	}
-	rootKey2, err := GetTestHsmSigner(ctx, td, *rootSerial2, app.DeprecatedEcdsaFormat)
+	rootKey2, err := GetTestHsmSigner(ctx, td, *rootSerial2)
 	if err != nil {
 		t.Fatal(err)
 	}
-	expectedKeyIds := append(rootKey1.Key.IDs(), rootKey2.Key.IDs()...)
+	rootTufKey2, err := keys.ConstructTufKey(ctx, rootKey2, app.DeprecatedEcdsaFormat)
+	if err != nil {
+		t.Fatal(err)
+	}
+	expectedKeyIds := append(rootTufKey1.IDs(), rootTufKey2.IDs()...)
 	actualKeyIds := rootRole.KeyIDs
 	sort.Strings(expectedKeyIds)
 	sort.Strings(actualKeyIds)
@@ -590,11 +603,15 @@ func TestRotateRootKey(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected root role")
 	}
-	rootKey3, err := GetTestHsmSigner(ctx, td, *rootSerial3, app.DeprecatedEcdsaFormat)
+	rootKey3, err := GetTestHsmSigner(ctx, td, *rootSerial3)
 	if err != nil {
 		t.Fatal(err)
 	}
-	expectedKeyIds = append(rootKey1.Key.IDs(), rootKey3.Key.IDs()...)
+	rootTufKey3, err := keys.ConstructTufKey(ctx, rootKey3, app.DeprecatedEcdsaFormat)
+	if err != nil {
+		t.Fatal(err)
+	}
+	expectedKeyIds = append(rootTufKey1.IDs(), rootTufKey3.IDs()...)
 	actualKeyIds = rootRole.KeyIDs
 	sort.Strings(expectedKeyIds)
 	sort.Strings(actualKeyIds)
@@ -608,16 +625,16 @@ func TestRotateRootKey(t *testing.T) {
 	}
 
 	// Sign root & targets
-	rootKey, err := GetTestHsmSigner(ctx, td, *rootSerial1, app.DeprecatedEcdsaFormat)
+	rootKey, err := GetTestHsmSigner(ctx, td, *rootSerial1)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := app.SignCmd(ctx, td, []string{"root", "targets"}, rootKey); err != nil {
+	if err := app.SignCmd(ctx, td, []string{"root", "targets"}, rootKey, app.DeprecatedEcdsaFormat); err != nil {
 		t.Fatal(err)
 	}
 
 	// Sign snapshot and timestamp
-	snapshotTimestampPublish(ctx, t, td, snapshotKey, timestampKey)
+	snapshotTimestampPublish(ctx, t, td, snapshotKey, timestampKey, app.DeprecatedEcdsaFormat)
 
 	// Verify with go-tuf
 	meta, err := store.GetMeta()
@@ -659,16 +676,16 @@ func TestRotateTarget(t *testing.T) {
 	}
 
 	// Sign root & targets
-	rootKey, err := GetTestHsmSigner(ctx, td, *rootSerial, app.DeprecatedEcdsaFormat)
+	rootKey, err := GetTestHsmSigner(ctx, td, *rootSerial)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := app.SignCmd(ctx, td, []string{"root", "targets"}, rootKey); err != nil {
+	if err := app.SignCmd(ctx, td, []string{"root", "targets"}, rootKey, app.DeprecatedEcdsaFormat); err != nil {
 		t.Fatal(err)
 	}
 
 	// Sign snapshot and timestamp
-	snapshotTimestampPublish(ctx, t, td, snapshotKey, timestampKey)
+	snapshotTimestampPublish(ctx, t, td, snapshotKey, timestampKey, app.DeprecatedEcdsaFormat)
 
 	// Check versions.
 	checkMetadataVersion(t, td,
@@ -710,12 +727,12 @@ func TestRotateTarget(t *testing.T) {
 	}
 
 	// Sign root & targets
-	if err := app.SignCmd(ctx, td, []string{"root", "targets"}, rootKey); err != nil {
+	if err := app.SignCmd(ctx, td, []string{"root", "targets"}, rootKey, app.DeprecatedEcdsaFormat); err != nil {
 		t.Fatal(err)
 	}
 
 	// Sign snapshot and timestamp
-	snapshotTimestampPublish(ctx, t, td, snapshotKey, timestampKey)
+	snapshotTimestampPublish(ctx, t, td, snapshotKey, timestampKey, app.DeprecatedEcdsaFormat)
 
 	// Check versions.
 	checkMetadataVersion(t, td,
@@ -775,16 +792,16 @@ func TestConsistentSnapshotFlip(t *testing.T) {
 	}
 
 	// Sign root & targets
-	rootKey, err := GetTestHsmSigner(ctx, td, *rootSerial, app.DeprecatedEcdsaFormat)
+	rootKey, err := GetTestHsmSigner(ctx, td, *rootSerial)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := app.SignCmd(ctx, td, []string{"root", "targets"}, rootKey); err != nil {
+	if err := app.SignCmd(ctx, td, []string{"root", "targets"}, rootKey, app.DeprecatedEcdsaFormat); err != nil {
 		t.Fatal(err)
 	}
 
 	// Sign snapshot and timestamp
-	snapshotTimestampPublish(ctx, t, td, snapshotKey, timestampKey)
+	snapshotTimestampPublish(ctx, t, td, snapshotKey, timestampKey, app.DeprecatedEcdsaFormat)
 
 	// Check versions.
 	checkMetadataVersion(t, td,
@@ -818,12 +835,12 @@ func TestConsistentSnapshotFlip(t *testing.T) {
 	}
 
 	// Sign root & targets
-	if err := app.SignCmd(ctx, td, []string{"root", "targets"}, rootKey); err != nil {
+	if err := app.SignCmd(ctx, td, []string{"root", "targets"}, rootKey, app.DeprecatedEcdsaFormat); err != nil {
 		t.Fatal(err)
 	}
 
 	// Sign snapshot and timestamp
-	snapshotTimestampPublish(ctx, t, td, snapshotKey, timestampKey)
+	snapshotTimestampPublish(ctx, t, td, snapshotKey, timestampKey, app.DeprecatedEcdsaFormat)
 
 	// Check versions.
 	checkMetadataVersion(t, td,
@@ -896,11 +913,15 @@ func TestSignWithEcdsaHexHSM(t *testing.T) {
 	}
 
 	// Sign root
-	rootKey, err := GetTestHsmSigner(ctx, td, *rootSerial, app.DeprecatedEcdsaFormat)
+	rootKey, err := GetTestHsmSigner(ctx, td, *rootSerial)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := app.SignCmd(ctx, td, []string{"root"}, rootKey); err != nil {
+	rootTufKey, err := keys.ConstructTufKey(ctx, rootKey, app.DeprecatedEcdsaFormat)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := app.SignCmd(ctx, td, []string{"root"}, rootKey, app.DeprecatedEcdsaFormat); err != nil {
 		t.Fatal(err)
 	}
 
@@ -922,7 +943,7 @@ func TestSignWithEcdsaHexHSM(t *testing.T) {
 	if len(signed.Signatures) != 1 {
 		t.Fatalf("missing signatures on root")
 	}
-	if !rootKey.Key.ContainsID(signed.Signatures[0].KeyID) {
+	if !rootTufKey.ContainsID(signed.Signatures[0].KeyID) {
 		t.Fatalf("missing key id for signer on root")
 	}
 	if len(signed.Signatures[0].Signature) == 0 {
@@ -940,7 +961,7 @@ func TestSignWithEcdsaHexHSM(t *testing.T) {
 
 	// Use the deprecated ECDSA verifier from TUF that uses hex-encoded keys.
 	deprecatedVerifier := tufkeys.NewDeprecatedEcdsaVerifier()
-	if err := deprecatedVerifier.UnmarshalPublicKey(rootKey.Key); err != nil {
+	if err := deprecatedVerifier.UnmarshalPublicKey(rootTufKey); err != nil {
 		t.Fatalf("error unmarshalling deprecated hex key")
 	}
 	if err := deprecatedVerifier.Verify(msg, signed.Signatures[0].Signature); err != nil {
@@ -978,26 +999,30 @@ func TestEcdsaHexToPEMMigration(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// Just to make sure, try this with the un-deprecated signer and expect failure
-	rootKeyPEM, err := GetTestHsmSigner(ctx, td, *rootSerial, false)
+	// Just to make sure, try this with the PEM signer and expect failure
+	rootKeyPEM, err := GetTestHsmSigner(ctx, td, *rootSerial)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := app.SignCmd(ctx, td, []string{"root"}, rootKeyPEM); err == nil {
+	if err := app.SignCmd(ctx, td, []string{"root"}, rootKeyPEM, false); err == nil {
 		t.Fatal("expected error signing with PEM key")
 	}
 
 	// Sign root with deprecated format signer.
-	rootKeyHex, err := GetTestHsmSigner(ctx, td, *rootSerial, deprecatedEcdsaFormat)
+	rootKey, err := GetTestHsmSigner(ctx, td, *rootSerial)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := app.SignCmd(ctx, td, []string{"root", "targets"}, rootKeyHex); err != nil {
+	rootTufKeyHex, err := keys.ConstructTufKey(ctx, rootKey, deprecatedEcdsaFormat)
+	if err != nil {
 		t.Fatal(err)
+	}
+	if err := app.SignCmd(ctx, td, []string{"root", "targets"}, rootKey, deprecatedEcdsaFormat); err != nil {
+		t.Fatalf("error signing with deprecated signer %s", err)
 	}
 
 	// Finish publishing & verify
-	snapshotTimestampPublish(ctx, t, td, snapshotKey, timestampKey)
+	snapshotTimestampPublish(ctx, t, td, snapshotKey, timestampKey, deprecatedEcdsaFormat)
 	store := tuf.FileSystemStore(td, nil)
 	meta, err := store.GetMeta()
 	if err != nil {
@@ -1012,6 +1037,10 @@ func TestEcdsaHexToPEMMigration(t *testing.T) {
 	// Flip the format and re-init! This should add "new" TUF key, same material.
 	deprecatedEcdsaFormat = false
 	if err := app.InitCmd(ctx, td, td, 1, targetsConfig, snapshotKey, timestampKey, deprecatedEcdsaFormat); err != nil {
+		t.Fatal(err)
+	}
+	rootTufKeyPem, err := keys.ConstructTufKey(ctx, rootKey, deprecatedEcdsaFormat)
+	if err != nil {
 		t.Fatal(err)
 	}
 
@@ -1032,7 +1061,7 @@ func TestEcdsaHexToPEMMigration(t *testing.T) {
 		if len(role.KeyIDs) != 1 {
 			t.Fatal("expected 1 key IDs on root role")
 		}
-		if role.KeyIDs[0] != rootKeyPEM.Key.IDs()[0] {
+		if role.KeyIDs[0] != rootTufKeyPem.IDs()[0] {
 			t.Fatal("expected PEM ECDSA TUF key")
 		}
 	}
@@ -1055,7 +1084,7 @@ func TestEcdsaHexToPEMMigration(t *testing.T) {
 		preEntries = append(preEntries, sig.KeyID)
 	}
 	sort.Strings(preEntries)
-	expectedKeyIds := append(rootKeyHex.Key.IDs(), rootKeyPEM.Key.IDs()...)
+	expectedKeyIds := append(rootTufKeyHex.IDs(), rootTufKeyPem.IDs()...)
 	sort.Strings(expectedKeyIds)
 	if !cmp.Equal(expectedKeyIds, preEntries) {
 		t.Fatalf("expected key IDs %s, got %s", expectedKeyIds, preEntries)
@@ -1073,22 +1102,17 @@ func TestEcdsaHexToPEMMigration(t *testing.T) {
 	if len(signed.Signatures) != 1 {
 		t.Fatalf("expected 1 signature pre-entries on targets, got %d", len(signed.Signatures))
 	}
-	if !cmp.Equal(signed.Signatures[0].KeyID, rootKeyPEM.Key.IDs()[0]) {
+	if !cmp.Equal(signed.Signatures[0].KeyID, rootTufKeyPem.IDs()[0]) {
 		t.Fatalf("expected key IDs %s, got %s", expectedKeyIds, preEntries)
 	}
 
 	// Now sign with both key types.
-	if err := app.SignCmd(ctx, td, []string{"root", "targets"}, rootKeyPEM); err != nil {
-		t.Fatal(err)
-	}
-
-	// Sign root with deprecated format signer just on the root.
-	if err := app.SignCmd(ctx, td, []string{"root"}, rootKeyHex); err != nil {
+	if err := app.SignCmd(ctx, td, []string{"root", "targets"}, rootKeyPEM, true); err != nil {
 		t.Fatal(err)
 	}
 
 	// Finish publishing.
-	snapshotTimestampPublish(ctx, t, td, snapshotKey, timestampKey)
+	snapshotTimestampPublish(ctx, t, td, snapshotKey, timestampKey, deprecatedEcdsaFormat)
 
 	// Check version 2.
 	checkMetadataVersion(t, td,

@@ -228,7 +228,8 @@ func GetSigningKeyIDsForRole(name string, store tuf.LocalStore) (
 			res[id] = true
 		}
 		if name != "root" {
-			// Return the root role keys.
+			// Non-root roles only require signatures associated with the current
+			// role keys.
 			return res, nil
 		}
 		// If this is a root role, check if there is a previous root.

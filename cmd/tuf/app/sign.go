@@ -155,7 +155,7 @@ func SignCmd(ctx context.Context, directory string, roles []string, signer signa
 }
 
 // Sign metadata. We always associate signatures with the TUF compliant key IDs.
-// addDeprecatedKeyFormat allows additionally associated the signature with the
+// addDeprecatedKeyFormat allows additionally associating the signature with the
 // deprecated hex ECDSA key ID.
 //
 // Note that if you were using old format exclusively (for testing), then this will
@@ -214,6 +214,11 @@ func SignMeta(ctx context.Context, store tuf.LocalStore, name string, signer sig
 	var added bool
 	sigs := make([]data.Signature, 0, len(s.Signatures))
 	for _, id := range keyIDs {
+		// We check to make sure that the key ID (which may include deprecated IDs)
+		// is associated with the role's keys.
+		// For example, targets signers are HSM keys and may be interpreted with both
+		// formats to handle a root migration. However, HSM keys interpreted with the
+		// deprecated format do not need to sign the targets role.
 		if _, ok := roleSigningKeys[id]; !ok {
 			continue
 		}

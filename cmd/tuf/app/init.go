@@ -340,7 +340,7 @@ func getKeysFromDir(dir string, deprecatedKeyFormat bool) ([]*data.PublicKey, er
 			if err != nil {
 				return nil, err
 			}
-			tufKey, err := pkeys.ToTufKey(*key, deprecatedKeyFormat)
+			tufKey, err := pkeys.EcdsaTufKey(key.PublicKey, deprecatedKeyFormat)
 			if err != nil {
 				return nil, err
 			}

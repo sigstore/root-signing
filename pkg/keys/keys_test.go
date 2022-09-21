@@ -160,11 +160,11 @@ func TestToSigningKey(t *testing.T) {
 				t.Errorf("unexpected error generating signing key (%s): %s", tt.name, err)
 			}
 			if tt.expectSuccess {
-				hexPubKey, err := ToTufKey(*key, true)
+				hexPubKey, err := EcdsaTufKey(key.PublicKey, true)
 				if err != nil {
 					t.Errorf("unexpected error generating hex TUF public key: %s", err)
 				}
-				pemPubKey, err := ToTufKey(*key, false)
+				pemPubKey, err := EcdsaTufKey(key.PublicKey, false)
 				if err != nil {
 					t.Errorf("unexpected error generating PEM TUF public key: %s", err)
 				}

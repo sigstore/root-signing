@@ -114,10 +114,6 @@ func EcdsaTufKey(pub *ecdsa.PublicKey, deprecated bool) (*data.PublicKey, error)
 	}, nil
 }
 
-func ToTufKey(key SigningKey, deprecated bool) (*data.PublicKey, error) {
-	return EcdsaTufKey(key.PublicKey, deprecated)
-}
-
 func getSerialNumber(c *x509.Certificate) (*int, error) {
 	// Retrieves the serial number from the OID extension in the certificate
 	for _, e := range c.Extensions {

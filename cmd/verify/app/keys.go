@@ -23,7 +23,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/sigstore/root-signing/cmd/tuf/app"
 	"github.com/sigstore/root-signing/pkg/keys"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -72,18 +71,28 @@ func verifySigningKeys(dirname string, rootCA *x509.Certificate) (*KeyMap, error
 				log.Printf("error verifying key %d: %s", key.SerialNumber, err)
 				return nil, err
 			}
-			tufKey, err := keys.ToTufKey(*key, app.DeprecatedEcdsaFormat)
-			if err != nil {
-				return nil, err
-			}
-			if len(tufKey.IDs()[0]) == 0 {
-				return nil, errors.New("error getting key ID")
+			var deprecatedID string
+			var newID string
+			for _, boolVal := range []bool{true, false} {
+				tufKey, err := keys.EcdsaTufKey(key.PublicKey, boolVal)
+				if err != nil {
+					return nil, err
+				}
+				if len(tufKey.IDs()) == 0 {
+					return nil, errors.New("error getting key ID")
+				}
+				if boolVal {
+					deprecatedID = tufKey.IDs()[0]
+				} else {
+					newID = tufKey.IDs()[0]
+				}
+				keyMap[tufKey.IDs()[0]] = key
 			}
 
 			log.Printf("\nVERIFIED KEY WITH SERIAL NUMBER %d\n", key.SerialNumber)
-			log.Printf("\tTUF key id: %s\n", tufKey.IDs()[0])
-
-			keyMap[tufKey.IDs()[0]] = key
+			log.Printf("TUF key ids: \n")
+			log.Printf("\t%s [deprecated]", deprecatedID)
+			log.Printf("\t%s [new]", newID)
 		}
 	}
 	// Note we use relative path here to simplify things.
@@ -104,6 +113,19 @@ func verifySigningKeys(dirname string, rootCA *x509.Certificate) (*KeyMap, error
 	if err != nil {
 		return nil, err
 	}
+	ceremonyDir, err := filepath.Rel(wd, filepath.Dir(dirname))
+	if err != nil {
+		return nil, err
+	}
+	newRootPath := filepath.Join(ceremonyDir, "staged", "root.json")
+	oldRootPath := filepath.Join(ceremonyDir, "repository", "root.json")
+
+	log.Printf("\n To match pubkey values of the two TUF key IDs, perform the following command and verify a match:\n\n")
+	log.Printf("\texport NEW_ID=${NEW_ID}")
+	log.Printf("\texport DEPRECATED_ID=${DEPRECATED_ID}")
+	log.Printf("\tcat %s | jq --arg id \"${NEW_ID}\" -r '.signed.keys[$id].keyval.public' | openssl ec -pubin -inform PEM -text -noout", newRootPath)
+	log.Printf("\tcat %s | jq --arg id \"${DEPRECATED_ID}\" -r '.signed.keys[$id].keyval.public'", oldRootPath)
+
 	log.Printf("\n# To manually verify the chain for any key ID\n\n")
 	log.Printf("\texport SERIAL_NUMBER=${SERIAL_NUMBER}")
 	log.Printf("\topenssl verify -verbose -x509_strict -CAfile <(cat piv-attestation-ca.pem %s) %s\n", certPath, keyPath)

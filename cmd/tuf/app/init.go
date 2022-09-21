@@ -32,6 +32,7 @@ import (
 	prepo "github.com/sigstore/root-signing/pkg/repo"
 	"github.com/theupdateframework/go-tuf"
 	"github.com/theupdateframework/go-tuf/data"
+	"golang.org/x/exp/maps"
 )
 
 // Threshold for root and targets signers.
@@ -151,43 +152,15 @@ func InitCmd(ctx context.Context, directory, previous string,
 	}
 
 	// Add the keys we just provisioned to root and targets and revoke any removed ones.
-	root, err := prepo.GetRootFromStore(store)
-	if err != nil {
-		return err
-	}
 	keys, err := getKeysFromDir(directory+"/keys", deprecatedKeyFormat)
 	if err != nil {
 		return fmt.Errorf("getting HSM keys: %s", err)
 	}
-	var allRootKeys []*data.PublicKey
 	// Add any keys in the keys/ subfolder to root and targets.
 	for _, role := range []string{"root", "targets"} {
-		currentKeyMap := map[string]bool{}
-		for _, tufKey := range keys {
-			currentKeyMap[tufKey.IDs()[0]] = true
-			if err := repo.AddVerificationKeyWithExpiration(role, tufKey, getExpiration(role)); err != nil {
-				return err
-			}
-		}
-		if role == "root" {
-			// This retrieves all the new root keys, but before we revoke any.
-			// This is used to populate the placeholder signature key IDs, which is composed
-			// of the (old keys + current keys)
-			allRootKeys, err = repo.RootKeys()
-			if err != nil {
-				return err
-			}
-		}
-		// Revoke any keys that we've rotated out
-		oldKeys, ok := root.Roles[role]
-		if ok {
-			for _, oldKeyID := range oldKeys.KeyIDs {
-				if _, ok := currentKeyMap[oldKeyID]; !ok {
-					if err := repo.RevokeKey(role, oldKeyID); err != nil {
-						return err
-					}
-				}
-			}
+		if err := prepo.UpdateRoleKeys(repo, store, role, keys,
+			getExpiration(role)); err != nil {
+			return err
 		}
 		if err := repo.SetThreshold(role, threshold); err != nil {
 			return err
@@ -207,11 +180,13 @@ func InitCmd(ctx context.Context, directory, previous string,
 			return err
 		}
 
-		// Add key.
-		if err := repo.AddVerificationKeyWithExpiration(role, tufKey, getExpiration(role)); err != nil {
+		// Update keys.
+		if err := prepo.UpdateRoleKeys(repo, store, role, []*data.PublicKey{tufKey},
+			getExpiration(role)); err != nil {
 			return err
 		}
 
+		// Set threshold.
 		if err := repo.SetThreshold(role, 1); err != nil {
 			return err
 		}
@@ -269,20 +244,28 @@ func InitCmd(ctx context.Context, directory, previous string,
 	if err != nil {
 		return err
 	}
-	if err := setMetaWithSigKeyIDs(store, "targets.json", t, keys); err != nil {
+	targetKeys, err := prepo.GetSigningKeyIDsForRole("targets", store)
+	if err != nil {
+		return err
+	}
+	if err := setMetaWithSigKeyIDs(store, "targets.json", t, maps.Keys(targetKeys)); err != nil {
 		return err
 	}
 
 	// We manually increment the root version in case adding the verification keys did not
 	// increment the root version (because of no change).
-	root, err = prepo.GetRootFromStore(store)
+	root, err := prepo.GetRootFromStore(store)
 	if err != nil {
 		return err
 	}
 	root.Version = curRootVersion + 1
 	root.Expires = getExpiration("root")
 	root.ConsistentSnapshot = ConsistentSnapshot
-	return setMetaWithSigKeyIDs(store, "root.json", root, allRootKeys)
+	allRootKeys, err := prepo.GetSigningKeyIDsForRole("root", store)
+	if err != nil {
+		return err
+	}
+	return setMetaWithSigKeyIDs(store, "root.json", root, maps.Keys(allRootKeys))
 }
 
 func setSignedMeta(store tuf.LocalStore, role string, s *data.Signed) error {
@@ -293,7 +276,7 @@ func setSignedMeta(store tuf.LocalStore, role string, s *data.Signed) error {
 	return store.SetMeta(role, b)
 }
 
-func setMetaWithSigKeyIDs(store tuf.LocalStore, role string, meta interface{}, keys []*data.PublicKey) error {
+func setMetaWithSigKeyIDs(store tuf.LocalStore, role string, meta interface{}, keyIDs []string) error {
 	signed, err := jsonMarshal(meta)
 	if err != nil {
 		return err
@@ -302,12 +285,11 @@ func setMetaWithSigKeyIDs(store tuf.LocalStore, role string, meta interface{}, k
 	// Add empty sigs
 	emptySigs := make([]data.Signature, 0, 1)
 
-	for _, key := range keys {
-		for _, id := range key.IDs() {
-			emptySigs = append(emptySigs, data.Signature{
-				KeyID: id,
-			})
-		}
+	for _, id := range keyIDs {
+		emptySigs = append(emptySigs, data.Signature{
+			KeyID: id,
+		})
+
 	}
 
 	return setSignedMeta(store, role, &data.Signed{Signatures: emptySigs, Signed: signed})

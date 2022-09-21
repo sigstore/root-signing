@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	ctuf "github.com/sigstore/sigstore/pkg/tuf"
 	"github.com/theupdateframework/go-tuf"
@@ -271,4 +272,34 @@ func GetSigningKeyIDsForRole(name string, store tuf.LocalStore) (
 		}
 	}
 	return res, fmt.Errorf("role %s not found", name)
+}
+
+// UpdateRoleKeys updates the roles keys, and handles the logic for
+// revoking any old keys.
+func UpdateRoleKeys(repo *tuf.Repo, store tuf.LocalStore, role string, keys []*data.PublicKey,
+	expiration time.Time) error {
+	currentKeyMap := map[string]bool{}
+	for _, tufKey := range keys {
+		currentKeyMap[tufKey.IDs()[0]] = true
+		if err := repo.AddVerificationKeyWithExpiration(role, tufKey, expiration); err != nil {
+			return err
+		}
+	}
+	// Revoke any old keys from previous versions that are not explicitly added.
+	root, err := GetRootFromStore(store)
+	if err != nil {
+		return err
+	}
+	oldKeys, ok := root.Roles[role]
+	// Note: if the role does not exist, then there was no previous version of the role.
+	if ok {
+		for _, oldKeyID := range oldKeys.KeyIDs {
+			if _, ok := currentKeyMap[oldKeyID]; !ok {
+				if err := repo.RevokeKey(role, oldKeyID); err != nil {
+					return err
+				}
+			}
+		}
+	}
+	return nil
 }

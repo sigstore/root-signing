@@ -18,9 +18,12 @@ package repo
 import (
 	"os"
 	"path/filepath"
+	"reflect"
 	"testing"
 
 	"github.com/theupdateframework/go-tuf"
+	"github.com/theupdateframework/go-tuf/data"
+	"github.com/theupdateframework/go-tuf/pkg/keys"
 )
 
 func TestGetSigningKeyIDs(t *testing.T) {
@@ -101,5 +104,70 @@ func TestGetSigningKeyIDs(t *testing.T) {
 				t.Errorf("expected %d signing keys, got %d", len(tt.expectedKeyIds), len(keys))
 			}
 		})
+	}
+}
+
+func TestUpdateRoleKeys(t *testing.T) {
+	td := t.TempDir()
+	store := tuf.FileSystemStore(td, nil)
+	repo, err := tuf.NewRepo(store)
+	if err != nil {
+		t.Fatal(err)
+	}
+	rootSigner, err := keys.GenerateEcdsaKey()
+	if err != nil {
+		t.Fatal(err)
+	}
+	pk := rootSigner.PublicData()
+	// Check on first role update that the key is added.
+	if err := UpdateRoleKeys(repo, store, "root",
+		[]*data.PublicKey{pk}, data.DefaultExpires("root")); err != nil {
+		t.Fatal(err)
+	}
+	rootKeys, err := repo.RootKeys()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(rootKeys) != 1 {
+		t.Errorf("expected 1 root key in the repo, got %d", len(rootKeys))
+	}
+	if !reflect.DeepEqual(rootKeys[0], pk) {
+		t.Errorf("expected root key with ID %s, got %s", pk.IDs()[0], rootKeys[0].IDs()[0])
+	}
+	// Now update again, and expect the old was revoked.
+	newRootSigner, err := keys.GenerateEcdsaKey()
+	if err != nil {
+		t.Fatal(err)
+	}
+	newPk := newRootSigner.PublicData()
+	// Check on first role update that the key is added.
+	if err := UpdateRoleKeys(repo, store, "root",
+		[]*data.PublicKey{newPk}, data.DefaultExpires("root")); err != nil {
+		t.Fatal(err)
+	}
+	rootKeys, err = repo.RootKeys()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(rootKeys) != 1 {
+		t.Errorf("expected 1 root key in the repo, got %d", len(rootKeys))
+	}
+	if !reflect.DeepEqual(rootKeys[0], newPk) {
+		t.Errorf("expected root key with ID %s, got %s", newPk.IDs()[0], rootKeys[0].IDs()[0])
+	}
+	// Now update with both, and expect both.
+	if err := UpdateRoleKeys(repo, store, "root",
+		[]*data.PublicKey{newPk, pk}, data.DefaultExpires("root")); err != nil {
+		t.Fatal(err)
+	}
+	rootKeys, err = repo.RootKeys()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(rootKeys) != 2 {
+		t.Errorf("expected 2 root key in the repo, got %d", len(rootKeys))
+	}
+	if !reflect.DeepEqual(rootKeys, []*data.PublicKey{newPk, pk}) {
+		t.Errorf("expected root keys with IDs %s %s", newPk.IDs()[0], pk.IDs()[0])
 	}
 }

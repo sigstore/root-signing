@@ -19,11 +19,8 @@
 package test
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
-	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -34,65 +31,20 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/secure-systems-lab/go-securesystemslib/cjson"
-	"github.com/sigstore/cosign/pkg/cosign"
-	csignature "github.com/sigstore/cosign/pkg/signature"
 	"github.com/sigstore/root-signing/cmd/tuf/app"
 	vapp "github.com/sigstore/root-signing/cmd/verify/app"
 	"github.com/sigstore/root-signing/pkg/keys"
 	prepo "github.com/sigstore/root-signing/pkg/repo"
 	stuf "github.com/sigstore/sigstore/pkg/tuf"
+	tufkeys "github.com/theupdateframework/go-tuf/pkg/keys"
 
 	"github.com/theupdateframework/go-tuf"
 	"github.com/theupdateframework/go-tuf/client"
 	"github.com/theupdateframework/go-tuf/data"
-	tufkeys "github.com/theupdateframework/go-tuf/pkg/keys"
 )
 
 // TODO(asraa): Add more unit tests, including
 //   * Custom metadata included in targets
-
-// Create a test HSM key located in a keys/ subdirectory of testDir.
-func createTestHsmKey(testDir string) error {
-	keyDir := filepath.Join(testDir, "keys", "10550341")
-	if err := os.MkdirAll(keyDir, 0755); err != nil {
-		return err
-	}
-
-	testKey := "test_data/10550341"
-	wd, _ := os.Getwd()
-	testKey = filepath.Join(wd, testKey)
-
-	return filepath.Walk(testKey, func(path string, info os.FileInfo, err error) error {
-		var relPath string = strings.Replace(path, testKey, "", 1)
-		if relPath == "" {
-			return nil
-		}
-		if info.IsDir() {
-			return os.Mkdir(filepath.Join(keyDir, relPath), 0755)
-		} else {
-			var data, err1 = ioutil.ReadFile(filepath.Join(testKey, relPath))
-			if err1 != nil {
-				return err1
-			}
-			return ioutil.WriteFile(filepath.Join(keyDir, relPath), data, 0777)
-		}
-	})
-}
-
-// Create fake key signer in testDirectory. Returns file reference to signer.
-func createTestSigner(t *testing.T) string {
-	keys, err := cosign.GenerateKeyPair(nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	temp := t.TempDir()
-	f, _ := os.CreateTemp(temp, "*.key")
-
-	if _, err := io.Copy(f, bytes.NewBuffer(keys.PrivateBytes)); err != nil {
-		t.Fatal(err)
-	}
-	return f.Name()
-}
 
 // Verify with the go-tuf client, sigstore-tuf, and our CLI verification.
 // Note! Sigstore TUF uses a singleton to cache network calls. Disable this
@@ -194,120 +146,59 @@ func verifySigstoreTuf(t *testing.T, repo string, root []byte,
 	return nil
 }
 
-func snapshotTimestampPublish(ctx context.Context, t *testing.T, repo string,
-	snapshotKey, timestampKey string, deprecated bool) {
-	if err := app.SnapshotCmd(ctx, repo); err != nil {
-		t.Fatalf("expected Snapshot command to pass, got err: %s", err)
-	}
-	snapshotSigner, err := csignature.SignerVerifierFromKeyRef(ctx, snapshotKey, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := app.SignCmd(ctx, repo, []string{"snapshot"}, snapshotSigner, deprecated); err != nil {
-		t.Fatal(err)
-	}
-
-	if err := app.TimestampCmd(ctx, repo); err != nil {
-		t.Fatalf("expected Timestamp command to pass, got err: %s", err)
-	}
-	timestampSigner, err := csignature.SignerVerifierFromKeyRef(ctx, timestampKey, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := app.SignCmd(ctx, repo, []string{"timestamp"}, timestampSigner, deprecated); err != nil {
-		t.Fatal(err)
-	}
-
-	// Successful Publishing!
-	if err := app.PublishCmd(ctx, repo); err != nil {
-		t.Fatal(err)
-	}
-}
-
 func TestInitCmd(t *testing.T) {
 	ctx := context.Background()
-	td := t.TempDir()
+	stack := newRepoTestStack(ctx, t)
 
-	testTarget := filepath.Join(td, "foo.txt")
-	targetsConfig := map[string]json.RawMessage{testTarget: nil}
+	stack.addTarget(t, "foo.txt", "abc", nil)
+	stack.genKey(t, true)
 
-	if err := os.WriteFile(testTarget, []byte("abc"), 0600); err != nil {
+	if _, err := CreateTestHsmSigner(stack.repoDir, stack.hsmRootCA, stack.hsmRootSigner); err != nil {
 		t.Fatal(err)
 	}
-
-	if err := createTestHsmKey(td); err != nil {
-		t.Fatal(err)
-	}
-
-	snapshotKey := createTestSigner(t)
-	timestampKey := createTestSigner(t)
 
 	// Initialize succeeds.
-	if err := app.InitCmd(ctx, td, "", 1, targetsConfig, snapshotKey, timestampKey, app.DeprecatedEcdsaFormat); err != nil {
+	if err := app.InitCmd(ctx, stack.repoDir, "", 1,
+		stack.targetsConfig, stack.snapshotRef, stack.timestampRef,
+		app.DeprecatedEcdsaFormat); err != nil {
 		t.Fatal(err)
 	}
 
 	// Verify that root and targets have expected version 1 on Init.
-	checkMetadataVersion(t, td,
+	checkMetadataVersion(t, stack.repoDir,
 		[]string{"root.json", "targets.json"},
 		1)
 }
 
 func TestSignRootTargets(t *testing.T) {
 	// Initialize.
-
 	ctx := context.Background()
-	td := t.TempDir()
-
-	rootCA, rootSigner, err := CreateRootCA()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	testTarget := filepath.Join(td, "foo.txt")
-	targetsConfig := map[string]json.RawMessage{testTarget: nil}
-
-	if err := os.WriteFile(testTarget, []byte("abc"), 0600); err != nil {
-		t.Fatal(err)
-	}
-
-	serial, err := CreateTestHsmSigner(td, rootCA, rootSigner)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	snapshotKey := createTestSigner(t)
-	timestampKey := createTestSigner(t)
+	stack := newRepoTestStack(ctx, t)
+	stack.addTarget(t, "foo.txt", "abc", nil)
+	rootKeyRef := stack.genKey(t, true)
 
 	// Initialize with 1 succeeds.
-	if err := app.InitCmd(ctx, td, "", 1, targetsConfig, snapshotKey, timestampKey, app.DeprecatedEcdsaFormat); err != nil {
+	if err := app.InitCmd(ctx, stack.repoDir, "", 1,
+		stack.targetsConfig, stack.snapshotRef, stack.timestampRef,
+		app.DeprecatedEcdsaFormat); err != nil {
 		t.Fatal(err)
 	}
 
 	// Sign root and targets.
-	signer, err := GetTestHsmSigner(ctx, td, *serial)
-	if err != nil {
+	rootSigner := stack.getSigner(t, rootKeyRef)
+	if err := app.SignCmd(ctx, stack.repoDir, []string{"root", "targets"},
+		rootSigner, app.DeprecatedEcdsaFormat); err != nil {
 		t.Fatal(err)
 	}
-	if err := app.SignCmd(ctx, td, []string{"root", "targets"}, signer, app.DeprecatedEcdsaFormat); err != nil {
-		t.Fatal(err)
-	}
-	pubKey, err := keys.ConstructTufKey(ctx, signer, app.DeprecatedEcdsaFormat)
+
+	pubKey, err := keys.ConstructTufKey(ctx, rootSigner, app.DeprecatedEcdsaFormat)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// Verify that root and targets have one signature.
-	store := tuf.FileSystemStore(td, nil)
-	meta, err := store.GetMeta()
-	if err != nil {
-		t.Fatal(err)
-	}
 	for _, metaName := range []string{"root.json", "targets.json"} {
-		md, ok := meta[metaName]
-		if !ok {
-			t.Fatalf("missing %s", metaName)
-		}
+		md := stack.getManifest(t, metaName)
 		signed := &data.Signed{}
 		if err := json.Unmarshal(md, signed); err != nil {
 			t.Fatal(err)
@@ -326,54 +217,27 @@ func TestSignRootTargets(t *testing.T) {
 
 func TestSnapshotUnvalidatedFails(t *testing.T) {
 	ctx := context.Background()
-	td := t.TempDir()
+	stack := newRepoTestStack(ctx, t)
+	stack.addTarget(t, "foo.txt", "abc", nil)
+	rootKeyRef := stack.genKey(t, true)
+	_ = stack.genKey(t, true)
 
-	rootCA, rootSigner, err := CreateRootCA()
-	if err != nil {
+	// Initialize with threshold 1 succeeds.
+	if err := app.InitCmd(ctx, stack.repoDir, "", 1,
+		stack.targetsConfig, stack.snapshotRef, stack.timestampRef,
+		app.DeprecatedEcdsaFormat); err != nil {
 		t.Fatal(err)
 	}
 
-	testTarget := filepath.Join(td, "foo.txt")
-	targetsConfig := map[string]json.RawMessage{testTarget: nil}
-
-	if err := os.WriteFile(testTarget, []byte("abc"), 0600); err != nil {
-		t.Fatal(err)
-	}
-
-	rootkey1, err := CreateTestHsmSigner(td, rootCA, rootSigner)
-	if err != nil {
-		t.Fatal(err)
-	}
-	_, err = CreateTestHsmSigner(td, rootCA, rootSigner)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	snapshotKey := createTestSigner(t)
-	timestampKey := createTestSigner(t)
-
-	// Initialize succeeds.
-	if err := app.InitCmd(ctx, td, "", 1, targetsConfig, snapshotKey, timestampKey, app.DeprecatedEcdsaFormat); err != nil {
-		t.Fatal(err)
-	}
-
-	// Validate that root and targets have one unfilled signature.
-	store := tuf.FileSystemStore(td, nil)
-	meta, err := store.GetMeta()
-	if err != nil {
-		t.Fatal(err)
-	}
+	// Validate that root and targets have two unfilled signature.
 	for _, metaName := range []string{"root.json", "targets.json"} {
-		md, ok := meta[metaName]
-		if !ok {
-			t.Fatalf("missing %s", metaName)
-		}
+		md := stack.getManifest(t, metaName)
 		signed := &data.Signed{}
 		if err := json.Unmarshal(md, signed); err != nil {
 			t.Fatal(err)
 		}
 		if len(signed.Signatures) != 2 {
-			t.Fatalf("expected 1 signature on %s", metaName)
+			t.Fatalf("expected 2 signature on %s", metaName)
 		}
 		if len(signed.Signatures[0].Signature) != 0 {
 			t.Fatalf("expected empty signature for key ID %s", signed.Signatures[0].KeyID)
@@ -381,30 +245,20 @@ func TestSnapshotUnvalidatedFails(t *testing.T) {
 	}
 
 	// Try to snapshot. Expect to fail.
-	if err := app.SnapshotCmd(ctx, td); err == nil {
+	if err := app.SnapshotCmd(ctx, stack.repoDir); err == nil {
 		t.Fatalf("expected Snapshot command to fail")
 	}
 
 	// Now sign root and targets with 1/1 threshold key.
-	signer, err := GetTestHsmSigner(ctx, td, *rootkey1)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := app.SignCmd(ctx, td, []string{"root", "targets"}, signer, app.DeprecatedEcdsaFormat); err != nil {
+	rootSigner := stack.getSigner(t, rootKeyRef)
+	if err := app.SignCmd(ctx, stack.repoDir, []string{"root", "targets"},
+		rootSigner, app.DeprecatedEcdsaFormat); err != nil {
 		t.Fatal(err)
 	}
 
 	// Expect that there is still one empty placeholder signature.
-	store = tuf.FileSystemStore(td, nil)
-	meta, err = store.GetMeta()
-	if err != nil {
-		t.Fatal(err)
-	}
 	for _, metaName := range []string{"root.json", "targets.json"} {
-		md, ok := meta[metaName]
-		if !ok {
-			t.Fatalf("missing %s", metaName)
-		}
+		md := stack.getManifest(t, metaName)
 		signed := &data.Signed{}
 		if err := json.Unmarshal(md, signed); err != nil {
 			t.Fatal(err)
@@ -418,63 +272,48 @@ func TestSnapshotUnvalidatedFails(t *testing.T) {
 	}
 
 	// Snapshot success! We clear the empty placeholder signature in root/targets.
-	if err := app.SnapshotCmd(ctx, td); err != nil {
-		t.Fatalf("expected Snapshot command to pass, got err: %s", err)
+	stack.snapshot(t, app.DeprecatedEcdsaFormat)
+	for _, metaName := range []string{"root.json", "targets.json"} {
+		md := stack.getManifest(t, metaName)
+		signed := &data.Signed{}
+		if err := json.Unmarshal(md, signed); err != nil {
+			t.Fatal(err)
+		}
+		if len(signed.Signatures) != 1 {
+			t.Fatalf("expected 1 signature on %s, got %d", metaName, len(signed.Signatures))
+		}
 	}
 }
 
 func TestPublishSuccess(t *testing.T) {
+	// Initialize.
 	ctx := context.Background()
-	td := t.TempDir()
+	stack := newRepoTestStack(ctx, t)
+	stack.addTarget(t, "foo.txt", "abc", nil)
+	rootKeyRef := stack.genKey(t, true)
 
-	rootCA, rootSigner, err := CreateRootCA()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	testTarget := filepath.Join(td, "foo.txt")
-	targetsConfig := map[string]json.RawMessage{testTarget: nil}
-
-	if err := os.WriteFile(testTarget, []byte("abc"), 0600); err != nil {
-		t.Fatal(err)
-	}
-
-	rootSerial, err := CreateTestHsmSigner(td, rootCA, rootSigner)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	snapshotKey := createTestSigner(t)
-	timestampKey := createTestSigner(t)
-
-	// Initialize succeeds.
-	if err := app.InitCmd(ctx, td, "", 1, targetsConfig, snapshotKey, timestampKey, app.DeprecatedEcdsaFormat); err != nil {
+	// Initialize with 1 succeeds.
+	if err := app.InitCmd(ctx, stack.repoDir, "", 1,
+		stack.targetsConfig, stack.snapshotRef, stack.timestampRef,
+		app.DeprecatedEcdsaFormat); err != nil {
 		t.Fatal(err)
 	}
 
 	// Sign root & targets
-	rootKey, err := GetTestHsmSigner(ctx, td, *rootSerial)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := app.SignCmd(ctx, td, []string{"root", "targets"}, rootKey, app.DeprecatedEcdsaFormat); err != nil {
+	rootSigner := stack.getSigner(t, rootKeyRef)
+	if err := app.SignCmd(ctx, stack.repoDir, []string{"root", "targets"},
+		rootSigner, app.DeprecatedEcdsaFormat); err != nil {
 		t.Fatal(err)
 	}
 
 	// Sign snapshot and timestamp
-	snapshotTimestampPublish(ctx, t, td, snapshotKey, timestampKey, app.DeprecatedEcdsaFormat)
+	stack.snapshot(t, app.DeprecatedEcdsaFormat)
+	stack.timestamp(t, app.DeprecatedEcdsaFormat)
+	stack.publish(t)
 
 	// Check versions.
-	store := tuf.FileSystemStore(td, nil)
-	meta, err := store.GetMeta()
-	if err != nil {
-		t.Fatal(err)
-	}
 	for _, metaName := range []string{"root.json", "targets.json", "snapshot.json", "timestamp.json"} {
-		md, ok := meta[metaName]
-		if !ok {
-			t.Fatalf("missing %s", metaName)
-		}
+		md := stack.getManifest(t, metaName)
 		signed := &data.Signed{}
 		if err := json.Unmarshal(md, signed); err != nil {
 			t.Fatal(err)
@@ -489,7 +328,7 @@ func TestPublishSuccess(t *testing.T) {
 	}
 
 	// Verify with go-tuf
-	targetFiles, err := verifyTuf(t, td, meta["root.json"])
+	targetFiles, err := verifyTuf(t, stack.repoDir, stack.getManifest(t, "root.json"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -507,55 +346,36 @@ func TestRotateRootKey(t *testing.T) {
 	// This tests root key rotation: we use a threshold of 1 with 2 root keys
 	// and expect to rotate one keyholder during an update.
 	ctx := context.Background()
-	td := t.TempDir()
+	stack := newRepoTestStack(ctx, t)
+	stack.addTarget(t, "foo.txt", "abc", nil)
+	rootKeyRef1 := stack.genKey(t, true)
+	rootKeyRef2 := stack.genKey(t, true)
 
-	rootCA, rootSigner, err := CreateRootCA()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	testTarget := filepath.Join(td, "foo.txt")
-	targetsConfig := map[string]json.RawMessage{testTarget: nil}
-
-	if err := os.WriteFile(testTarget, []byte("abc"), 0600); err != nil {
-		t.Fatal(err)
-	}
-
-	rootSerial1, err := CreateTestHsmSigner(td, rootCA, rootSigner)
-	if err != nil {
-		t.Fatal(err)
-	}
-	rootSerial2, err := CreateTestHsmSigner(td, rootCA, rootSigner)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	snapshotKey := createTestSigner(t)
-	timestampKey := createTestSigner(t)
-
-	// Initialize succeeds.
-	if err := app.InitCmd(ctx, td, "", 1, targetsConfig, snapshotKey, timestampKey, app.DeprecatedEcdsaFormat); err != nil {
+	// Initialize succeeds
+	if err := app.InitCmd(ctx, stack.repoDir, "", 1,
+		stack.targetsConfig, stack.snapshotRef, stack.timestampRef,
+		app.DeprecatedEcdsaFormat); err != nil {
 		t.Fatal(err)
 	}
 
 	// Sign root & targets with key 1
-	rootKey1, err := GetTestHsmSigner(ctx, td, *rootSerial1)
-	if err != nil {
+	rootSigner1 := stack.getSigner(t, rootKeyRef1)
+	if err := app.SignCmd(ctx, stack.repoDir, []string{"root", "targets"},
+		rootSigner1, app.DeprecatedEcdsaFormat); err != nil {
 		t.Fatal(err)
 	}
-	rootTufKey1, err := keys.ConstructTufKey(ctx, rootKey1, app.DeprecatedEcdsaFormat)
+	rootTufKey1, err := keys.ConstructTufKey(ctx, rootSigner1, app.DeprecatedEcdsaFormat)
 	if err != nil {
-		t.Fatal(err)
-	}
-	if err := app.SignCmd(ctx, td, []string{"root", "targets"}, rootKey1, app.DeprecatedEcdsaFormat); err != nil {
 		t.Fatal(err)
 	}
 
 	// Sign snapshot and timestamp
-	snapshotTimestampPublish(ctx, t, td, snapshotKey, timestampKey, app.DeprecatedEcdsaFormat)
+	stack.snapshot(t, app.DeprecatedEcdsaFormat)
+	stack.timestamp(t, app.DeprecatedEcdsaFormat)
+	stack.publish(t)
 
 	// Check that there are two root key signers: key 1 and key 2.
-	store := tuf.FileSystemStore(td, nil)
+	store := tuf.FileSystemStore(stack.repoDir, nil)
 	root, err := prepo.GetRootFromStore(store)
 	if err != nil {
 		t.Fatal(err)
@@ -564,11 +384,8 @@ func TestRotateRootKey(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected root role")
 	}
-	rootKey2, err := GetTestHsmSigner(ctx, td, *rootSerial2)
-	if err != nil {
-		t.Fatal(err)
-	}
-	rootTufKey2, err := keys.ConstructTufKey(ctx, rootKey2, app.DeprecatedEcdsaFormat)
+	rootSigner2 := stack.getSigner(t, rootKeyRef2)
+	rootTufKey2, err := keys.ConstructTufKey(ctx, rootSigner2, app.DeprecatedEcdsaFormat)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -581,16 +398,13 @@ func TestRotateRootKey(t *testing.T) {
 	}
 
 	// Now remove the second key and add a third key.
-	if err := os.RemoveAll(filepath.Join(td, "keys", fmt.Sprint(*rootSerial2))); err != nil {
-		t.Fatal(err)
-	}
-	rootSerial3, err := CreateTestHsmSigner(td, rootCA, rootSigner)
-	if err != nil {
-		t.Fatal(err)
-	}
+	stack.removeHsmKey(t, rootKeyRef2)
+	rootKeyRef3 := stack.genKey(t, true)
 
 	// Create a new root.
-	if err := app.InitCmd(ctx, td, td, 1, targetsConfig, snapshotKey, timestampKey, app.DeprecatedEcdsaFormat); err != nil {
+	if err := app.InitCmd(ctx, stack.repoDir, stack.repoDir, 1,
+		stack.targetsConfig, stack.snapshotRef, stack.timestampRef,
+		app.DeprecatedEcdsaFormat); err != nil {
 		t.Fatal(err)
 	}
 
@@ -603,11 +417,8 @@ func TestRotateRootKey(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected root role")
 	}
-	rootKey3, err := GetTestHsmSigner(ctx, td, *rootSerial3)
-	if err != nil {
-		t.Fatal(err)
-	}
-	rootTufKey3, err := keys.ConstructTufKey(ctx, rootKey3, app.DeprecatedEcdsaFormat)
+	rootSigner3 := stack.getSigner(t, rootKeyRef3)
+	rootTufKey3, err := keys.ConstructTufKey(ctx, rootSigner3, app.DeprecatedEcdsaFormat)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -625,82 +436,54 @@ func TestRotateRootKey(t *testing.T) {
 	}
 
 	// Sign root & targets
-	rootKey, err := GetTestHsmSigner(ctx, td, *rootSerial1)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := app.SignCmd(ctx, td, []string{"root", "targets"}, rootKey, app.DeprecatedEcdsaFormat); err != nil {
+	if err := app.SignCmd(ctx, stack.repoDir, []string{"root", "targets"}, rootSigner1, app.DeprecatedEcdsaFormat); err != nil {
 		t.Fatal(err)
 	}
 
 	// Sign snapshot and timestamp
-	snapshotTimestampPublish(ctx, t, td, snapshotKey, timestampKey, app.DeprecatedEcdsaFormat)
+	stack.snapshot(t, app.DeprecatedEcdsaFormat)
+	stack.timestamp(t, app.DeprecatedEcdsaFormat)
+	stack.publish(t)
 
 	// Verify with go-tuf
-	meta, err := store.GetMeta()
-	if err != nil {
-		t.Fatal(err)
-	}
-	if _, err = verifyTuf(t, td, meta["root.json"]); err != nil {
+	if _, err = verifyTuf(t, stack.repoDir, stack.getManifest(t, "root.json")); err != nil {
 		t.Fatal(err)
 	}
 }
 
 func TestRotateTarget(t *testing.T) {
+	// Initialize.
 	ctx := context.Background()
-	td := t.TempDir()
-
-	rootCA, rootSigner, err := CreateRootCA()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	testTarget := filepath.Join(td, "foo.txt")
-	targetsConfig := map[string]json.RawMessage{testTarget: nil}
-
-	if err := os.WriteFile(testTarget, []byte("abc"), 0600); err != nil {
-		t.Fatal(err)
-	}
-
-	rootSerial, err := CreateTestHsmSigner(td, rootCA, rootSigner)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	snapshotKey := createTestSigner(t)
-	timestampKey := createTestSigner(t)
+	stack := newRepoTestStack(ctx, t)
+	stack.addTarget(t, "foo.txt", "abc", nil)
+	rootKeyRef := stack.genKey(t, true)
 
 	// Initialize succeeds.
-	if err := app.InitCmd(ctx, td, "", 1, targetsConfig, snapshotKey, timestampKey, app.DeprecatedEcdsaFormat); err != nil {
+	if err := app.InitCmd(ctx, stack.repoDir, "", 1,
+		stack.targetsConfig, stack.snapshotRef, stack.timestampRef,
+		app.DeprecatedEcdsaFormat); err != nil {
 		t.Fatal(err)
 	}
 
 	// Sign root & targets
-	rootKey, err := GetTestHsmSigner(ctx, td, *rootSerial)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := app.SignCmd(ctx, td, []string{"root", "targets"}, rootKey, app.DeprecatedEcdsaFormat); err != nil {
+	rootSigner := stack.getSigner(t, rootKeyRef)
+	if err := app.SignCmd(ctx, stack.repoDir, []string{"root", "targets"},
+		rootSigner, app.DeprecatedEcdsaFormat); err != nil {
 		t.Fatal(err)
 	}
 
 	// Sign snapshot and timestamp
-	snapshotTimestampPublish(ctx, t, td, snapshotKey, timestampKey, app.DeprecatedEcdsaFormat)
+	stack.snapshot(t, app.DeprecatedEcdsaFormat)
+	stack.timestamp(t, app.DeprecatedEcdsaFormat)
+	stack.publish(t)
 
 	// Check versions.
-	checkMetadataVersion(t, td,
+	checkMetadataVersion(t, stack.repoDir,
 		[]string{"root.json", "targets.json", "snapshot.json", "timestamp.json"},
 		1)
 
 	// Verify with go-tuf
-	store := tuf.FileSystemStore(td, nil)
-	meta, err := store.GetMeta()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	// Verify with go-tuf
-	targetFiles, err := verifyTuf(t, td, meta["root.json"])
+	targetFiles, err := verifyTuf(t, stack.repoDir, stack.getManifest(t, "root.json"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -714,39 +497,34 @@ func TestRotateTarget(t *testing.T) {
 	}
 
 	// New target, config only targets new file, not old
-	testTarget = filepath.Join(td, "bar.txt")
-	targetsConfig = map[string]json.RawMessage{testTarget: nil}
-
-	if err := os.WriteFile(testTarget, []byte("abcdef"), 0600); err != nil {
-		t.Fatal(err)
-	}
+	stack.removeTarget(t, "foo.txt")
+	stack.addTarget(t, "bar.txt", "abcdef", nil)
 
 	// Initialize succeeds.
-	if err := app.InitCmd(ctx, td, td, 1, targetsConfig, snapshotKey, timestampKey, app.DeprecatedEcdsaFormat); err != nil {
+	if err := app.InitCmd(ctx, stack.repoDir, stack.repoDir, 1,
+		stack.targetsConfig, stack.snapshotRef, stack.timestampRef,
+		app.DeprecatedEcdsaFormat); err != nil {
 		t.Fatal(err)
 	}
 
 	// Sign root & targets
-	if err := app.SignCmd(ctx, td, []string{"root", "targets"}, rootKey, app.DeprecatedEcdsaFormat); err != nil {
+	if err := app.SignCmd(ctx, stack.repoDir, []string{"root", "targets"},
+		rootSigner, app.DeprecatedEcdsaFormat); err != nil {
 		t.Fatal(err)
 	}
 
 	// Sign snapshot and timestamp
-	snapshotTimestampPublish(ctx, t, td, snapshotKey, timestampKey, app.DeprecatedEcdsaFormat)
+	stack.snapshot(t, app.DeprecatedEcdsaFormat)
+	stack.timestamp(t, app.DeprecatedEcdsaFormat)
+	stack.publish(t)
 
 	// Check versions.
-	checkMetadataVersion(t, td,
+	checkMetadataVersion(t, stack.repoDir,
 		[]string{"root.json", "targets.json", "snapshot.json", "timestamp.json"},
 		2)
 
 	// Verify with go-tuf
-	meta, err = store.GetMeta()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	// Verify with go-tuf
-	targetFiles, err = verifyTuf(t, td, meta["root.json"])
+	targetFiles, err = verifyTuf(t, stack.repoDir, stack.getManifest(t, "root.json"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -762,59 +540,39 @@ func TestRotateTarget(t *testing.T) {
 
 // Tests that enabling consistent snapshots at version > 1 works.
 func TestConsistentSnapshotFlip(t *testing.T) {
+	// Initialize.
 	ctx := context.Background()
-	td := t.TempDir()
-
-	rootCA, rootSigner, err := CreateRootCA()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	testTarget := filepath.Join(td, "foo.txt")
-	targetsConfig := map[string]json.RawMessage{testTarget: nil}
-
-	if err := os.WriteFile(testTarget, []byte("abc"), 0600); err != nil {
-		t.Fatal(err)
-	}
-
-	rootSerial, err := CreateTestHsmSigner(td, rootCA, rootSigner)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	snapshotKey := createTestSigner(t)
-	timestampKey := createTestSigner(t)
+	stack := newRepoTestStack(ctx, t)
+	stack.addTarget(t, "foo.txt", "abc", nil)
+	rootKeyRef := stack.genKey(t, true)
 
 	// Initialize succeeds with consistent snapshot off.
 	app.ConsistentSnapshot = false
-	if err := app.InitCmd(ctx, td, "", 1, targetsConfig, snapshotKey, timestampKey, app.DeprecatedEcdsaFormat); err != nil {
+	if err := app.InitCmd(ctx, stack.repoDir, "", 1,
+		stack.targetsConfig, stack.snapshotRef, stack.timestampRef,
+		app.DeprecatedEcdsaFormat); err != nil {
 		t.Fatal(err)
 	}
 
 	// Sign root & targets
-	rootKey, err := GetTestHsmSigner(ctx, td, *rootSerial)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := app.SignCmd(ctx, td, []string{"root", "targets"}, rootKey, app.DeprecatedEcdsaFormat); err != nil {
+	rootSigner := stack.getSigner(t, rootKeyRef)
+	if err := app.SignCmd(ctx, stack.repoDir, []string{"root", "targets"},
+		rootSigner, app.DeprecatedEcdsaFormat); err != nil {
 		t.Fatal(err)
 	}
 
 	// Sign snapshot and timestamp
-	snapshotTimestampPublish(ctx, t, td, snapshotKey, timestampKey, app.DeprecatedEcdsaFormat)
+	stack.snapshot(t, app.DeprecatedEcdsaFormat)
+	stack.timestamp(t, app.DeprecatedEcdsaFormat)
+	stack.publish(t)
 
 	// Check versions.
-	checkMetadataVersion(t, td,
+	checkMetadataVersion(t, stack.repoDir,
 		[]string{"root.json", "targets.json", "snapshot.json", "timestamp.json"},
 		1)
 
 	// Verify with go-tuf
-	store := tuf.FileSystemStore(td, nil)
-	meta, err := store.GetMeta()
-	if err != nil {
-		t.Fatal(err)
-	}
-	targetFiles, err := verifyTuf(t, td, meta["root.json"])
+	targetFiles, err := verifyTuf(t, stack.repoDir, stack.getManifest(t, "root.json"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -830,25 +588,29 @@ func TestConsistentSnapshotFlip(t *testing.T) {
 	// Flip consistent snapshot on.
 	app.ConsistentSnapshot = true
 	// Initialize succeeds.
-	if err := app.InitCmd(ctx, td, td, 1, targetsConfig, snapshotKey, timestampKey, app.DeprecatedEcdsaFormat); err != nil {
+	if err := app.InitCmd(ctx, stack.repoDir, stack.repoDir, 1,
+		stack.targetsConfig, stack.snapshotRef, stack.timestampRef,
+		app.DeprecatedEcdsaFormat); err != nil {
 		t.Fatal(err)
 	}
 
 	// Sign root & targets
-	if err := app.SignCmd(ctx, td, []string{"root", "targets"}, rootKey, app.DeprecatedEcdsaFormat); err != nil {
+	if err := app.SignCmd(ctx, stack.repoDir, []string{"root", "targets"},
+		rootSigner, app.DeprecatedEcdsaFormat); err != nil {
 		t.Fatal(err)
 	}
-
 	// Sign snapshot and timestamp
-	snapshotTimestampPublish(ctx, t, td, snapshotKey, timestampKey, app.DeprecatedEcdsaFormat)
+	stack.snapshot(t, app.DeprecatedEcdsaFormat)
+	stack.timestamp(t, app.DeprecatedEcdsaFormat)
+	stack.publish(t)
 
 	// Check versions.
-	checkMetadataVersion(t, td,
+	checkMetadataVersion(t, stack.repoDir,
 		[]string{"root.json", "targets.json", "snapshot.json", "timestamp.json"},
 		2)
 
 	// Verify with TUF
-	targetFiles, err = verifyTuf(t, td, meta["root.json"])
+	targetFiles, err = verifyTuf(t, stack.repoDir, stack.getManifest(t, "root.json"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -861,13 +623,9 @@ func TestConsistentSnapshotFlip(t *testing.T) {
 		}
 	}
 
-	if _, err = verifyTuf(t, td, meta["root.json"]); err != nil {
-		t.Fatal(err)
-	}
-
 	// Verify consistent snapshotting was enabled by
 	// checking that 2.snapshot.json is present.
-	repoFiles, err := ioutil.ReadDir(filepath.Join(td, "repository"))
+	repoFiles, err := ioutil.ReadDir(filepath.Join(stack.repoDir, "repository"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -884,58 +642,33 @@ func TestConsistentSnapshotFlip(t *testing.T) {
 }
 
 func TestSignWithEcdsaHexHSM(t *testing.T) {
+	// Initialize.
 	ctx := context.Background()
-	td := t.TempDir()
-
-	rootCA, rootSigner, err := CreateRootCA()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	testTarget := filepath.Join(td, "foo.txt")
-	targetsConfig := map[string]json.RawMessage{testTarget: nil}
-
-	if err := os.WriteFile(testTarget, []byte("abc"), 0600); err != nil {
-		t.Fatal(err)
-	}
-
-	rootSerial, err := CreateTestHsmSigner(td, rootCA, rootSigner)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	snapshotKey := createTestSigner(t)
-	timestampKey := createTestSigner(t)
+	stack := newRepoTestStack(ctx, t)
+	stack.addTarget(t, "foo.txt", "abc", nil)
+	rootKeyRef := stack.genKey(t, true)
 
 	// Initialize succeeds.
-	if err := app.InitCmd(ctx, td, "", 1, targetsConfig, snapshotKey, timestampKey, app.DeprecatedEcdsaFormat); err != nil {
+	if err := app.InitCmd(ctx, stack.repoDir, "", 1,
+		stack.targetsConfig, stack.snapshotRef, stack.timestampRef,
+		true); err != nil {
 		t.Fatal(err)
 	}
 
 	// Sign root
-	rootKey, err := GetTestHsmSigner(ctx, td, *rootSerial)
-	if err != nil {
+	rootSigner := stack.getSigner(t, rootKeyRef)
+	if err := app.SignCmd(ctx, stack.repoDir, []string{"root"},
+		rootSigner, true); err != nil {
 		t.Fatal(err)
 	}
-	rootTufKey, err := keys.ConstructTufKey(ctx, rootKey, app.DeprecatedEcdsaFormat)
+
+	rootTufKey, err := keys.ConstructTufKey(ctx, rootSigner, true)
 	if err != nil {
-		t.Fatal(err)
-	}
-	if err := app.SignCmd(ctx, td, []string{"root"}, rootKey, app.DeprecatedEcdsaFormat); err != nil {
 		t.Fatal(err)
 	}
 
 	// Verify that root has one signature using hex-encoded key.
-	store := tuf.FileSystemStore(td, nil)
-	meta, err := store.GetMeta()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	md, ok := meta["root.json"]
-	if !ok {
-		t.Fatalf("missing root")
-	}
+	md := stack.getManifest(t, "root.json")
 	signed := &data.Signed{}
 	if err := json.Unmarshal(md, signed); err != nil {
 		t.Fatal(err)
@@ -971,90 +704,62 @@ func TestSignWithEcdsaHexHSM(t *testing.T) {
 
 func TestEcdsaHexToPEMMigration(t *testing.T) {
 	ctx := context.Background()
-	td := t.TempDir()
-
-	rootCA, rootSigner, err := CreateRootCA()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	testTarget := filepath.Join(td, "foo.txt")
-	targetsConfig := map[string]json.RawMessage{testTarget: nil}
-
-	if err := os.WriteFile(testTarget, []byte("abc"), 0600); err != nil {
-		t.Fatal(err)
-	}
-
-	rootSerial, err := CreateTestHsmSigner(td, rootCA, rootSigner)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	snapshotKey := createTestSigner(t)
-	timestampKey := createTestSigner(t)
+	stack := newRepoTestStack(ctx, t)
+	stack.addTarget(t, "foo.txt", "abc", nil)
+	rootKeyRef := stack.genKey(t, true)
 
 	// Initialize succeeds with deprecated format.
 	deprecatedEcdsaFormat := true
-	if err := app.InitCmd(ctx, td, "", 1, targetsConfig, snapshotKey, timestampKey, deprecatedEcdsaFormat); err != nil {
+	if err := app.InitCmd(ctx, stack.repoDir, "", 1,
+		stack.targetsConfig, stack.snapshotRef, stack.timestampRef,
+		deprecatedEcdsaFormat); err != nil {
 		t.Fatal(err)
 	}
 
 	// Just to make sure, try this with the PEM signer and expect failure
-	rootKeyPEM, err := GetTestHsmSigner(ctx, td, *rootSerial)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := app.SignCmd(ctx, td, []string{"root"}, rootKeyPEM, false); err == nil {
+	rootSigner := stack.getSigner(t, rootKeyRef)
+	if err := app.SignCmd(ctx, stack.repoDir, []string{"root"}, rootSigner, false); err == nil {
 		t.Fatal("expected error signing with PEM key")
 	}
 
 	// Sign root with deprecated format signer.
-	rootKey, err := GetTestHsmSigner(ctx, td, *rootSerial)
-	if err != nil {
+	if err := app.SignCmd(ctx, stack.repoDir, []string{"root", "targets"},
+		rootSigner, deprecatedEcdsaFormat); err != nil {
 		t.Fatal(err)
-	}
-	rootTufKeyHex, err := keys.ConstructTufKey(ctx, rootKey, deprecatedEcdsaFormat)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := app.SignCmd(ctx, td, []string{"root", "targets"}, rootKey, deprecatedEcdsaFormat); err != nil {
-		t.Fatalf("error signing with deprecated signer %s", err)
 	}
 
 	// Finish publishing & verify
-	snapshotTimestampPublish(ctx, t, td, snapshotKey, timestampKey, deprecatedEcdsaFormat)
-	store := tuf.FileSystemStore(td, nil)
-	meta, err := store.GetMeta()
-	if err != nil {
-		t.Fatal(err)
-	}
-	initialSignedRoot := meta["root.json"]
-	verifyTuf(t, td, initialSignedRoot)
-	checkMetadataVersion(t, td,
+	stack.snapshot(t, deprecatedEcdsaFormat)
+	stack.timestamp(t, deprecatedEcdsaFormat)
+	stack.publish(t)
+
+	// Finish publishing & verify
+	initialSignedRoot := stack.getManifest(t, "root.json")
+	verifyTuf(t, stack.repoDir, initialSignedRoot)
+	checkMetadataVersion(t, stack.repoDir,
 		[]string{"root.json", "targets.json", "snapshot.json", "timestamp.json"},
 		1)
 
 	// Flip the format and re-init! This should add "new" TUF key, same material.
 	deprecatedEcdsaFormat = false
-	if err := app.InitCmd(ctx, td, td, 1, targetsConfig, snapshotKey, timestampKey, deprecatedEcdsaFormat); err != nil {
-		t.Fatal(err)
-	}
-	rootTufKeyPem, err := keys.ConstructTufKey(ctx, rootKey, deprecatedEcdsaFormat)
-	if err != nil {
+	if err := app.InitCmd(ctx, stack.repoDir, stack.repoDir, 1,
+		stack.targetsConfig, stack.snapshotRef, stack.timestampRef,
+		deprecatedEcdsaFormat); err != nil {
 		t.Fatal(err)
 	}
 
 	// Check that only the PEM key IDs are on root & targets role.
-	meta, err = store.GetMeta()
+	rootTufKeyPem, err := keys.ConstructTufKey(ctx, rootSigner, false)
 	if err != nil {
 		t.Fatal(err)
 	}
+	store := tuf.FileSystemStore(stack.repoDir, nil)
 	root, err := prepo.GetRootFromStore(store)
 	if err != nil {
 		t.Fatal(err)
 	}
 	for _, roleName := range []string{"root", "targets"} {
-		role, ok := root.Roles["root"]
+		role, ok := root.Roles[roleName]
 		if !ok {
 			t.Fatalf("expected %s role", roleName)
 		}
@@ -1068,10 +773,11 @@ func TestEcdsaHexToPEMMigration(t *testing.T) {
 
 	// Check that there are 2 signature pre-entries on root
 	// one for Hex and one for PEM.
-	md, ok := meta["root.json"]
-	if !ok {
-		t.Fatalf("missing root")
+	rootTufKeyHex, err := keys.ConstructTufKey(ctx, rootSigner, true)
+	if err != nil {
+		t.Fatal(err)
 	}
+	md := stack.getManifest(t, "root.json")
 	signed := &data.Signed{}
 	if err := json.Unmarshal(md, signed); err != nil {
 		t.Fatal(err)
@@ -1091,10 +797,7 @@ func TestEcdsaHexToPEMMigration(t *testing.T) {
 	}
 
 	// Check that there is 1 signature pre-entry on targets, just the new PEM.
-	md, ok = meta["targets.json"]
-	if !ok {
-		t.Fatalf("missing targets")
-	}
+	md = stack.getManifest(t, "targets.json")
 	signed = &data.Signed{}
 	if err := json.Unmarshal(md, signed); err != nil {
 		t.Fatal(err)
@@ -1106,24 +809,143 @@ func TestEcdsaHexToPEMMigration(t *testing.T) {
 		t.Fatalf("expected key IDs %s, got %s", expectedKeyIds, preEntries)
 	}
 
+	// Check that snapshot and timestamp only have 1 key, the new PEM format.
+	root, err = prepo.GetRootFromStore(store)
+	if err != nil {
+		t.Fatal(err)
+	}
+	snapshotSigner := stack.getSigner(t, stack.snapshotRef)
+	snapshotKeyPEM, err := keys.ConstructTufKey(ctx, snapshotSigner, deprecatedEcdsaFormat)
+	if err != nil {
+		t.Fatal(err)
+	}
+	timestampSigner := stack.getSigner(t, stack.timestampRef)
+	timestampKeyPEM, err := keys.ConstructTufKey(ctx, timestampSigner, deprecatedEcdsaFormat)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for roleName, roleKey := range map[string]*data.PublicKey{"snapshot": snapshotKeyPEM,
+		"timestamp": timestampKeyPEM} {
+		role, ok := root.Roles[roleName]
+		if !ok {
+			t.Fatalf("expected %s role", roleName)
+		}
+		if len(role.KeyIDs) != 1 {
+			t.Fatalf("expected 1 key IDs on role %s", roleName)
+		}
+		if role.KeyIDs[0] != roleKey.IDs()[0] {
+			t.Fatal("expected PEM ECDSA TUF key")
+		}
+	}
+
 	// Now sign with both key types.
-	if err := app.SignCmd(ctx, td, []string{"root", "targets"}, rootKeyPEM, true); err != nil {
+	if err := app.SignCmd(ctx, stack.repoDir, []string{"root", "targets"}, rootSigner, true); err != nil {
 		t.Fatal(err)
 	}
 
 	// Finish publishing.
-	snapshotTimestampPublish(ctx, t, td, snapshotKey, timestampKey, deprecatedEcdsaFormat)
+	stack.snapshot(t, deprecatedEcdsaFormat)
+	stack.timestamp(t, deprecatedEcdsaFormat)
+	stack.publish(t)
 
 	// Check version 2.
-	checkMetadataVersion(t, td,
+	checkMetadataVersion(t, stack.repoDir,
 		[]string{"root.json", "targets.json", "snapshot.json", "timestamp.json"},
 		2)
 	// Verify using the bytes of 1.root.json.
-	verifyTuf(t, td, initialSignedRoot)
+	verifyTuf(t, stack.repoDir, initialSignedRoot)
 	// Verify using the bytes of 2.root.json.
-	meta, err = store.GetMeta()
+	verifyTuf(t, stack.repoDir, stack.getManifest(t, "2.root.json"))
+}
+
+// Tests snapshot key rotation.
+func TestSnapshotKeyRotate(t *testing.T) {
+	ctx := context.Background()
+	stack := newRepoTestStack(ctx, t)
+	stack.addTarget(t, "foo.txt", "abc", nil)
+	rootKeyRef := stack.genKey(t, true)
+
+	// Initialize succeeds.
+	if err := app.InitCmd(ctx, stack.repoDir, "", 1,
+		stack.targetsConfig, stack.snapshotRef, stack.timestampRef,
+		app.DeprecatedEcdsaFormat); err != nil {
+		t.Fatal(err)
+	}
+
+	// Sign root & targets with key 1
+	rootSigner := stack.getSigner(t, rootKeyRef)
+	if err := app.SignCmd(ctx, stack.repoDir, []string{"root", "targets"},
+		rootSigner, app.DeprecatedEcdsaFormat); err != nil {
+		t.Fatal(err)
+	}
+
+	// Sign snapshot and timestamp
+	stack.snapshot(t, app.DeprecatedEcdsaFormat)
+	stack.timestamp(t, app.DeprecatedEcdsaFormat)
+	stack.publish(t)
+
+	// Verify that the snapshot role contains the initial snapshot key id
+	store := tuf.FileSystemStore(stack.repoDir, nil)
+	root, err := prepo.GetRootFromStore(store)
 	if err != nil {
 		t.Fatal(err)
 	}
-	verifyTuf(t, td, meta["root.json"])
+	snapshotRole, ok := root.Roles["snapshot"]
+	if !ok {
+		t.Fatalf("expected snapshot role")
+	}
+	snapshotSigner1 := stack.getSigner(t, stack.snapshotRef)
+	snapshotTufKey1, err := keys.ConstructTufKey(ctx, snapshotSigner1, app.DeprecatedEcdsaFormat)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(snapshotRole.KeyIDs) != 1 {
+		t.Errorf("expected one snapshot key")
+	}
+	if snapshotRole.KeyIDs[0] != snapshotTufKey1.IDs()[0] {
+		t.Errorf("expected snapshot key %s, got %s", snapshotTufKey1.IDs()[0],
+			snapshotRole.KeyIDs[0])
+	}
+
+	// Now rotate the snapshot signer out.
+	stack.snapshotRef = createTestSigner(t)
+	// Initialize succeeds.
+	if err := app.InitCmd(ctx, stack.repoDir, stack.repoDir, 1,
+		stack.targetsConfig, stack.snapshotRef, stack.timestampRef,
+		app.DeprecatedEcdsaFormat); err != nil {
+		t.Fatal(err)
+	}
+
+	// Sign root & targets with key 1
+	if err := app.SignCmd(ctx, stack.repoDir, []string{"root", "targets"},
+		rootSigner, app.DeprecatedEcdsaFormat); err != nil {
+		t.Fatal(err)
+	}
+
+	// Sign snapshot and timestamp
+	stack.snapshot(t, app.DeprecatedEcdsaFormat)
+	stack.timestamp(t, app.DeprecatedEcdsaFormat)
+	stack.publish(t)
+
+	// Expect only the new snapshot key.
+	root, err = prepo.GetRootFromStore(store)
+	if err != nil {
+		t.Fatal(err)
+	}
+	snapshotRole, ok = root.Roles["snapshot"]
+	if !ok {
+		t.Fatalf("expected snapshot role")
+	}
+	snapshotSigner2 := stack.getSigner(t, stack.snapshotRef)
+	snapshotTufKey2, err := keys.ConstructTufKey(ctx, snapshotSigner2, app.DeprecatedEcdsaFormat)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(snapshotRole.KeyIDs) != 1 {
+		t.Errorf("expected one snapshot key")
+	}
+	if snapshotRole.KeyIDs[0] != snapshotTufKey2.IDs()[0] {
+		t.Errorf("expected snapshot key %s, got %s", snapshotTufKey2.IDs()[0],
+			snapshotRole.KeyIDs[0])
+	}
 }

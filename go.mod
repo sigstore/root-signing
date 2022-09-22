@@ -13,7 +13,7 @@ require (
 	github.com/spf13/cobra v1.5.0
 	github.com/spf13/viper v1.13.0
 	github.com/tent/canonical-json-go v0.0.0-20130607151641-96e4ba3a7613
-	github.com/theupdateframework/go-tuf v0.5.0
+	github.com/theupdateframework/go-tuf v0.5.1
 	golang.org/x/term v0.0.0-20220526004731-065cf7ba2467
 	gopkg.in/yaml.v2 v2.4.0
 )

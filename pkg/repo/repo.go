@@ -17,6 +17,7 @@ package repo
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -28,6 +29,8 @@ import (
 	"github.com/theupdateframework/go-tuf/verify"
 	"gopkg.in/yaml.v2"
 )
+
+var ErrNoPreviousRoot = errors.New("no previous root")
 
 func CreateDb(store tuf.LocalStore) (db *verify.DB, thresholds map[string]int, err error) {
 	db = verify.NewDB()
@@ -102,16 +105,24 @@ func GetRootFromStore(store tuf.LocalStore) (*data.Root, error) {
 	return root, nil
 }
 
-func GetVersionedRootFromStore(store tuf.LocalStore, version int) (*data.Root, error) {
-	s, err := GetSignedMeta(store, fmt.Sprintf("%d.root.json", version))
+func GetPreviousRootFromStore(store tuf.LocalStore) (*data.Root, error) {
+	root, err := GetRootFromStore(store)
 	if err != nil {
 		return nil, err
 	}
-	root := &data.Root{}
-	if err := json.Unmarshal(s.Signed, root); err != nil {
+	if root.Version < 2 {
+		// No previous root.
+		return nil, ErrNoPreviousRoot
+	}
+	s, err := GetSignedMeta(store, fmt.Sprintf("%d.root.json", int(root.Version-1)))
+	if err != nil {
 		return nil, err
 	}
-	return root, nil
+	prevRoot := &data.Root{}
+	if err := json.Unmarshal(s.Signed, prevRoot); err != nil {
+		return nil, err
+	}
+	return prevRoot, nil
 }
 
 func GetTargetsFromStore(store tuf.LocalStore) (*data.Targets, error) {
@@ -234,10 +245,13 @@ func GetSigningKeyIDsForRole(name string, store tuf.LocalStore) (
 			return res, nil
 		}
 		// If this is a root role, check if there is a previous root.
-		previousRoot, err := GetVersionedRootFromStore(store, int(root.Version-1))
+		previousRoot, err := GetPreviousRootFromStore(store)
 		if err != nil {
 			// No previous root.
-			return res, nil
+			if errors.Is(err, ErrNoPreviousRoot) {
+				return res, nil
+			}
+			return nil, err
 		}
 		previousRootRole, ok := previousRoot.Roles[name]
 		if !ok {

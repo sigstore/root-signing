@@ -132,14 +132,40 @@ func verifyStagedMetadata(repository string) error {
 	// and verifies the signatures in each file.
 	store := tuf.FileSystemStore(repository, nil)
 
+	meta, err := store.GetMeta()
+	if err != nil {
+		return err
+	}
+
 	db, thresholds, err := repo.CreateDb(store)
 	if err != nil {
 		return err
 	}
 
-	meta, err := store.GetMeta()
+	// Create a DB with just the previous root for root verification against
+	// the previous keys
+	prevRootExists := false
+	var prevDb *verify.DB
+	var prevThresholds map[string]int
+	prevRoot, err := repo.GetPreviousRootFromStore(store)
 	if err != nil {
-		return err
+		if !errors.Is(err, repo.ErrNoPreviousRoot) {
+			return fmt.Errorf("error getting previous root: %w", err)
+		}
+	} else {
+		prevRootExists = true
+		prevRootBytes, ok := meta[fmt.Sprintf("%d.root.json", int(prevRoot.Version))]
+		if !ok {
+			// This is an error, we should have a previous root.
+			return fmt.Errorf("expected %d.root.json in store", prevRoot.Version)
+		}
+		var err error
+		prevDb, prevThresholds, err = repo.CreateDb(
+			tuf.MemoryStore(map[string]json.RawMessage{
+				"root.json": prevRootBytes}, nil))
+		if err != nil {
+			return err
+		}
 	}
 
 	for name, md := range meta {
@@ -168,35 +194,51 @@ func verifyStagedMetadata(repository string) error {
 		}
 		signed.Signatures = sigs
 
-		if err = db.VerifySignatures(signed, name); err != nil {
-			if _, ok := err.(verify.ErrRoleThreshold); ok {
-				// we may not have all the sig, allow partial sigs for success
-				log.Printf("\tContains %d/%d valid signatures\n", err.(verify.ErrRoleThreshold).Actual, thresholds[name])
-				_, err := PrintAndGetSignedMeta(name, signed.Signed)
-				if err != nil {
-					return err
-				}
-			} else if err.Error() == verify.ErrNoSignatures.Error() {
-				// We do not return an error here so we can log unsigned metadata
-				log.Printf("\tContains 0/%d valid signatures\n", thresholds[name])
-				_, err := PrintAndGetSignedMeta(name, signed.Signed)
-				if err != nil {
-					return err
-				}
-			} else {
+		validSigs, err := verifySignatures(db, signed, name)
+		if err != nil {
+			log.Printf("\tError verifying: %s\n", err)
+			return err
+		}
+		if validSigs == thresholds[name] {
+			log.Printf("\tSuccess! Signatures valid and threshold achieved\n")
+		} else {
+			log.Printf("\tContains %d/%d valid signatures from the current staged metadata\n", validSigs, thresholds[name])
+		}
+
+		if prevRootExists && name == "root" {
+			// Also verify from the previous root for the root role.
+			validSigs, err := verifySignatures(prevDb, signed, name)
+			if err != nil {
 				log.Printf("\tError verifying: %s\n", err)
 				return err
 			}
-		} else {
-			log.Printf("\tSuccess! Signatures valid and threshold achieved\n")
-			_, err := PrintAndGetSignedMeta(name, signed.Signed)
-			if err != nil {
-				return err
+			if validSigs == prevThresholds[name] {
+				log.Printf("\tSuccess! Signatures valid and threshold achieved from the previous root\n")
+			} else {
+				log.Printf("\tContains %d/%d valid signatures from the previous root\n", validSigs, prevThresholds[name])
 			}
+		}
+
+		if _, err := PrintAndGetSignedMeta(name, signed.Signed); err != nil {
+			return err
 		}
 	}
 
 	return nil
+}
+
+func verifySignatures(db *verify.DB, s *data.Signed, role string) (int, error) {
+	err := db.VerifySignatures(s, role)
+	if _, ok := err.(verify.ErrRoleThreshold); ok {
+		return err.(verify.ErrRoleThreshold).Actual, nil
+	} else if errors.Is(err, verify.ErrNoSignatures) {
+		return 0, nil
+	} else if err != nil {
+		return 0, err
+	}
+	// We have success, a threshold number of signers signed.
+	dbRole := db.GetRole(role)
+	return dbRole.Threshold, nil
 }
 
 func getClientState(local client.LocalStore) (map[string]signedMeta, error) {
@@ -259,7 +301,7 @@ var repositoryCmd = &cobra.Command{
 			validUntil = &parsedTime
 		}
 
-		if err := VerifyCmd(staged, root.String(), repository, validUntil, roles); err != nil {
+		if err := VerifyCmd(staged, repository, root.String(), validUntil, roles); err != nil {
 			log.Println(err.Error())
 		}
 	},

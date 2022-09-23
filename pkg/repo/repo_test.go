@@ -171,3 +171,44 @@ func TestUpdateRoleKeys(t *testing.T) {
 		t.Errorf("expected root keys with IDs %s %s", newPk.IDs()[0], pk.IDs()[0])
 	}
 }
+
+func TestGetPreviousRootFromStore(t *testing.T) {
+	tests := []struct {
+		name            string
+		dir             string
+		expectedVersion int
+		shouldErr       bool
+	}{
+		{
+			name:      "root role - initial root",
+			dir:       "./testdata/single_root",
+			shouldErr: true,
+		},
+		{
+			name:            "rotated root keys role",
+			dir:             "./testdata/multiple_root",
+			expectedVersion: 3,
+			shouldErr:       false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			wd, err := os.Getwd()
+			if err != nil {
+				t.Fatal(err)
+			}
+			dirPath := filepath.Join(wd, tt.dir)
+			store := tuf.FileSystemStore(dirPath, nil)
+			prevRoot, err := GetPreviousRootFromStore(store)
+			if (err != nil) != tt.shouldErr {
+				t.Errorf("expected error %t got %s", tt.shouldErr, err)
+			}
+			if err != nil {
+				return
+			}
+			if prevRoot.Version != int64(tt.expectedVersion) {
+				t.Errorf("expected prev root version %d, got %d", tt.expectedVersion, prevRoot.Version)
+			}
+		})
+	}
+}

@@ -19,6 +19,10 @@ targets/ctfe.pub:
   sigstore:
     usage: CTFE
     status: Active
+targets/ctlog2022.pub:
+  sigstore:
+    usage: CTFE
+    status: Active
 targets/rekor.pub:
   sigstore:
     usage: Rekor

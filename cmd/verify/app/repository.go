@@ -152,7 +152,7 @@ func verifyStagedMetadata(repository string) error {
 		if !errors.Is(err, repo.ErrNoPreviousRoot) {
 			return fmt.Errorf("error getting previous root: %w", err)
 		}
-	} else if err == nil {
+	} else {
 		prevRootExists = true
 		prevRootBytes, ok := meta[fmt.Sprintf("%d.root.json", int(prevRoot.Version))]
 		if !ok {

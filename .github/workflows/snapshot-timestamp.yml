@@ -72,9 +72,9 @@ jobs:
       - name: snapshot and timestamp
         run: |
           ./tuf snapshot -repository $REPO
-          ./tuf sign -repository $REPO -roles snapshot -key ${SNAPSHOT_KEY}
+          ./tuf sign -repository $REPO -roles snapshot -key ${SNAPSHOT_KEY} -add-deprecated true
           ./tuf timestamp -repository $REPO
-          ./tuf sign -repository $REPO -roles timestamp -key ${TIMESTAMP_KEY}
+          ./tuf sign -repository $REPO -roles timestamp -key ${TIMESTAMP_KEY} -add-deprecated true
       - name: publish
         run: |
           ./tuf publish -repository $REPO
@@ -92,7 +92,7 @@ jobs:
       issues: 'write'
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    if: needs.snapshot_and_timestamp.result == 'failure'
+    if: always() && needs.snapshot_and_timestamp.result == 'failure'
     steps:
       - uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579 # v2.4.0
       - run: |
@@ -131,7 +131,7 @@ jobs:
       issues: 'write'
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    if: needs.push.result == 'failure'
+    if: always() && needs.push.result == 'failure'
     steps:
       - uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579 # v2.4.0
       - run: |

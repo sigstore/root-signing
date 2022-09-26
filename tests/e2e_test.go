@@ -949,3 +949,55 @@ func TestSnapshotKeyRotate(t *testing.T) {
 			snapshotRole.KeyIDs[0])
 	}
 }
+
+func TestProdTargetsConfig(t *testing.T) {
+	// Initialize.
+	ctx := context.Background()
+	stack := newRepoTestStack(ctx, t)
+	rootKeyRef := stack.genKey(t, true)
+
+	wd, _ := os.Getwd()
+	configBytes, err := ioutil.ReadFile(
+		filepath.Join(wd, "../config/targets-metadata.yml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	configBaseDir := filepath.Dir(wd)
+	targetsConfig, err := prepo.SigstoreTargetMetaFromString(configBaseDir, configBytes)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Initialize succeeds.
+	if err := app.InitCmd(ctx, stack.repoDir, "", 1,
+		targetsConfig, stack.snapshotRef, stack.timestampRef,
+		app.DeprecatedEcdsaFormat); err != nil {
+		t.Fatal(err)
+	}
+
+	// Sign root & targets
+	rootSigner := stack.getSigner(t, rootKeyRef)
+	if err := app.SignCmd(ctx, stack.repoDir, []string{"root", "targets"},
+		rootSigner, app.DeprecatedEcdsaFormat); err != nil {
+		t.Fatal(err)
+	}
+
+	// Sign snapshot and timestamp
+	stack.snapshot(t, app.DeprecatedEcdsaFormat)
+	stack.timestamp(t, app.DeprecatedEcdsaFormat)
+	stack.publish(t)
+
+	// Check versions.
+	checkMetadataVersion(t, stack.repoDir,
+		[]string{"root.json", "targets.json", "snapshot.json", "timestamp.json"},
+		1)
+
+	// Verify with go-tuf
+	targetFiles, err := verifyTuf(t, stack.repoDir, stack.getManifest(t, "root.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(targetFiles) != 7 {
+		t.Fatalf("expected 7 target, got %d", len(targetFiles))
+	}
+}

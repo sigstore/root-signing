@@ -106,7 +106,12 @@ func Init() *ffcli.Command {
 			if err != nil {
 				return err
 			}
-			targetsConfig, err := prepo.SigstoreTargetMetaFromString(targetsConfigStr)
+			wd, err := os.Getwd()
+			if err != nil {
+				return err
+			}
+			// targets config path is relative to wd
+			targetsConfig, err := prepo.SigstoreTargetMetaFromString(wd, targetsConfigStr)
 			if err != nil {
 				return err
 			}

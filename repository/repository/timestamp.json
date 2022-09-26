@@ -1,24 +1,24 @@
 {
+	"signed": {
+		"_type": "timestamp",
+		"spec_version": "1.0",
+		"version": 49,
+		"expires": "2022-10-10T20:31:41Z",
+		"meta": {
+			"snapshot.json": {
+				"length": 1977,
+				"hashes": {
+					"sha256": "9967748df460243463d8ceeb3540f68a5669f6a9f76ec75d730c5daf60b77be3",
+					"sha512": "20c00db65b03f9282b5cbb917cf2d658a0cc3a8145c09b3ea95348e668b70a1d4acb50c5cc59155476b010e92ca1fc1f13386fcf278896f39e5f219b3ae7fcf9"
+				},
+				"version": 49
+			}
+		}
+	},
 	"signatures": [
 		{
 			"keyid": "b6710623a30c010738e64c5209d367df1c0a18cf90e6ab5292fb01680f83453d",
-			"sig": "304502201c5640634e46ea6ab193a4e7f8553f81426dcfe6f46d63d9bf8142b4803c3c0e022100951ef38d4e412cda8b9b7300f3703efb94d27072bb028b528896b29ad40eb200"
+			"sig": "3045022038fbfba9d126c5aeed75c8a422cf6542ee5c8fa4625bb95d9753840a60f4ff49022100a33f8f215d1e3f4ec396315857b5a12703fab119257f7dcc905a021c97c05c24"
 		}
-	],
-	"signed": {
-		"_type": "timestamp",
-		"expires": "2022-09-29T00:12:22Z",
-		"meta": {
-			"snapshot.json": {
-				"hashes": {
-					"sha256": "38c3bfde66d7c408a948bac57e66c2a5830c294ddb6c025c7efedc57613f599c",
-					"sha512": "0b38fae0d694396e670a7598fbc568ffecff7aec873956ab0926cb0db1cdd0312f77377924c23fa377eef1a69ad77f4dbfaeddae6c29c332b2882f3293b89edf"
-				},
-				"length": 1973,
-				"version": 48
-			}
-		},
-		"spec_version": "1.0",
-		"version": 48
-	}
+	]
 }

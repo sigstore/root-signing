@@ -140,7 +140,12 @@ func DelegationCmd(ctx context.Context, directory, name, path string, terminatin
 		if err != nil {
 			return err
 		}
-		meta, err := prepo.SigstoreTargetMetaFromString(targetCfg)
+		wd, err := os.Getwd()
+		if err != nil {
+			return err
+		}
+		// targets config path is relative to wd
+		meta, err := prepo.SigstoreTargetMetaFromString(wd, targetCfg)
 		if err != nil {
 			return err
 		}

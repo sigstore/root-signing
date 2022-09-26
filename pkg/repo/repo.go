@@ -19,6 +19,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -195,7 +196,7 @@ type sigstoreCustomMetadata struct {
 }
 
 // Target metadata helpers
-func SigstoreTargetMetaFromString(b []byte) (map[string]json.RawMessage, error) {
+func SigstoreTargetMetaFromString(relDir string, b []byte) (map[string]json.RawMessage, error) {
 	targetsMeta := map[string]sigstoreCustomMetadata{}
 	targetsMetaJSON := map[string]json.RawMessage{}
 	if err := yaml.Unmarshal(b, &targetsMeta); err != nil {
@@ -206,7 +207,8 @@ func SigstoreTargetMetaFromString(b []byte) (map[string]json.RawMessage, error) 
 		if err != nil {
 			return nil, err
 		}
-		targetsMetaJSON[t] = customJson
+		tPath := filepath.Join(relDir, t)
+		targetsMetaJSON[tPath] = customJson
 	}
 
 	return targetsMetaJSON, nil

@@ -68,13 +68,14 @@ func getExpiration(role string) time.Time {
 
 func Init() *ffcli.Command {
 	var (
-		flagset    = flag.NewFlagSet("tuf init", flag.ExitOnError)
-		repository = flagset.String("repository", "", "path to initialize the staged repository")
-		threshold  = flagset.Int("threshold", DefaultThreshold, "default root and targets signer threshold")
-		previous   = flagset.String("previous", "", "path to the previous repository")
-		snapshot   = flagset.String("snapshot", "", "reference to an online snapshot signer")
-		timestamp  = flagset.String("timestamp", "", "reference to an online timestamp signer")
-		targets    = flagset.String("target-meta", "", "path to a target configuration file")
+		flagset     = flag.NewFlagSet("tuf init", flag.ExitOnError)
+		repository  = flagset.String("repository", "", "path to initialize the staged repository")
+		threshold   = flagset.Int("threshold", DefaultThreshold, "default root and targets signer threshold")
+		previous    = flagset.String("previous", "", "path to the previous repository")
+		snapshot    = flagset.String("snapshot", "", "reference to an online snapshot signer")
+		timestamp   = flagset.String("timestamp", "", "reference to an online timestamp signer")
+		targetsMeta = flagset.String("target-meta", "", "path to a target configuration file")
+		targetsDir  = flagset.String("targets", "", "path to a target configuration file")
 	)
 	return &ffcli.Command{
 		Name:       "init",
@@ -99,23 +100,25 @@ func Init() *ffcli.Command {
 			if *timestamp == "" {
 				return flag.ErrHelp
 			}
-			if *targets == "" {
+			if *targetsMeta == "" {
 				return flag.ErrHelp
 			}
-			targetsConfigStr, err := os.ReadFile(*targets)
-			if err != nil {
-				return err
+			if *targetsDir == "" {
+				return flag.ErrHelp
 			}
-			wd, err := os.Getwd()
+			targetsConfigStr, err := os.ReadFile(*targetsMeta)
 			if err != nil {
 				return err
 			}
 			// targets config path is relative to wd
-			targetsConfig, err := prepo.SigstoreTargetMetaFromString(wd, targetsConfigStr)
+			targetsConfig, err := prepo.SigstoreTargetMetaFromString(targetsConfigStr)
 			if err != nil {
 				return err
 			}
-			return InitCmd(ctx, *repository, *previous, *threshold, targetsConfig, *snapshot, *timestamp, DeprecatedEcdsaFormat)
+			return InitCmd(ctx, *repository, *previous,
+				*threshold, targetsConfig,
+				*targetsDir,
+				*snapshot, *timestamp, DeprecatedEcdsaFormat)
 		},
 	}
 }
@@ -127,6 +130,7 @@ func Init() *ffcli.Command {
 //   - threshold: The root and targets threshold.
 //   - targetsConfig: A map of target file names and custom metadata to add to top-level targets.
 //     Target file names are expected to be in the working directory.
+//   - targetsDir: The local directory where the targets are stored.
 //   - snapshotRef: A reference (KMS, file, URL) to a snapshot signer.
 //   - timestampRef: A reference (KMS, file, URL) to a timestamp signer.
 //
@@ -135,6 +139,7 @@ func Init() *ffcli.Command {
 // Signature placeholders for each key will be added to the root.json and targets.json file.
 func InitCmd(ctx context.Context, directory, previous string,
 	threshold int, targetsConfig map[string]json.RawMessage,
+	targetsDir string,
 	snapshotRef string, timestampRef string,
 	deprecatedKeyFormat bool) error {
 	// TODO: Validate directory is a good path.
@@ -200,13 +205,16 @@ func InitCmd(ctx context.Context, directory, previous string,
 	// Add targets (copy them into the repository and add them to the targets.json)
 	expectedTargets := make(map[string]bool)
 	for tt, custom := range targetsConfig {
-		from, err := os.Open(tt)
+		from, err := os.Open(filepath.Join(targetsDir, tt))
 		if err != nil {
 			return err
 		}
 		defer from.Close()
-		base := filepath.Base(tt)
-		to, err := os.Create(filepath.Join(directory, "staged", "targets", base))
+		stagedPath := filepath.Join(directory, "staged", "targets", tt)
+		if err := os.MkdirAll(filepath.Dir(stagedPath), 0770); err != nil {
+			return err
+		}
+		to, err := os.Create(stagedPath)
 		if err != nil {
 			return err
 		}
@@ -215,10 +223,10 @@ func InitCmd(ctx context.Context, directory, previous string,
 			return err
 		}
 		fmt.Fprintln(os.Stderr, "Created target file at ", to.Name())
-		if err := repo.AddTargetWithExpiresToPreferredRole(base, custom, getExpiration("targets"), "targets"); err != nil {
+		if err := repo.AddTargetWithExpiresToPreferredRole(tt, custom, getExpiration("targets"), "targets"); err != nil {
 			return fmt.Errorf("error adding targets %w", err)
 		}
-		expectedTargets[base] = true
+		expectedTargets[tt] = true
 	}
 
 	// Remove old targets that were not included in config.

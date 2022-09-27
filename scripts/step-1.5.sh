@@ -59,6 +59,8 @@ if [[ -n $1 ]]; then
 fi
 
 # Setup the root and targets
-./tuf init -repository $REPO -target-meta config/targets-metadata.yml -snapshot ${SNAPSHOT_KEY} -timestamp ${TIMESTAMP_KEY} -previous "${PREV_REPO}"
+./tuf init -repository $REPO \ 
+    -targets $(pwd)/targets -target-meta config/targets-metadata.yml \
+    -snapshot ${SNAPSHOT_KEY} -timestamp ${TIMESTAMP_KEY} -previous "${PREV_REPO}"
 
 commit_and_push_changes setup-root

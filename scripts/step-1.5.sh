@@ -70,7 +70,9 @@ if [[ -n $1 ]]; then
 fi
 
 # Setup the root and targets
-./tuf init -repository $REPO -target-meta config/targets-metadata.yml -snapshot ${SNAPSHOT_KEY} -timestamp ${TIMESTAMP_KEY} -previous "${PREV_REPO}"
+./tuf init -repository $REPO \ 
+    -targets $(pwd)/targets -target-meta config/targets-metadata.yml \
+    -snapshot ${SNAPSHOT_KEY} -timestamp ${TIMESTAMP_KEY} -previous "${PREV_REPO}"
 # Add rekor delegation
 ./tuf add-delegation -repository $REPO -name "rekor" -key $REKOR_KEY -path "rekor.*.pub" -target-meta config/rekor-metadata.yml -terminating true
 # Add staging project delegation

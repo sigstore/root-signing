@@ -229,6 +229,8 @@ func verifyStagedMetadata(repository string) error {
 
 func verifySignatures(db *verify.DB, s *data.Signed, role string) (int, error) {
 	err := db.VerifySignatures(s, role)
+	// nolint:gocritic
+	// We cannot type switch for ErrRoleThreshold.
 	if _, ok := err.(verify.ErrRoleThreshold); ok {
 		return err.(verify.ErrRoleThreshold).Actual, nil
 	} else if errors.Is(err, verify.ErrNoSignatures) {
@@ -406,7 +408,7 @@ func VerifyCmd(staged bool, repository string, rootFile string,
 				continue
 			}
 			if sm.Expires.Before(*validUntil) {
-				return fmt.Errorf("error: %s will expire on %s\n", role, sm.Expires.Format("2006/01/02"))
+				return fmt.Errorf("error: %s will expire on %s", role, sm.Expires.Format("2006/01/02"))
 			}
 		}
 	}

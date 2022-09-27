@@ -146,21 +146,24 @@ func SigningKeyFromDir(dirname string) (*SigningKey, error) {
 			fmt.Printf("panic accessing path %q: %v\n", path, err)
 			return err
 		}
-		if strings.HasSuffix(info.Name(), "_pubkey.pem") {
+		switch {
+		case strings.HasSuffix(info.Name(), "_pubkey.pem"):
 			pubKey, err = os.ReadFile(path)
 			if err != nil {
 				return err
 			}
-		} else if strings.HasSuffix(info.Name(), "_key_cert.pem") {
+		case strings.HasSuffix(info.Name(), "_key_cert.pem"):
 			keyCert, err = os.ReadFile(path)
 			if err != nil {
 				return err
 			}
-		} else if strings.HasSuffix(info.Name(), "_device_cert.pem") {
+		case strings.HasSuffix(info.Name(), "_device_cert.pem"):
 			deviceCert, err = os.ReadFile(path)
 			if err != nil {
 				return err
 			}
+		default:
+			return nil
 		}
 		return nil
 	})

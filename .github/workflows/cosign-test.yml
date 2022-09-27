@@ -18,11 +18,11 @@ name: Cosign tests
 on:
   workflow_dispatch:
   push:
-    branches: [ main ]
+    branches: [main]
     paths:
       - 'repository/**'
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   validate:

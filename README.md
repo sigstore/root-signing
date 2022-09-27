@@ -10,8 +10,8 @@ The current published repository metadata lives in the [repository](/repository/
 | ----- | ------| --------- |  
 | Root    | See below | The [offline keyholders](https://github.com/sigstore/root-signing#current-sigstore-root-keyholders).      |
 | Targets    | See below | The [offline keyholders](https://github.com/sigstore/root-signing#current-sigstore-root-keyholders), the same as the root keyholders to minimize the number of offline keysets.       |
-| Snapshot  | `fc61191ba8a516fe386c7d6c97d918e1d241e1589729add09b122725b8c32451` | A GCP KMS [snapshotting key](https://github.com/sigstore/root-signing/blob/57ac5cd83b90ff97af78db846eea2525eb0eee81/repository/repository/root.json#L87-L97) located at `projects/project-rekor/locations/global/keyRings/sigstore-root/cryptoKeys/snapshot`       |
-| Timestamp  | `b6710623a30c010738e64c5209d367df1c0a18cf90e6ab5292fb01680f83453d`| A GCP KMS   [timestamping key](https://github.com/sigstore/root-signing/blob/57ac5cd83b90ff97af78db846eea2525eb0eee81/repository/repository/root.json#L32-L42) located at `projects/project-rekor/locations/global/keyRings/sigstore-root/cryptoKeys/timestamp`      |
+| Snapshot  | `fc61191ba8a516fe386c7d6c97d918e1d241e1589729add09b122725b8c32451` | A GCP KMS [snapshotting key](https://github.com/sigstore/root-signing/blob/57ac5cd83b90ff97af78db846eea2525eb0eee81/repository/repository/root.json#L87-L97) located at `projects/sigstore-root-signing/locations/global/keyRings/root/cryptoKeys/snapshot`       |
+| Timestamp  | `b6710623a30c010738e64c5209d367df1c0a18cf90e6ab5292fb01680f83453d`| A GCP KMS   [timestamping key](https://github.com/sigstore/root-signing/blob/57ac5cd83b90ff97af78db846eea2525eb0eee81/repository/repository/root.json#L32-L42) located at `projects/sigstore-root-signing/locations/global/keyRings/root/cryptoKeys/timestamp`      |
 
 * [targets.json](repository/repository/targets.json): This is the list of trusted `targets.json` endorsed by the offline keyholders. It includes:
 

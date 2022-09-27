@@ -84,11 +84,11 @@ func (s *repoTestStack) addTarget(t *testing.T, name, content string, custom jso
 	if err := os.WriteFile(testTarget, []byte(content), 0600); err != nil {
 		t.Fatal(err)
 	}
-	s.targetsConfig[testTarget] = custom
+	s.targetsConfig[name] = custom
 }
 
 func (s *repoTestStack) removeTarget(t *testing.T, name string) {
-	delete(s.targetsConfig, filepath.Join(s.repoDir, name))
+	delete(s.targetsConfig, name)
 }
 
 func (s *repoTestStack) genKey(t *testing.T, hsm bool) string {

@@ -1,30 +1,67 @@
 # Target files and metadata under top-level targets
-targets/fulcio_v1.crt.pem:
+fulcio/fulcio_v1.crt.pem:
   sigstore:
+    uri: https://fulcio.sigstore.dev
     usage: Fulcio
     status: Active
-targets/fulcio_intermediate_v1.crt.pem:
+fulcio/fulcio_intermediate_v1.crt.pem:
   sigstore:
+    uri: https://fulcio.sigstore.dev
     usage: Fulcio
     status: Active
-targets/fulcio.crt.pem:
+fulcio/fulcio.crt.pem:
   sigstore:
+    uri: https://fulcio.sigstore.dev
     usage: Fulcio
     status: Expired
-targets/artifact.pub:
+ctfe/ctfe.pub:
+  sigstore:
+    uri: https://ctfe.sigstore.dev
+    usage: CTFE
+    status: Active
+ctfe/ctlog2022.pub:
+  sigstore:
+    uri: https://ctfe.sigstore.dev
+    usage: CTFE
+    status: Active
+rekor/rekor.pub:
+  sigstore:
+    uri: https://rekor.sigstore.dev
+    usage: Rekor
+    status: Active
+# For backwards compatibility, we also place top-level targets
+# in their original top-level paths.
+# TODO: Remove these targets in the v6 root.
+fulcio_v1.crt.pem:
+  sigstore:
+    uri: https://fulcio.sigstore.dev
+    usage: Fulcio
+    status: Active
+fulcio_intermediate_v1.crt.pem:
+  sigstore:
+    uri: https://fulcio.sigstore.dev
+    usage: Fulcio
+    status: Active
+fulcio.crt.pem:
+  sigstore:
+    uri: https://fulcio.sigstore.dev
+    usage: Fulcio
+    status: Expired
+artifact.pub:
   sigstore:
     usage: Unknown
     status: Active
-targets/ctfe.pub:
+ctfe.pub:
   sigstore:
+    uri: https://ctfe.sigstore.dev
     usage: CTFE
     status: Active
-targets/ctlog2022.pub:
+rekor.pub:
   sigstore:
-    usage: CTFE
-    status: Active
-targets/rekor.pub:
-  sigstore:
+    uri: https://rekor.sigstore.dev
     usage: Rekor
     status: Active
-
+artifact.pub:
+  sigstore:
+    usage: Unknown
+    status: Active

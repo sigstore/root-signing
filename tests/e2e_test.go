@@ -25,6 +25,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"reflect"
 	"sort"
 	"strings"
 	"testing"
@@ -159,7 +160,7 @@ func TestInitCmd(t *testing.T) {
 
 	// Initialize succeeds.
 	if err := app.InitCmd(ctx, stack.repoDir, "", 1,
-		stack.targetsConfig, stack.snapshotRef, stack.timestampRef,
+		stack.targetsConfig, stack.repoDir, stack.snapshotRef, stack.timestampRef,
 		app.DeprecatedEcdsaFormat); err != nil {
 		t.Fatal(err)
 	}
@@ -179,7 +180,7 @@ func TestSignRootTargets(t *testing.T) {
 
 	// Initialize with 1 succeeds.
 	if err := app.InitCmd(ctx, stack.repoDir, "", 1,
-		stack.targetsConfig, stack.snapshotRef, stack.timestampRef,
+		stack.targetsConfig, stack.repoDir, stack.snapshotRef, stack.timestampRef,
 		app.DeprecatedEcdsaFormat); err != nil {
 		t.Fatal(err)
 	}
@@ -224,7 +225,7 @@ func TestSnapshotUnvalidatedFails(t *testing.T) {
 
 	// Initialize with threshold 1 succeeds.
 	if err := app.InitCmd(ctx, stack.repoDir, "", 1,
-		stack.targetsConfig, stack.snapshotRef, stack.timestampRef,
+		stack.targetsConfig, stack.repoDir, stack.snapshotRef, stack.timestampRef,
 		app.DeprecatedEcdsaFormat); err != nil {
 		t.Fatal(err)
 	}
@@ -294,7 +295,7 @@ func TestPublishSuccess(t *testing.T) {
 
 	// Initialize with 1 succeeds.
 	if err := app.InitCmd(ctx, stack.repoDir, "", 1,
-		stack.targetsConfig, stack.snapshotRef, stack.timestampRef,
+		stack.targetsConfig, stack.repoDir, stack.snapshotRef, stack.timestampRef,
 		app.DeprecatedEcdsaFormat); err != nil {
 		t.Fatal(err)
 	}
@@ -353,7 +354,7 @@ func TestRotateRootKey(t *testing.T) {
 
 	// Initialize succeeds
 	if err := app.InitCmd(ctx, stack.repoDir, "", 1,
-		stack.targetsConfig, stack.snapshotRef, stack.timestampRef,
+		stack.targetsConfig, stack.repoDir, stack.snapshotRef, stack.timestampRef,
 		app.DeprecatedEcdsaFormat); err != nil {
 		t.Fatal(err)
 	}
@@ -403,7 +404,7 @@ func TestRotateRootKey(t *testing.T) {
 
 	// Create a new root.
 	if err := app.InitCmd(ctx, stack.repoDir, stack.repoDir, 1,
-		stack.targetsConfig, stack.snapshotRef, stack.timestampRef,
+		stack.targetsConfig, stack.repoDir, stack.snapshotRef, stack.timestampRef,
 		app.DeprecatedEcdsaFormat); err != nil {
 		t.Fatal(err)
 	}
@@ -460,7 +461,7 @@ func TestRotateTarget(t *testing.T) {
 
 	// Initialize succeeds.
 	if err := app.InitCmd(ctx, stack.repoDir, "", 1,
-		stack.targetsConfig, stack.snapshotRef, stack.timestampRef,
+		stack.targetsConfig, stack.repoDir, stack.snapshotRef, stack.timestampRef,
 		app.DeprecatedEcdsaFormat); err != nil {
 		t.Fatal(err)
 	}
@@ -502,7 +503,7 @@ func TestRotateTarget(t *testing.T) {
 
 	// Initialize succeeds.
 	if err := app.InitCmd(ctx, stack.repoDir, stack.repoDir, 1,
-		stack.targetsConfig, stack.snapshotRef, stack.timestampRef,
+		stack.targetsConfig, stack.repoDir, stack.snapshotRef, stack.timestampRef,
 		app.DeprecatedEcdsaFormat); err != nil {
 		t.Fatal(err)
 	}
@@ -549,7 +550,7 @@ func TestConsistentSnapshotFlip(t *testing.T) {
 	// Initialize succeeds with consistent snapshot off.
 	app.ConsistentSnapshot = false
 	if err := app.InitCmd(ctx, stack.repoDir, "", 1,
-		stack.targetsConfig, stack.snapshotRef, stack.timestampRef,
+		stack.targetsConfig, stack.repoDir, stack.snapshotRef, stack.timestampRef,
 		app.DeprecatedEcdsaFormat); err != nil {
 		t.Fatal(err)
 	}
@@ -589,7 +590,7 @@ func TestConsistentSnapshotFlip(t *testing.T) {
 	app.ConsistentSnapshot = true
 	// Initialize succeeds.
 	if err := app.InitCmd(ctx, stack.repoDir, stack.repoDir, 1,
-		stack.targetsConfig, stack.snapshotRef, stack.timestampRef,
+		stack.targetsConfig, stack.repoDir, stack.snapshotRef, stack.timestampRef,
 		app.DeprecatedEcdsaFormat); err != nil {
 		t.Fatal(err)
 	}
@@ -650,7 +651,7 @@ func TestSignWithEcdsaHexHSM(t *testing.T) {
 
 	// Initialize succeeds.
 	if err := app.InitCmd(ctx, stack.repoDir, "", 1,
-		stack.targetsConfig, stack.snapshotRef, stack.timestampRef,
+		stack.targetsConfig, stack.repoDir, stack.snapshotRef, stack.timestampRef,
 		true); err != nil {
 		t.Fatal(err)
 	}
@@ -711,7 +712,7 @@ func TestEcdsaHexToPEMMigration(t *testing.T) {
 	// Initialize succeeds with deprecated format.
 	deprecatedEcdsaFormat := true
 	if err := app.InitCmd(ctx, stack.repoDir, "", 1,
-		stack.targetsConfig, stack.snapshotRef, stack.timestampRef,
+		stack.targetsConfig, stack.repoDir, stack.snapshotRef, stack.timestampRef,
 		deprecatedEcdsaFormat); err != nil {
 		t.Fatal(err)
 	}
@@ -743,7 +744,7 @@ func TestEcdsaHexToPEMMigration(t *testing.T) {
 	// Flip the format and re-init! This should add "new" TUF key, same material.
 	deprecatedEcdsaFormat = false
 	if err := app.InitCmd(ctx, stack.repoDir, stack.repoDir, 1,
-		stack.targetsConfig, stack.snapshotRef, stack.timestampRef,
+		stack.targetsConfig, stack.repoDir, stack.snapshotRef, stack.timestampRef,
 		deprecatedEcdsaFormat); err != nil {
 		t.Fatal(err)
 	}
@@ -867,7 +868,7 @@ func TestSnapshotKeyRotate(t *testing.T) {
 
 	// Initialize succeeds.
 	if err := app.InitCmd(ctx, stack.repoDir, "", 1,
-		stack.targetsConfig, stack.snapshotRef, stack.timestampRef,
+		stack.targetsConfig, stack.repoDir, stack.snapshotRef, stack.timestampRef,
 		app.DeprecatedEcdsaFormat); err != nil {
 		t.Fatal(err)
 	}
@@ -911,7 +912,7 @@ func TestSnapshotKeyRotate(t *testing.T) {
 	stack.snapshotRef = createTestSigner(t)
 	// Initialize succeeds.
 	if err := app.InitCmd(ctx, stack.repoDir, stack.repoDir, 1,
-		stack.targetsConfig, stack.snapshotRef, stack.timestampRef,
+		stack.targetsConfig, stack.repoDir, stack.snapshotRef, stack.timestampRef,
 		app.DeprecatedEcdsaFormat); err != nil {
 		t.Fatal(err)
 	}
@@ -962,15 +963,15 @@ func TestProdTargetsConfig(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	configBaseDir := filepath.Dir(wd)
-	targetsConfig, err := prepo.SigstoreTargetMetaFromString(configBaseDir, configBytes)
+	targetsDir := filepath.Join(wd, "../targets")
+	targetsConfig, err := prepo.SigstoreTargetMetaFromString(configBytes)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// Initialize succeeds.
 	if err := app.InitCmd(ctx, stack.repoDir, "", 1,
-		targetsConfig, stack.snapshotRef, stack.timestampRef,
+		targetsConfig, targetsDir, stack.snapshotRef, stack.timestampRef,
 		app.DeprecatedEcdsaFormat); err != nil {
 		t.Fatal(err)
 	}
@@ -997,7 +998,16 @@ func TestProdTargetsConfig(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(targetFiles) != 7 {
-		t.Fatalf("expected 7 target, got %d", len(targetFiles))
+	if len(targetFiles) != len(targetsConfig) {
+		t.Fatalf("expected %d target, got %d", len(targetsConfig), len(targetFiles))
+	}
+	// Validate presence of custom metadata per configuration.
+	for name, tFiles := range targetFiles {
+		var v1, v2 interface{}
+		json.Unmarshal([]byte(targetsConfig[name]), &v1)
+		json.Unmarshal([]byte(*tFiles.Custom), &v2)
+		if !reflect.DeepEqual(v1, v2) {
+			t.Errorf("expected custom %s, got %s", targetsConfig[name], *tFiles.Custom)
+		}
 	}
 }

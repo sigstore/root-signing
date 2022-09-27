@@ -81,8 +81,8 @@ jobs:
       - name: Upload new repository
         uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # v2.3.1
         with:
-          name: root-and-targets
-          path: repository/repository/
+          name: ceremony
+          path: ceremony/
           retention-days: 5
 
   push:
@@ -97,8 +97,8 @@ jobs:
           fetch-depth: 0
       - uses: actions/download-artifact@fb598a63ae348fa914e94cd0ff38f362e927b741 # v2.1.0
         with:
-          name: root-and-targets
-          path: repository/repository/
+          name: ceremony
+          path: ceremony/
       # Open pull request changes
       - name: create pull request
         uses: peter-evans/create-pull-request@171dd555b9ab6b18fa02519fdfacbb8bf671e1b4 # v4.1.2

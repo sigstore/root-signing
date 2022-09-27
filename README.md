@@ -64,9 +64,8 @@ The ceremony will be completed in five rounds:
 * Round 1: Add Key
 * Round 1.5: Initialize TUF metadata 
 * Round 2: Sign Root & Targets
-* Round 3: Sign Delegations
-* Round 4: Sign Snapshot & Timestamp
-* Round 5: Publish final repository.
+* Round 3: Sign Snapshot & Timestamp
+* Round 4: Publish final repository.
 
 ### Ceremony Instructions
 Before starting the root key ceremony, the community should:

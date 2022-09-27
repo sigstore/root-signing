@@ -34,19 +34,8 @@ if [ -z "$SNAPSHOT_KEY" ]; then
     echo "Set SNAPSHOT_KEY"
     exit
 fi
-# Delegation keys
-if [ -z "$REKOR_KEY" ]; then
-    echo "Set REKOR_KEY"
-    exit
-fi
-if [ -z "$STAGING_KEY" ]; then
-    echo "Set STAGING_KEY"
-    exit
-fi
-if [ -z "$REVOCATION_KEY" ]; then
-    echo "Set REVOCATION_KEY"
-    exit
-fi
+# TODO(https://github.com/sigstore/root-signing/issues/398):
+# Add any necessary delegation keys
 # Repo options
 if [ -z "$PREV_REPO" ]; then
     echo "Set PREV_REPO"
@@ -71,11 +60,5 @@ fi
 
 # Setup the root and targets
 ./tuf init -repository $REPO -target-meta config/targets-metadata.yml -snapshot ${SNAPSHOT_KEY} -timestamp ${TIMESTAMP_KEY} -previous "${PREV_REPO}"
-# Add rekor delegation
-./tuf add-delegation -repository $REPO -name "rekor" -key $REKOR_KEY -path "rekor.*.pub" -target-meta config/rekor-metadata.yml -terminating true
-# Add staging project delegation
-./tuf add-delegation -repository $REPO -name "staging" -key $STAGING_KEY -path "*"
-# Add revoked project delegation
-./tuf add-delegation -repository $REPO -name "revocation" -key $REVOCATION_KEY -path "*" -target-meta config/revocation-metadata.yml
 
 commit_and_push_changes setup-root

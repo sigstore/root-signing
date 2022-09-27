@@ -21,9 +21,6 @@ This playbook describes how to orchestrate a root signing event.
 | PREV_REPO   | (Optional) If set, this specifies a previous repository used to chain a following root signing event (copies previous hardware keys, etc).       |    `repository/`     |
 | SNAPSHOT_KEY   | The GCP KMS online key for snapshotting.    |     `projects/project-rekor/locations/global/keyRings/sigstore-root/cryptoKeys/snapshot`    |
 | TIMESTAMP_KEY   | The GCP KMS online key for timestamping.    |  `projects/project-rekor/locations/global/keyRings/sigstore-root/cryptoKeys/timestamp`  |
-| REKOR_KEY   | The GCP KMS online key for rekor delegation.       |     `projects/project-rekor/locations/global/keyRings/sigstore-root/cryptoKeys/rekor`    |
-| STAGING_KEY   | The GCP KMS online key for the staging delegation.       |   `projects/project-rekor/locations/global/keyRings/sigstore-root/cryptoKeys/staging`      |
-| REVOCATION_KEY   | The GCP KMS online key for the revocation delegation, containing any targets that were explicitly revoked.       |    `projects/project-rekor/locations/global/keyRings/sigstore-root/cryptoKeys/revocation`     |
 
 ## Configuration
 
@@ -140,6 +137,11 @@ After each of the root keyholder PRs are merged, run verification at main:
 
 and verify that the root and targets are fully signed.
 
+
+<!--  
+TODO(https://github.com/sigstore/root-signing/issues/398):
+Re-instate when delegation work is complete.
+
 ## Step 3: Delegations
 
 After root and targets signing, the delegation files must be signed.
@@ -155,14 +157,15 @@ This will create a PR signing the delegations. Verify the PR with the PR number 
 ```
 
 and check that the delegation was successfully signed.
+ -->
 
 
-## Step 4: Snapshotting and Timestamping
+## Step 3: Snapshotting and Timestamping
 
 Next, the metadata will need to be snapshotted and timestamped. Run 
 
 ```bash
-./scripts/step-4.sh
+./scripts/step-3.sh
 ```
 
 This will create a PR signing the snapshot and timestamp files. Verify the expirations and the signatures:
@@ -171,12 +174,12 @@ This will create a PR signing the snapshot and timestamp files. Verify the expir
 ./scripts/verify.sh $PR
 ```
 
-## Step 5: Publishing
+## Step 4: Publishing
 
 This final step will commit the TUF repository metadata and move it to the top-level folder `repository/repository/`.
 
 ```bash
-./scripts/step-5.sh
+./scripts/step-4.sh
 ```
 
 This will create a PR moving the files. Verify that the TUF client can update to the new metadata with:

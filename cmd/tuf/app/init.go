@@ -248,6 +248,11 @@ func InitCmd(ctx context.Context, directory, previous string,
 		}
 	}
 
+	// Reset and delegations: they will be updated in DelegationCmd.
+	if err := repo.ResetTargetsDelegations("targets"); err != nil {
+		return err
+	}
+
 	if err := repo.SetThreshold("targets", threshold); err != nil {
 		return err
 	}

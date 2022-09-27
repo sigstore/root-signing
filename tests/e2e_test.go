@@ -1011,3 +1011,44 @@ func TestProdTargetsConfig(t *testing.T) {
 		}
 	}
 }
+
+// Tests that initializing a new root and targets leaves targets
+// in a clear state.
+func TestDelegationsClearedOnInit(t *testing.T) {
+	ctx := context.Background()
+	stack := newRepoTestStack(ctx, t)
+	stack.addTarget(t, "foo.txt", "abc", nil)
+	rootKeyRef := stack.genKey(t, true)
+
+	// Initialize succeeds.
+	if err := app.InitCmd(ctx, stack.repoDir, "", 1,
+		stack.targetsConfig, stack.repoDir, stack.snapshotRef, stack.timestampRef,
+		app.DeprecatedEcdsaFormat); err != nil {
+		t.Fatal(err)
+	}
+
+	// Sign root & targets with key 1
+	rootSigner := stack.getSigner(t, rootKeyRef)
+	if err := app.SignCmd(ctx, stack.repoDir, []string{"root", "targets"},
+		rootSigner, app.DeprecatedEcdsaFormat); err != nil {
+		t.Fatal(err)
+	}
+
+	// Sign snapshot and timestamp
+	stack.snapshot(t, app.DeprecatedEcdsaFormat)
+	stack.timestamp(t, app.DeprecatedEcdsaFormat)
+	stack.publish(t)
+
+	// Verify that targets does not have any delegations.
+	store := tuf.FileSystemStore(stack.repoDir, nil)
+	targets, err := prepo.GetTargetsFromStore(store)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(targets.Delegations.Roles) != 0 {
+		t.Errorf("Expected top-level targets delegation roles to be cleared")
+	}
+	if len(targets.Delegations.Keys) != 0 {
+		t.Errorf("Expected top-level targets delegation keys to be cleared")
+	}
+}

@@ -73,6 +73,7 @@ jobs:
         # Note that we are already in a git repository and are manually pushing changes with the job below
         # so we can simply build the TUF binary and bypass git setup in step 0.
         run: |
+          sudo apt-get install libpcsclite-dev
           go build -o tuf -tags=pivkey ./cmd/tuf
       - name: step 1.5
         run: |

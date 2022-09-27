@@ -35,8 +35,11 @@ import (
 	"github.com/theupdateframework/go-tuf"
 	"github.com/theupdateframework/go-tuf/client"
 	"github.com/theupdateframework/go-tuf/data"
-	_ "github.com/theupdateframework/go-tuf/pkg/deprecated/set_ecdsa"
 	"github.com/theupdateframework/go-tuf/verify"
+
+	// Allow deprecated ECDSA key formats for v5.
+	// TODO(https://github.com/sigstore/root-signing/issues/381): Cleanup after v5
+	_ "github.com/theupdateframework/go-tuf/pkg/deprecated/set_ecdsa"
 )
 
 type bufferDestination struct {

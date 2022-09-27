@@ -1045,7 +1045,10 @@ func TestDelegationsClearedOnInit(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if targets.Delegations != nil {
-		t.Errorf("Expected top-level targets delegations to be cleared")
+	if len(targets.Delegations.Roles) != 0 {
+		t.Errorf("Expected top-level targets delegation roles to be cleared")
+	}
+	if targets.Delegations.Keys != nil {
+		t.Errorf("Expected top-level targets delegation keys to be cleared")
 	}
 }

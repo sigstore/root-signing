@@ -70,7 +70,7 @@ jobs:
           # Upload all but TUF timestamp. Once timestamp is uploaded, all other files must have been uploaded.
           for f in $(ls repository/repository/ -I *timestamp.json)
           do
-            # Check for expiration if this is a non-versioned metadata file. 
+            # Check for expiration if this is a non-versioned metadata file.
             # Versioned metadata like 1.root.json may be expired.
             # TODO(asraa): When consistent snapshots are enabled, this logic must be changed so that
             # only old versioned metadata can be expired.

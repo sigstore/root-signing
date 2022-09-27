@@ -97,7 +97,7 @@ jobs:
       - uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579 # v2.4.0
       - run: |
           set -euo pipefail
-          ./.github/workflows/scripts/report-failure.sh  
+          ./.github/workflows/scripts/report-failure.sh
 
   push:
     needs: snapshot_and_timestamp
@@ -136,4 +136,4 @@ jobs:
       - uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579 # v2.4.0
       - run: |
           set -euo pipefail
-          ./.github/workflows/scripts/report-failure.sh  
+          ./.github/workflows/scripts/report-failure.sh

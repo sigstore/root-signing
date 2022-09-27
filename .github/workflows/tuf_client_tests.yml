@@ -18,11 +18,11 @@ name: TUF Client tests
 on:
   workflow_dispatch:
   push:
-    branches: [ main ]
+    branches: [main]
     paths:
       - 'repository/**'
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   client:
@@ -31,7 +31,7 @@ jobs:
       # Set up a repository server with python
       - uses: actions/setup-python@v4
         with:
-          python-version: '3.x' 
+          python-version: '3.x'
       - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # v2.4.0
         with:
           fetch-depth: 2
@@ -46,15 +46,15 @@ jobs:
       - run: |
           go install github.com/theupdateframework/go-tuf/cmd/tuf-client@v0.4.0
       - run: |
-          tuf-client init http://localhost:8001 repository/repository/1.root.json 
-          tuf-client list http://localhost:8001 
+          tuf-client init http://localhost:8001 repository/repository/1.root.json
+          tuf-client list http://localhost:8001
       # Test with rust client
       - uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # v1.0.7
         with:
           profile: minimal
           toolchain: stable
           override: true
-      - run: | 
+      - run: |
           cargo install --force tuftool
       - run: |
           tuftool download out \

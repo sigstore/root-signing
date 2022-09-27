@@ -28,7 +28,7 @@ on:
       prev_repo:
         description: 'Chains the new root from this previous repository'
         required: false
-        default: `repository/`
+        default: repository/
         type: string
 
 jobs:

@@ -2,4 +2,4 @@
 targets/rekor.0.pub:
   sigstore:
     usage: Rekor
-    status: Active 
+    status: Active

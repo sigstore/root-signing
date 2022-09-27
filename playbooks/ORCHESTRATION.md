@@ -19,8 +19,8 @@ This playbook describes how to orchestrate a root signing event.
 | LOCAL   | (Optional) If enabled, keeps git state dirty and does not create pull requests. Used to run root signing locally for testing.       |         |
 | REPO   | Specifies the repository folder to act on, see [Configuration](#configuration). By default, uses the current date in `ceremony/YYYY-MM-DD`.       |   `ceremony/2022-02-22`      |
 | PREV_REPO   | (Optional) If set, this specifies a previous repository used to chain a following root signing event (copies previous hardware keys, etc).       |    `repository/`     |
-| SNAPSHOT_KEY   | The GCP KMS online key for snapshotting.    |     `projects/project-rekor/locations/global/keyRings/sigstore-root/cryptoKeys/snapshot`    |
-| TIMESTAMP_KEY   | The GCP KMS online key for timestamping.    |  `projects/project-rekor/locations/global/keyRings/sigstore-root/cryptoKeys/timestamp`  |
+| SNAPSHOT_KEY   | The GCP KMS online key for snapshotting.    |     `projects/sigstore-root-signing/locations/global/keyRings/root/cryptoKeys/snapshot`    |
+| TIMESTAMP_KEY   | The GCP KMS online key for timestamping.    |  `projects/sigstore-root-signing/locations/global/keyRings/root/cryptoKeys/timestamp`  |
 
 ## Configuration
 
@@ -91,7 +91,9 @@ This step initializes or stages a new root and targets file according to the pre
 ```bash
 ./scripts/step-1.5.sh 123456
 ```
+
 This copies over old repository metadata and keys from the `${PREV_REPO}`, revokes key `123456`, and then updates a new root and targets according to the configuration. The new PR will create a new `root.json`, `targets.json`, and delegation files in the `${REPO}/staged` subfolder. You should see the following directory structure created:
+
 ```
 $REPO
 ├── keys
@@ -105,6 +107,8 @@ $REPO
     ├── rekor.json   
     └── revocation.json 
 ```
+
+**EXPERIMENTAL**: You may also use the GitHub Workflow [init_repository.yml](../.github/workflows/init_repository.yml) with the parameters like above.
 
 Manually check for:
 * The expected root and targets expirations.

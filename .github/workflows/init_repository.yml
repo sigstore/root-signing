@@ -1,5 +1,5 @@
 #
-# Copyright 2021 The Sigstore Authors.
+# Copyright 2022 The Sigstore Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,26 +13,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: Snapshot and Timestamp
+name: Stage a new root and targets
 
 permissions: read-all
 
-# Execute this as a biweekly cron job and on changes to repository/
-# when new published metadata is submitted.
+# Execute this ONLY as workflow dispatch.
 on:
-  # Enable cron for re-signing snapshot and timestamp every week
-  schedule:
-    - cron: '0 0 */7 * *' # every 7 days
-  # When a new root is staged
-  push:
-    branches:
-      - main
-    paths:
-      - 'repository/staged/root.json'
   workflow_dispatch:
+    inputs:
+      revoke_key:
+        description: 'If provided, revokes the given HSM key, identified by the serial number'
+        required: false
+        type: string
+      prev_repo:
+        description: 'Chains the new root from this previous repository'
+        required: false
+        default: `repository/`
+        type: string
 
 jobs:
-  snapshot_and_timestamp:
+  init_root:
     runs-on: ubuntu-20.04
     permissions:
       id-token: 'write'
@@ -40,11 +40,15 @@ jobs:
       - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # v2.4.0
         with:
           fetch-depth: 0
-      - name: setup
+      # TODO(https://github.com/sigstore/root-signing/issues/98): Use a common configuration checked into source control
+      - name: setup environment
         run: |
-          echo "REPO=$(pwd)/repository/" >> $GITHUB_ENV
+          echo "GITHUB_USER=${{ github.actor }}" >> $GITHUB_ENV
           echo "SNAPSHOT_KEY=gcpkms://projects/sigstore-root-signing/locations/global/keyRings/root/cryptoKeys/snapshot" >> $GITHUB_ENV
-          echo "TIMESTAMP_KEY=projects/sigstore-root-signing/locations/global/keyRings/root/cryptoKeys/timestamp" >> $GITHUB_ENV
+          echo "TIMESTAMP_KEY=gcpkms://projects/sigstore-root-signing/locations/global/keyRings/root/cryptoKeys/timestamp" >> $GITHUB_ENV
+          echo "PREV_REPO=${{ inputs.prev_repo }}" >> $GITHUB_ENV
+          # Note: we set LOCAL=1 because we manually push the changes in the next job.
+          echo "LOCAL=1" >> $GITHUB_ENV
       - uses: actions/setup-go@268d8c0ca0432bb2cf416faae41297df9d262d7f # v2.2.0
         with:
           go-version: 1.18.x
@@ -64,43 +68,24 @@ jobs:
           gcloud auth login --brief --cred-file="${{ steps.auth.outputs.credentials_file_path }}"
           gcloud auth list
 
-      # Snapshot and timestamp
-      - name: build
+      # Initialize the new root and targets layout
+      - name: step 0
+        # Note that we are already in a git repository and are manually pushing changes with the job below
+        # so we can simply build the TUF binary and bypass git setup in step 0.
         run: |
-          sudo apt-get install libpcsclite-dev
-          go build -o tuf -tags=pivkey ./cmd/tuf/
-      - name: snapshot and timestamp
+          go build -o tuf -tags=pivkey ./cmd/tuf
+      - name: step 1.5
         run: |
-          ./tuf snapshot -repository $REPO
-          ./tuf sign -repository $REPO -roles snapshot -key ${SNAPSHOT_KEY} -add-deprecated true
-          ./tuf timestamp -repository $REPO
-          ./tuf sign -repository $REPO -roles timestamp -key ${TIMESTAMP_KEY} -add-deprecated true
-      - name: publish
-        run: |
-          ./tuf publish -repository $REPO
-      - name: Upload snapshot and timestamp
+          ./scripts/step-1.5.sh ${{ inputs.revoke_key }}
+      - name: Upload new repository
         uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # v2.3.1
         with:
-          name: snapshot-and-timestamp
+          name: root-and-targets
           path: repository/repository/
           retention-days: 5
 
-  if-failed:
-    runs-on: ubuntu-latest
-    needs: [snapshot_and_timestamp]
-    permissions:
-      issues: 'write'
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    if: always() && needs.snapshot_and_timestamp.result == 'failure'
-    steps:
-      - uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579 # v2.4.0
-      - run: |
-          set -euo pipefail
-          ./.github/workflows/scripts/report-failure.sh  
-
   push:
-    needs: snapshot_and_timestamp
+    needs: init_root
     runs-on: ubuntu-20.04
     permissions:
       pull-requests: 'write'
@@ -111,29 +96,15 @@ jobs:
           fetch-depth: 0
       - uses: actions/download-artifact@fb598a63ae348fa914e94cd0ff38f362e927b741 # v2.1.0
         with:
-          name: snapshot-and-timestamp
+          name: root-and-targets
           path: repository/repository/
       # Open pull request changes
       - name: create pull request
         uses: peter-evans/create-pull-request@171dd555b9ab6b18fa02519fdfacbb8bf671e1b4 # v4.1.2
         with:
-          commit-message: update snapshot and timestamp
-          title: Update Snapshot and Timestamp
-          body: Sign snapshot and timestamp files
-          branch: update-snapshot-timestamp
+          commit-message: update root and targets
+          title: Update Root and Targets
+          body: Initializes a new root and targets
+          branch: init-root-targets
           signoff: true
           reviewers: asraa,dlorenc,haydentherapper,joshuagl
-
-  if-push-failed:
-    runs-on: ubuntu-latest
-    needs: [push]
-    permissions:
-      issues: 'write'
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    if: always() && needs.push.result == 'failure'
-    steps:
-      - uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579 # v2.4.0
-      - run: |
-          set -euo pipefail
-          ./.github/workflows/scripts/report-failure.sh  

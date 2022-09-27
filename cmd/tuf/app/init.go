@@ -55,7 +55,7 @@ var RoleExpiration = map[string][]int{
 	"timestamp": {0, 0, 14},
 }
 
-func getExpiration(role string) time.Time {
+func GetExpiration(role string) time.Time {
 	// Default expiration for any delegated role is the targets expiration.
 	times, ok := RoleExpiration[role]
 	if !ok {
@@ -169,7 +169,7 @@ func InitCmd(ctx context.Context, directory, previous string,
 	// Add any keys in the keys/ subfolder to root and targets.
 	for _, role := range []string{"root", "targets"} {
 		if err := prepo.UpdateRoleKeys(repo, store, role, keys,
-			getExpiration(role)); err != nil {
+			GetExpiration(role)); err != nil {
 			return err
 		}
 		if err := repo.SetThreshold(role, threshold); err != nil {
@@ -192,7 +192,7 @@ func InitCmd(ctx context.Context, directory, previous string,
 
 		// Update keys.
 		if err := prepo.UpdateRoleKeys(repo, store, role, []*data.PublicKey{tufKey},
-			getExpiration(role)); err != nil {
+			GetExpiration(role)); err != nil {
 			return err
 		}
 
@@ -223,7 +223,7 @@ func InitCmd(ctx context.Context, directory, previous string,
 			return err
 		}
 		fmt.Fprintln(os.Stderr, "Created target file at ", to.Name())
-		if err := repo.AddTargetWithExpiresToPreferredRole(tt, custom, getExpiration("targets"), "targets"); err != nil {
+		if err := repo.AddTargetWithExpiresToPreferredRole(tt, custom, GetExpiration("targets"), "targets"); err != nil {
 			return fmt.Errorf("error adding targets %w", err)
 		}
 		expectedTargets[tt] = true
@@ -243,13 +243,13 @@ func InitCmd(ctx context.Context, directory, previous string,
 	// Only call RemoveTargetsWithExpires if there are targets to remove.
 	// Calling the function with an empty slice will remove all targets.
 	if len(targetsToRemove) > 0 {
-		if err := repo.RemoveTargetsWithExpires(targetsToRemove, getExpiration("targets")); err != nil {
+		if err := repo.RemoveTargetsWithExpires(targetsToRemove, GetExpiration("targets")); err != nil {
 			return fmt.Errorf("error removing old targets: %w", err)
 		}
 	}
 
 	// Reset and delegations: they will be updated in DelegationCmd.
-	if err := repo.ResetTargetsDelegations("targets"); err != nil {
+	if err := repo.ResetTargetsDelegationsWithExpires("targets", GetExpiration("targets")); err != nil {
 		return err
 	}
 
@@ -277,7 +277,7 @@ func InitCmd(ctx context.Context, directory, previous string,
 		return err
 	}
 	root.Version = curRootVersion + 1
-	root.Expires = getExpiration("root")
+	root.Expires = GetExpiration("root")
 	root.ConsistentSnapshot = ConsistentSnapshot
 	allRootKeys, err := prepo.GetSigningKeyIDsForRole("root", store)
 	if err != nil {

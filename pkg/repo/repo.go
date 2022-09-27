@@ -19,16 +19,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
 
-	ctuf "github.com/sigstore/sigstore/pkg/tuf"
 	"github.com/theupdateframework/go-tuf"
 	"github.com/theupdateframework/go-tuf/data"
 	"github.com/theupdateframework/go-tuf/verify"
-	"gopkg.in/yaml.v2"
+	kyaml "sigs.k8s.io/yaml"
 )
 
 var ErrNoPreviousRoot = errors.New("no previous root")
@@ -186,31 +184,16 @@ func GetMetaFromStore(msg []byte, name string) (interface{}, error) {
 	return meta, nil
 }
 
-type customMetadata struct {
-	Usage  ctuf.UsageKind  `json:"usage"`
-	Status ctuf.StatusKind `json:"status"`
-}
-
-type sigstoreCustomMetadata struct {
-	Sigstore customMetadata `json:"sigstore"`
-}
-
 // Target metadata helpers
-func SigstoreTargetMetaFromString(relDir string, b []byte) (map[string]json.RawMessage, error) {
-	targetsMeta := map[string]sigstoreCustomMetadata{}
-	targetsMetaJSON := map[string]json.RawMessage{}
-	if err := yaml.Unmarshal(b, &targetsMeta); err != nil {
+func SigstoreTargetMetaFromString(b []byte) (map[string]json.RawMessage, error) {
+	jsonBytes, err := kyaml.YAMLToJSON(b)
+	if err != nil {
 		return nil, err
 	}
-	for t, custom := range targetsMeta {
-		customJson, err := json.Marshal(custom)
-		if err != nil {
-			return nil, err
-		}
-		tPath := filepath.Join(relDir, t)
-		targetsMetaJSON[tPath] = customJson
+	var targetsMetaJSON map[string]json.RawMessage
+	if err := json.Unmarshal(jsonBytes, &targetsMetaJSON); err != nil {
+		return nil, err
 	}
-
 	return targetsMetaJSON, nil
 }
 

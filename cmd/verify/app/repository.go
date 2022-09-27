@@ -378,14 +378,17 @@ func VerifyCmd(staged bool, repository string, rootFile string,
 
 	// TODO: Update only returns top-level targets!
 	log.Printf("Client successfully initialized, updating and downloading targets...")
-	targetFiles, err := c.Update()
-	if err != nil {
+	if _, err := c.Update(); err != nil {
 		return fmt.Errorf("error updating client: %s", err)
 	}
 	log.Printf("Client updated to...")
 	clientState, err := getClientState(local)
 	if err != nil {
 		return fmt.Errorf("error getting client state: %s", err)
+	}
+	targetFiles, err := c.Targets()
+	if err != nil {
+		return fmt.Errorf("retrieving top-level targets: %s", err)
 	}
 	for name := range targetFiles {
 		var dest bufferDestination

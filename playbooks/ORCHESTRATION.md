@@ -91,7 +91,9 @@ This step initializes or stages a new root and targets file according to the pre
 ```bash
 ./scripts/step-1.5.sh 123456
 ```
+
 This copies over old repository metadata and keys from the `${PREV_REPO}`, revokes key `123456`, and then updates a new root and targets according to the configuration. The new PR will create a new `root.json`, `targets.json`, and delegation files in the `${REPO}/staged` subfolder. You should see the following directory structure created:
+
 ```
 $REPO
 ├── keys
@@ -105,6 +107,8 @@ $REPO
     ├── rekor.json   
     └── revocation.json 
 ```
+
+**EXPERIMENTAL**: You may also use the GitHub Workflow [init_repository.yml](../.github/workflows/init_repository.yml) with the parameters like above.
 
 Manually check for:
 * The expected root and targets expirations.

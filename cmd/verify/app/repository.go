@@ -35,6 +35,7 @@ import (
 	"github.com/theupdateframework/go-tuf"
 	"github.com/theupdateframework/go-tuf/client"
 	"github.com/theupdateframework/go-tuf/data"
+	_ "github.com/theupdateframework/go-tuf/pkg/deprecated/set_ecdsa"
 	"github.com/theupdateframework/go-tuf/verify"
 )
 

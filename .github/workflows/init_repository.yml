@@ -107,4 +107,4 @@ jobs:
           body: Initializes a new root and targets
           branch: init-root-targets
           signoff: true
-          reviewers: asraa,dlorenc
+          reviewers: asraa,dlorenc,haydentherapper,joshuagl

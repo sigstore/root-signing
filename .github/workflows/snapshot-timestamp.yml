@@ -122,7 +122,7 @@ jobs:
           body: Sign snapshot and timestamp files
           branch: update-snapshot-timestamp
           signoff: true
-          reviewers: asraa,dlorenc
+          reviewers: asraa,dlorenc,haydentherapper,joshuagl
 
   if-push-failed:
     runs-on: ubuntu-latest

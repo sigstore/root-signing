@@ -81,6 +81,6 @@ func SnapshotCmd(ctx context.Context, directory string) error {
 		return err
 	}
 
-	snapshotReturnErr = repo.SnapshotWithExpires(getExpiration("snapshot"))
+	snapshotReturnErr = repo.SnapshotWithExpires(GetExpiration("snapshot"))
 	return snapshotReturnErr
 }

@@ -29,6 +29,7 @@ import (
 	"sort"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/secure-systems-lab/go-securesystemslib/cjson"
@@ -1009,6 +1010,16 @@ func TestProdTargetsConfig(t *testing.T) {
 		if !reflect.DeepEqual(v1, v2) {
 			t.Errorf("expected custom %s, got %s", targetsConfig[name], *tFiles.Custom)
 		}
+	}
+
+	// Verify the expiration of targets
+	store := tuf.FileSystemStore(stack.repoDir, nil)
+	targets, err := prepo.GetTargetsFromStore(store)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if targets.Expires.Sub(app.GetExpiration("targets")).Round(time.Hour) != 0 {
+		t.Errorf("expected expiration %s", app.GetExpiration("targets"))
 	}
 }
 

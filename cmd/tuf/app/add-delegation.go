@@ -129,7 +129,7 @@ func DelegationCmd(ctx context.Context, directory, name, path string, terminatin
 		Paths:       []string{path},
 		Threshold:   1,
 		Terminating: terminating,
-	}, keys, getExpiration("targets")); err != nil {
+	}, keys, GetExpiration("targets")); err != nil {
 		// If delegation already added, then we just want to bump version and expiration.
 		fmt.Fprintln(os.Stdout, "Adding targets delegation: ", err)
 	}
@@ -162,7 +162,7 @@ func DelegationCmd(ctx context.Context, directory, name, path string, terminatin
 				return err
 			}
 			fmt.Fprintln(os.Stderr, "Created target file at ", to.Name())
-			if err := repo.AddTargetsWithExpiresToPreferredRole([]string{base}, custom, getExpiration("targets"), name); err != nil {
+			if err := repo.AddTargetsWithExpiresToPreferredRole([]string{base}, custom, GetExpiration("targets"), name); err != nil {
 				return fmt.Errorf("error adding targets %w", err)
 			}
 		}

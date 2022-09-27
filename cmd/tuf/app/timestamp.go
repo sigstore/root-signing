@@ -55,5 +55,5 @@ func TimestampCmd(ctx context.Context, directory string) error {
 	if err != nil {
 		return err
 	}
-	return repo.TimestampWithExpires(getExpiration("timestamp"))
+	return repo.TimestampWithExpires(GetExpiration("timestamp"))
 }

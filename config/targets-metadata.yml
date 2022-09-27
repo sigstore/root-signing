@@ -47,10 +47,6 @@ fulcio.crt.pem:
     uri: https://fulcio.sigstore.dev
     usage: Fulcio
     status: Expired
-artifact.pub:
-  sigstore:
-    usage: Unknown
-    status: Active
 ctfe.pub:
   sigstore:
     uri: https://ctfe.sigstore.dev

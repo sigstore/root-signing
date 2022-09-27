@@ -130,7 +130,7 @@ func Init() *ffcli.Command {
 //   - threshold: The root and targets threshold.
 //   - targetsConfig: A map of target file names and custom metadata to add to top-level targets.
 //     Target file names are expected to be in the working directory.
-//   - targetsDir: The locl directory where the targets are stored.
+//   - targetsDir: The local directory where the targets are stored.
 //   - snapshotRef: A reference (KMS, file, URL) to a snapshot signer.
 //   - timestampRef: A reference (KMS, file, URL) to a timestamp signer.
 //

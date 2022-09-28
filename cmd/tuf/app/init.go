@@ -240,11 +240,6 @@ func InitCmd(ctx context.Context, directory, previous string,
 		}
 	}
 
-	// Reset and delegations: they will be updated in DelegationCmd.
-	if err := repo.ResetTargetsDelegationsWithExpires("targets", GetExpiration("targets")); err != nil {
-		return err
-	}
-
 	if err := repo.SetThreshold("targets", threshold); err != nil {
 		return err
 	}
@@ -254,6 +249,10 @@ func InitCmd(ctx context.Context, directory, previous string,
 	if err != nil {
 		return err
 	}
+	// We reset and delegations: they will be updated in DelegationCmd.
+	// TODO(https://github.com/theupdateframework/go-tuf/issues/402): replace
+	// with `repo.ResetTargetsDelegationsWithExpires` when this issue is resolved.
+	t.Delegations = nil
 	targetKeys, err := prepo.GetSigningKeyIDsForRole("targets", store)
 	if err != nil {
 		return err

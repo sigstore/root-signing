@@ -103,3 +103,5 @@ jobs:
       - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # v3.0.2
       - name: Run ShellCheck
         uses: ludeeus/action-shellcheck@94e0aab03ca135d11a35e5bfc14e6746dc56e7e9 # v1.1.0
+        env:
+          SHELLCHECK_OPTS: -x

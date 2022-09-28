@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Copyright 2021 The Sigstore Authors.
 #
@@ -15,7 +15,8 @@
 # limitations under the License.
 
 # Print all commands and stop on errors
-set -ex
+set -o errexit
+set -o xtrace
 
 # shellcheck source=./scripts/utils.sh
 source "./scripts/utils.sh"

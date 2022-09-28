@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Copyright 2021 The Sigstore Authors.
 #
@@ -15,8 +15,10 @@
 # limitations under the License.
 
 # Print all commands and stop on errors
-set -ex
+set -o errexit
+set -o xtrace
 
+# shellcheck source=./scripts/utils.sh
 source "./scripts/utils.sh"
 
 # Check that a github user is set.
@@ -42,11 +44,11 @@ clean_state
 checkout_branch
 
 # Snapshot and sign the snapshot with snapshot kms key
-./tuf snapshot -repository $REPO
-./tuf sign -repository $REPO -roles snapshot -key ${SNAPSHOT_KEY}
+./tuf snapshot -repository "$REPO"
+./tuf sign -repository "$REPO" -roles snapshot -key "${SNAPSHOT_KEY}"
 
 # Timestamp and sign the timestamp with timestamp kms key
-./tuf timestamp -repository $REPO
-./tuf sign -repository $REPO -roles timestamp -key ${TIMESTAMP_KEY}
+./tuf timestamp -repository "$REPO"
+./tuf sign -repository "$REPO" -roles timestamp -key "${TIMESTAMP_KEY}"
 
 commit_and_push_changes snapshot-timestamp

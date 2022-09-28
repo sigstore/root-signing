@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Copyright 2021 The Sigstore Authors.
 #
@@ -15,8 +15,10 @@
 # limitations under the License.
 
 # Print all commands and stop on errors
-set -ex
+set -o errexit
+set -o xtrace
 
+# shellcheck source=./scripts/utils.sh
 source "./scripts/utils.sh"
 
 # Check that a github user is set.
@@ -32,13 +34,13 @@ clean_state
 # Checkout the working branch
 checkout_branch
 
-# Ask user to insert key 
-read -n1 -r -s -p "Insert your Yubikey, then press any key to continue...\n" 
+# Ask user to insert key
+read -n1 -r -s -p "Insert your Yubikey, then press any key to continue...\n"
 
 # Add the key!
-./tuf add-key -repository $REPO
+./tuf add-key -repository "$REPO"
 
 # Ask user to remove key (and replace with SSH security key)
-read -n1 -r -s -p "Remove your Yubikey, then press any key to continue...\n" 
+read -n1 -r -s -p "Remove your Yubikey, then press any key to continue...\n"
 
 commit_and_push_changes add-key

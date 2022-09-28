@@ -203,6 +203,7 @@ func InitCmd(ctx context.Context, directory, previous string,
 	}
 
 	// Add targets (copy them into the repository and add them to the targets.json)
+	// Add the new targets in the config.
 	expectedTargets := make(map[string]bool)
 	for tt, custom := range targetsConfig {
 		from, err := os.Open(filepath.Join(targetsDir, tt))
@@ -228,8 +229,6 @@ func InitCmd(ctx context.Context, directory, previous string,
 		}
 		expectedTargets[tt] = true
 	}
-
-	// Remove old targets that were not included in config.
 	targetsToRemove := []string{}
 	allTargets, err := repo.Targets()
 	if err != nil {
@@ -238,13 +237,6 @@ func InitCmd(ctx context.Context, directory, previous string,
 	for path := range allTargets {
 		if !expectedTargets[path] {
 			targetsToRemove = append(targetsToRemove, path)
-		}
-	}
-	// Only call RemoveTargetsWithExpires if there are targets to remove.
-	// Calling the function with an empty slice will remove all targets.
-	if len(targetsToRemove) > 0 {
-		if err := repo.RemoveTargetsWithExpires(targetsToRemove, GetExpiration("targets")); err != nil {
-			return fmt.Errorf("error removing old targets: %w", err)
 		}
 	}
 
@@ -266,6 +258,15 @@ func InitCmd(ctx context.Context, directory, previous string,
 	if err != nil {
 		return err
 	}
+	// Remove any targets not present: only removes from targets to avoid
+	// removing from delegations.
+	// See https://github.com/theupdateframework/go-tuf/issues/400 and
+	// https://github.com/theupdateframework/go-tuf/blob/f75cbcc8550dfb9311c6723999fe7b1d3d2bc116/repo.go#L1230
+	// for why we avoid `repo.RemoveTargetsWithExpires`
+	for _, tt := range targetsToRemove {
+		delete(t.Targets, tt)
+	}
+
 	if err := setMetaWithSigKeyIDs(store, "targets.json", t, maps.Keys(targetKeys)); err != nil {
 		return err
 	}

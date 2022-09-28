@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Copyright 2021 The Sigstore Authors.
 #
@@ -15,8 +15,10 @@
 # limitations under the License.
 
 # Print all commands and stop on errors
-set -ex
+set -o errexit
+set -o xtrace
 
+# shellcheck source=./scripts/utils.sh
 source "./scripts/utils.sh"
 
 # Check that a github user is set.
@@ -50,17 +52,17 @@ clean_state
 checkout_branch
 
 # Copy the previous keys and repository into the new repository.
-mkdir -p ${REPO}/staged/targets
-cp -r ${PREV_REPO}/* ${REPO}
+mkdir -p "${REPO}"/staged/targets
+cp -r "${PREV_REPO}"/* "${REPO}"
 # Remove a key by ID that need to be removed from the root keyholders
-if [[ -n $1 ]]; then 
+if [[ -n $1 ]]; then
     echo "Removing key: $1"
-    rm -r ${REPO}/keys/$1
+    rm -r "${REPO}"/keys/"$1"
 fi
 
 # Setup the root and targets
-./tuf init -repository $REPO \
-    -targets $(pwd)/targets -target-meta config/targets-metadata.yml \
-    -snapshot ${SNAPSHOT_KEY} -timestamp ${TIMESTAMP_KEY} -previous "${PREV_REPO}"
+./tuf init -repository "$REPO" \
+    -targets "$(pwd)"/targets -target-meta config/targets-metadata.yml \
+    -snapshot "${SNAPSHOT_KEY}" -timestamp "${TIMESTAMP_KEY}" -previous "${PREV_REPO}"
 
 commit_and_push_changes setup-root

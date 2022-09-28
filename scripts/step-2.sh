@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Copyright 2021 The Sigstore Authors.
 #
@@ -15,8 +15,10 @@
 # limitations under the License.
 
 # Print all commands and stop on errors
-set -ex
+set -o errexit
+set -o xtrace
 
+# shellcheck source=./scripts/utils.sh
 source "./scripts/utils.sh"
 
 # Check that a github user is set.
@@ -32,15 +34,15 @@ clean_state
 # Checkout the working branch
 checkout_branch
 
-# Ask user to insert key 
-read -n1 -r -s -p "Insert your Yubikey, then press any key to continue...\n" 
+# Ask user to insert key
+read -n1 -r -s -p "Insert your Yubikey, then press any key to continue...\n"
 
 # Sign the root and targets with hardware key
-# TODO(https://github.com/sigstore/root-signing/issues/381): 
+# TODO(https://github.com/sigstore/root-signing/issues/381):
 # Adding the explicit deprecated flag can be removed after v5 root-signing
-./tuf sign -repository $REPO -roles root -roles targets -sk -add-deprecated true
+./tuf sign -repository "$REPO" -roles root -roles targets -sk -add-deprecated true
 
 # Ask user to remove key (and replace with SSH security key)
-read -n1 -r -s -p "Remove your Yubikey, then press any key to continue...\n" 
+read -n1 -r -s -p "Remove your Yubikey, then press any key to continue...\n"
 
 commit_and_push_changes sign-root-targets

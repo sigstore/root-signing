@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Copyright 2021 The Sigstore Authors.
 #
@@ -15,11 +15,12 @@
 # limitations under the License.
 
 # Print all commands and stop on errors
-set -ex
+set -o errexit
+set -o xtrace
 
 if [ -z "$GITHUB_USER" ]; then
     echo "Set GITHUB_USER"
-    exit
+    exit 1
 fi
 if [ -z "$REPO" ]; then
     REPO=$(pwd)/ceremony/$(date '+%Y-%m-%d')
@@ -43,25 +44,24 @@ go build -o verify ./cmd/verify
 [ -f piv-attestation-ca.pem ] || curl -fsO https://developers.yubico.com/PIV/Introduction/piv-attestation-ca.pem
 
 # Fetch the pull request if specified and verify
-if [[ ! -z "$1" ]]; then
+if [[ -n "$1" ]]; then
     # Pull request to verify. If not supplied, use main
     echo "Pull Request: $1"
     git branch -D VERIFY || true
-    git fetch upstream pull/$1/head:VERIFY
+    git fetch upstream pull/"$1"/head:VERIFY
     git checkout VERIFY
 fi
 
 # Verify keys if keys/ repository exists. It does not in the top-level published repository/
-if [ -d $REPO/keys ]; then
-    ./verify keys --root piv-attestation-ca.pem --key-directory $REPO/keys
+if [ -d "$REPO"/keys ]; then
+    ./verify keys --root piv-attestation-ca.pem --key-directory "$REPO"/keys
 fi
 # If staged metadata exists, verify the staged repository
-if [ -f $REPO/staged/root.json ]; then
-    ./verify repository --repository $REPO --staged
+if [ -f "$REPO"/staged/root.json ]; then
+    ./verify repository --repository "$REPO" --staged
 fi
 # If published data exists, verify against a root
-if [ -f $REPO/repository/1.root.json ]; then
-    ./verify repository --repository $REPO --root $REPO/repository/1.root.json
+if [ -f "$REPO"/repository/1.root.json ]; then
+    ./verify repository --repository "$REPO" --root "$REPO"/repository/1.root.json
 fi
 # stay on the branch for manual verification
-

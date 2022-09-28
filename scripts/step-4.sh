@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Copyright 2021 The Sigstore Authors.
 #
@@ -15,8 +15,10 @@
 # limitations under the License.
 
 # Print all commands and stop on errors
-set -ex
+set -o errexit
+set -o xtrace
 
+# shellcheck source=./scripts/utils.sh
 source "./scripts/utils.sh"
 
 # Check that a github user is set.
@@ -33,9 +35,9 @@ clean_state
 checkout_branch
 
 # Sign the root and targets
-./tuf publish -repository $REPO
+./tuf publish -repository "$REPO"
 # Clear and copy into the repository/
 rm -r repository/
-cp -r $REPO/ repository/
+cp -r "$REPO"/ repository/
 
 commit_and_push_changes publish

@@ -30,6 +30,7 @@ import (
 	csignature "github.com/sigstore/cosign/pkg/signature"
 	"github.com/sigstore/root-signing/pkg/keys"
 	"github.com/sigstore/root-signing/pkg/repo"
+	prepo "github.com/sigstore/root-signing/pkg/repo"
 	"github.com/sigstore/sigstore/pkg/signature"
 	"github.com/sigstore/sigstore/pkg/signature/options"
 	cjson "github.com/tent/canonical-json-go"
@@ -58,6 +59,7 @@ func Sign() *ffcli.Command {
 		// TODO(https://github.com/sigstore/root-signing/issues/381):
 		// This can be removed after v5 root-signing is complete.
 		addDeprecatedKeyFormat = flagset.Bool("add-deprecated", false, "adds the deprecated ecdsa key format to associate signatures")
+		bumpVersion            = flagset.Bool("bump-version", false, "bumps the version; useful for re-signing without changes")
 	)
 	flagset.Var(&roles, "roles", "role(s) to sign")
 	return &ffcli.Command{
@@ -84,7 +86,7 @@ func Sign() *ffcli.Command {
 			if err != nil {
 				return err
 			}
-			return SignCmd(ctx, *repository, roles, signer, *addDeprecatedKeyFormat)
+			return SignCmd(ctx, *repository, roles, signer, *bumpVersion, *addDeprecatedKeyFormat)
 		},
 	}
 }
@@ -138,7 +140,7 @@ func getSigner(ctx context.Context, sk bool, keyRef string) (signature.Signer, e
 }
 
 func SignCmd(ctx context.Context, directory string, roles []string, signer signature.Signer,
-	addDeprecatedKeyFormat bool) error {
+	bumpVersion bool, addDeprecatedKeyFormat bool) error {
 	store := tuf.FileSystemStore(directory, nil)
 
 	if err := checkMetaForRole(store, roles); err != nil {
@@ -146,6 +148,11 @@ func SignCmd(ctx context.Context, directory string, roles []string, signer signa
 	}
 
 	for _, name := range roles {
+		if bumpVersion {
+			if err := prepo.BumpMetadataVersion(store, name); err != nil {
+				return err
+			}
+		}
 		if err := SignMeta(ctx, store, name+".json", signer, addDeprecatedKeyFormat); err != nil {
 			return err
 		}
@@ -249,7 +256,7 @@ func SignMeta(ctx context.Context, store tuf.LocalStore, name string, signer sig
 			strings.Join(keyIDs, ", "), name, roleSigningKeys)
 	}
 
-	return setSignedMeta(store, name, &data.Signed{Signatures: sigs, Signed: s.Signed})
+	return prepo.SetSignedMeta(store, name, &data.Signed{Signatures: sigs, Signed: s.Signed})
 }
 
 // Pre-entries are defined when there are Signatures in the Signed metadata

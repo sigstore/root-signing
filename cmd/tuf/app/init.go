@@ -16,7 +16,6 @@
 package app
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"flag"
@@ -286,16 +285,8 @@ func InitCmd(ctx context.Context, directory, previous string,
 	return setMetaWithSigKeyIDs(store, "root.json", root, maps.Keys(allRootKeys))
 }
 
-func setSignedMeta(store tuf.LocalStore, role string, s *data.Signed) error {
-	b, err := jsonMarshal(s)
-	if err != nil {
-		return err
-	}
-	return store.SetMeta(role, b)
-}
-
 func setMetaWithSigKeyIDs(store tuf.LocalStore, role string, meta interface{}, keyIDs []string) error {
-	signed, err := jsonMarshal(meta)
+	signed, err := prepo.MarshalMetadata(meta)
 	if err != nil {
 		return err
 	}
@@ -310,7 +301,7 @@ func setMetaWithSigKeyIDs(store tuf.LocalStore, role string, meta interface{}, k
 
 	}
 
-	return setSignedMeta(store, role, &data.Signed{Signatures: emptySigs, Signed: signed})
+	return prepo.SetSignedMeta(store, role, &data.Signed{Signatures: emptySigs, Signed: signed})
 }
 
 func ClearEmptySignatures(store tuf.LocalStore, role string) error {
@@ -328,22 +319,7 @@ func ClearEmptySignatures(store tuf.LocalStore, role string) error {
 		sigs = append(sigs, signature)
 	}
 
-	return setSignedMeta(store, role, &data.Signed{Signatures: sigs, Signed: signedMeta.Signed})
-}
-
-func jsonMarshal(v interface{}) ([]byte, error) {
-	// We don't need to canonically encode the payload in the store.
-	b, err := json.Marshal(v)
-	if err != nil {
-		return nil, err
-	}
-
-	var out bytes.Buffer
-	if err := json.Indent(&out, b, "", "\t"); err != nil {
-		return nil, err
-	}
-
-	return out.Bytes(), nil
+	return prepo.SetSignedMeta(store, role, &data.Signed{Signatures: sigs, Signed: signedMeta.Signed})
 }
 
 func getKeysFromDir(dir string, deprecatedKeyFormat bool) ([]*data.PublicKey, error) {

@@ -185,9 +185,9 @@ func DelegationCmd(ctx context.Context, directory, name, path string, terminatin
 	if err != nil {
 		return err
 	}
-	signed, err := jsonMarshal(t)
+	signed, err := prepo.MarshalMetadata(t)
 	if err != nil {
 		return err
 	}
-	return setSignedMeta(store, "targets.json", &data.Signed{Signatures: sigs, Signed: signed})
+	return prepo.SetSignedMeta(store, "targets.json", &data.Signed{Signatures: sigs, Signed: signed})
 }

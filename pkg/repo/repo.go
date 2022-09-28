@@ -16,6 +16,7 @@
 package repo
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -301,4 +302,56 @@ func UpdateRoleKeys(repo *tuf.Repo, store tuf.LocalStore, role string, keys []*d
 		}
 	}
 	return nil
+}
+
+func MarshalMetadata(v interface{}) ([]byte, error) {
+	// We don't need to canonically encode the payload in the store.
+	b, err := json.Marshal(v)
+	if err != nil {
+		return nil, err
+	}
+
+	var out bytes.Buffer
+	if err := json.Indent(&out, b, "", "\t"); err != nil {
+		return nil, err
+	}
+
+	return out.Bytes(), nil
+}
+
+func SetSignedMeta(store tuf.LocalStore, role string, s *data.Signed) error {
+	b, err := MarshalMetadata(s)
+	if err != nil {
+		return err
+	}
+	return store.SetMeta(role, b)
+}
+
+// BumpMetadataVersion increments the version of the manifest.
+// This ONLY handles targets types! The repo.SetRootVersion, repo.SetTargetsVersion,
+// or repo.SetSnapshotVersion, or repo.SetTimestampVersion handle top-level
+// metadata.
+func BumpMetadataVersion(store tuf.LocalStore, name string) error {
+	for _, topName := range []string{"root", "targets", "snapshot", "timestamp"} {
+		if name == topName {
+			return fmt.Errorf("unsupported metadata version bump %s", topName)
+		}
+	}
+	manifest := fmt.Sprintf("%s.json", name)
+	s, err := GetSignedMeta(store, manifest)
+	if err != nil {
+		return err
+	}
+	targets := &data.Targets{}
+	if err := json.Unmarshal(s.Signed, targets); err != nil {
+		return err
+	}
+	targets.Version++
+
+	signed, err := MarshalMetadata(targets)
+	if err != nil {
+		return err
+	}
+
+	return SetSignedMeta(store, manifest, &data.Signed{Signed: signed})
 }

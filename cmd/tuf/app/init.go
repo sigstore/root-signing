@@ -260,6 +260,9 @@ func InitCmd(ctx context.Context, directory, previous string,
 	}
 	// Remove any targets not present: only removes from targets to avoid
 	// removing from delegations.
+	// See https://github.com/theupdateframework/go-tuf/issues/400 and
+	// https://github.com/theupdateframework/go-tuf/blob/f75cbcc8550dfb9311c6723999fe7b1d3d2bc116/repo.go#L1230
+	// for why we avoid `repo.RemoveTargetsWithExpires`
 	for _, tt := range targetsToRemove {
 		delete(t.Targets, tt)
 	}

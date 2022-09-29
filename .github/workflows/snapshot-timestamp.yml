@@ -43,21 +43,21 @@ jobs:
       - name: setup
         run: |
           echo "REPO=$(pwd)/repository/" >> $GITHUB_ENV
-          echo "SNAPSHOT_KEY=gcpkms://projects/sigstore-root-signing/locations/global/keyRings/root/cryptoKeys/snapshot" >> $GITHUB_ENV
-          echo "TIMESTAMP_KEY=projects/sigstore-root-signing/locations/global/keyRings/root/cryptoKeys/timestamp" >> $GITHUB_ENV
+          echo "SNAPSHOT_KEY=gcpkms://projects/project-rekor/locations/global/keyRings/root/cryptoKeys/snapshot" >> $GITHUB_ENV
+          echo "TIMESTAMP_KEY=projects/project-rekor/locations/global/keyRings/root/cryptoKeys/timestamp" >> $GITHUB_ENV
       - uses: actions/setup-go@268d8c0ca0432bb2cf416faae41297df9d262d7f # v2.2.0
         with:
           go-version: 1.18.x
       - uses: google-github-actions/setup-gcloud@877d4953d2c70a0ba7ef3290ae968eb24af233bb # v0.5.1
         with:
-          project_id: sigstore-root-signing
+          project_id: project-rekor
       # Setup OIDC->SA auth
       - uses: google-github-actions/auth@dac4e13deb3640f22e3ffe758fd3f95e6e89f712 # v0.7.2
         id: auth
         with:
           token_format: 'access_token'
-          workload_identity_provider: 'projects/163070369698/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions-provider'
-          service_account: 'github-actions@sigstore-root-signing.iam.gserviceaccount.com'
+          workload_identity_provider: 'projects/237800849078/locations/global/workloadIdentityPools/root-signing-pool/providers/sigstore-root'
+          service_account: 'sigstore-root-signing@project-rekor.iam.gserviceaccount.com'
           create_credentials_file: true
       - name: Login
         run: |

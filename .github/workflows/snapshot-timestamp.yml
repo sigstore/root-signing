@@ -43,8 +43,8 @@ jobs:
       - name: setup
         run: |
           echo "REPO=$(pwd)/repository/" >> $GITHUB_ENV
-          echo "SNAPSHOT_KEY=gcpkms://projects/project-rekor/locations/global/keyRings/root/cryptoKeys/snapshot" >> $GITHUB_ENV
-          echo "TIMESTAMP_KEY=projects/project-rekor/locations/global/keyRings/root/cryptoKeys/timestamp" >> $GITHUB_ENV
+          echo "SNAPSHOT_KEY=gcpkms://projects/project-rekor/locations/global/keyRings/sigstore-root/cryptoKeys/snapshot" >> $GITHUB_ENV
+          echo "TIMESTAMP_KEY=gcpkms://projects/project-rekor/locations/global/keyRings/sigstore-root/cryptoKeys/timestamp" >> $GITHUB_ENV
       - uses: actions/setup-go@268d8c0ca0432bb2cf416faae41297df9d262d7f # v2.2.0
         with:
           go-version: 1.18.x

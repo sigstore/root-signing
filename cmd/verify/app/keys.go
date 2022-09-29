@@ -153,26 +153,23 @@ var keyCmd = &cobra.Command{
 		}
 		return nil
 	},
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		log.SetFlags(0)
 
 		rootBytes, err := os.ReadFile(rootFile.String())
 		if err != nil {
-			log.Printf("failed to read root CA file: %s", err)
-			os.Exit(1)
+			return fmt.Errorf("failed to read root CA file: %s", err)
 		}
 
 		rootCA, err := keys.ToCert(rootBytes)
 		if err != nil {
-			log.Printf("failed to parse root CA: %s", err)
-			os.Exit(1)
+			return fmt.Errorf("failed to parse root CA: %s", err)
 		}
 
 		if _, err = verifySigningKeys(keyDir.String(), rootCA); err != nil {
-			log.Printf("error verifying signing keys: %s", err)
-			os.Exit(1)
+			return fmt.Errorf("error verifying signing keys: %s", err)
 		}
-
+		return nil
 	},
 }
 

@@ -287,29 +287,23 @@ var repositoryCmd = &cobra.Command{
 		}
 		return nil
 	},
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		log.SetFlags(0)
 
 		if !staged && root.String() == "" {
-			log.Println("must specify a trusted root file for full verification")
-			_ = cmd.Usage()
-			os.Exit(1)
+			return fmt.Errorf("must specify a trusted root file for full verification")
 		}
 
 		var validUntil *time.Time
 		if expiration != "" {
 			parsedTime, err := time.Parse("2006/01/02", expiration)
 			if err != nil {
-				log.Printf("must specify a valid time, got %s", expiration)
-				_ = cmd.Usage()
-				os.Exit(1)
+				return fmt.Errorf("must specify a valid time, got %s", expiration)
 			}
 			validUntil = &parsedTime
 		}
 
-		if err := VerifyCmd(staged, repository, root.String(), validUntil, roles); err != nil {
-			log.Println(err.Error())
-		}
+		return VerifyCmd(staged, repository, root.String(), validUntil, roles)
 	},
 }
 
@@ -353,7 +347,7 @@ func VerifyCmd(staged bool, repository string, rootFile string,
 
 	rootMeta, err := os.ReadFile(rootFile)
 	if err != nil {
-		return fmt.Errorf("error reading trusted TUF root %s: %w", root, err)
+		return fmt.Errorf("error reading trusted TUF root %s: %w", rootFile, err)
 	}
 	local := client.MemoryLocalStore()
 	if err := local.SetMeta("root.json", rootMeta); err != nil {

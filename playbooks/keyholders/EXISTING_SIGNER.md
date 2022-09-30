@@ -1,4 +1,4 @@
-# New Keyholder Responsibilities
+# Existing Keyholder Responsibilities
 
 This document outlines the responsibilities of an existing keyholder.
 

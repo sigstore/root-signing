@@ -328,9 +328,10 @@ func SetSignedMeta(store tuf.LocalStore, role string, s *data.Signed) error {
 }
 
 // BumpMetadataVersion increments the version of the manifest.
-// This ONLY handles targets types! The repo.SetRootVersion, repo.SetTargetsVersion,
-// or repo.SetSnapshotVersion, or repo.SetTimestampVersion handle top-level
-// metadata.
+// Note: This does NOT increase expiration!
+// This ONLY handles delegated targets roles! The repo.SetRootVersion,
+// repo.SetTargetsVersion, repo.SetSnapshotVersion, or repo.SetTimestampVersion
+// handle top-level metadata.
 func BumpMetadataVersion(store tuf.LocalStore, name string) error {
 	for _, topName := range []string{"root", "targets", "snapshot", "timestamp"} {
 		if name == topName {

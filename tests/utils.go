@@ -141,7 +141,7 @@ func (s *repoTestStack) snapshot(t *testing.T, deprecated bool) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := app.SignCmd(s.ctx, s.repoDir, []string{"snapshot"}, snapshotSigner, deprecated); err != nil {
+	if err := app.SignCmd(s.ctx, s.repoDir, []string{"snapshot"}, snapshotSigner, false, deprecated); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -154,7 +154,7 @@ func (s *repoTestStack) timestamp(t *testing.T, deprecated bool) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := app.SignCmd(s.ctx, s.repoDir, []string{"timestamp"}, timestampSigner, deprecated); err != nil {
+	if err := app.SignCmd(s.ctx, s.repoDir, []string{"timestamp"}, timestampSigner, false, deprecated); err != nil {
 		t.Fatal(err)
 	}
 }

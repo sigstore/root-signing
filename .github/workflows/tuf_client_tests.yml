@@ -50,7 +50,7 @@ jobs:
           tuf-client list http://localhost:8001
       # Test with rust client
       - name: Install tuftool
-        uses: actions-rs/install@v0.1.2
+        uses: actions-rs/install@9da1d2adcfe5e7c16992e8242ca33a56b6d9b101 # v0.1.2
         with:
           crate: tuftool
           version: "0.8.1"

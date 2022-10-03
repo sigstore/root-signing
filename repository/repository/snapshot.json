@@ -2,8 +2,8 @@
 	"signed": {
 		"_type": "snapshot",
 		"spec_version": "1.0",
-		"version": 49,
-		"expires": "2022-10-17T20:31:40Z",
+		"version": 50,
+		"expires": "2022-10-24T16:40:00Z",
 		"meta": {
 			"rekor.json": {
 				"length": 797,
@@ -16,10 +16,10 @@
 			"revocation.json": {
 				"length": 800,
 				"hashes": {
-					"sha256": "fd46a3ad04afd31e164b91d5d399d3e6e4d22e1c98ad463aeca0fa3d2f8cb6dd",
-					"sha512": "6cacdb83edac8283bcbf6e4d7011f98ae85f05c22034e4466de96496739df224d8a9fd580abfc3e4d4901e2170dbe0d93865a1e861bf85556e03f36d00cc5b5b"
+					"sha256": "6f60848ba8fb0955a02abfd1232fb3845dc9ee9f418bf03521a7ddb48217e040",
+					"sha512": "a965dddd0d0edef6c59e84cf02ecf5a53299f633fd339b2b61814a4219ab4df672a6390f265b8b29e1c8cea9368ea3440df013790759d50231a30df1c1f02551"
 				},
-				"version": 1
+				"version": 2
 			},
 			"root.json": {
 				"length": 5297,
@@ -50,7 +50,7 @@
 	"signatures": [
 		{
 			"keyid": "fc61191ba8a516fe386c7d6c97d918e1d241e1589729add09b122725b8c32451",
-			"sig": "304602210081504cb1d475038cf1be5c23eb12f67da4683c11f8954be01c371d74a376b062022100b6062810c0f01bd2081e79b65bc625cdfc60c441e97538708ded69b790f70595"
+			"sig": "3045022100b91732f5ea0c105ecf309f212845e768088cac7da41e4f0e38fdcf76bea43135022008bb9bce4c2059a55833852ddbacb6f3a8401e5adb21ebde8b97a2617151618f"
 		}
 	]
 }

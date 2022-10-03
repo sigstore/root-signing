@@ -49,13 +49,11 @@ jobs:
           tuf-client init http://localhost:8001 repository/repository/1.root.json
           tuf-client list http://localhost:8001
       # Test with rust client
-      - uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # v1.0.7
+      - name: Install tuftool
+        uses: actions-rs/install@9da1d2adcfe5e7c16992e8242ca33a56b6d9b101 # v0.1.2
         with:
-          profile: minimal
-          toolchain: stable
-          override: true
-      - run: |
-          cargo install --force tuftool
+          crate: tuftool
+          version: "0.8.1"
       - run: |
           tuftool download out \
             --root repository/repository/2.root.json \

@@ -139,9 +139,9 @@ Like testing, this will create a new directory under `ceremony/$DATE/keys/` with
 
 ### Signing
 
-When prompted in the Slack channel, begin signing root and targets metadata. Run:
+When prompted in the Slack channel, begin signing root and targets metadata. If the ceremony started on a prior date, you should add a repository reference by setting `REPO`. Otherwise, for same-day signing, you may omit to default to the current date. Run:
 ```
-./scripts/step-2.sh
+REPO=$(pwd)/ceremony/$DATE ./scripts/step-2.sh
 ```
 
 Again, this will populate a signature for your key id in the `signatures` section for these two top-level roles and push a PR that will be verified and merged.

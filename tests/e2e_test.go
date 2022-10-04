@@ -709,7 +709,8 @@ func TestEcdsaHexToPEMMigration(t *testing.T) {
 	ctx := context.Background()
 	stack := newRepoTestStack(ctx, t)
 	stack.addTarget(t, "foo.txt", "abc", nil)
-	rootKeyRef := stack.genKey(t, true)
+	rootKeyRef1 := stack.genKey(t, true)
+	rootKeyRef2 := stack.genKey(t, true)
 
 	// Initialize succeeds with deprecated format.
 	deprecatedEcdsaFormat := true
@@ -720,14 +721,17 @@ func TestEcdsaHexToPEMMigration(t *testing.T) {
 	}
 
 	// Just to make sure, try this with the PEM signer and expect failure
-	rootSigner := stack.getSigner(t, rootKeyRef)
-	if err := app.SignCmd(ctx, stack.repoDir, []string{"root"}, rootSigner, false, false); err == nil {
+	rootSigner1 := stack.getSigner(t, rootKeyRef1)
+	rootSigner2 := stack.getSigner(t, rootKeyRef2)
+
+	if err := app.SignCmd(ctx, stack.repoDir, []string{"root"},
+		rootSigner1, false, false); err == nil {
 		t.Fatal("expected error signing with PEM key")
 	}
 
 	// Sign root with deprecated format signer.
 	if err := app.SignCmd(ctx, stack.repoDir, []string{"root", "targets"},
-		rootSigner, false, deprecatedEcdsaFormat); err != nil {
+		rootSigner1, false, deprecatedEcdsaFormat); err != nil {
 		t.Fatal(err)
 	}
 
@@ -752,7 +756,11 @@ func TestEcdsaHexToPEMMigration(t *testing.T) {
 	}
 
 	// Check that only the PEM key IDs are on root & targets role.
-	rootTufKeyPem, err := keys.ConstructTufKey(ctx, rootSigner, false)
+	rootTufKeyPem1, err := keys.ConstructTufKey(ctx, rootSigner1, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	rootTufKeyPem2, err := keys.ConstructTufKey(ctx, rootSigner2, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -766,17 +774,24 @@ func TestEcdsaHexToPEMMigration(t *testing.T) {
 		if !ok {
 			t.Fatalf("expected %s role", roleName)
 		}
-		if len(role.KeyIDs) != 1 {
-			t.Fatal("expected 1 key IDs on root role")
+		if len(role.KeyIDs) != 2 {
+			t.Fatal("expected 2 key IDs on root role")
 		}
-		if role.KeyIDs[0] != rootTufKeyPem.IDs()[0] {
+		sort.Strings(role.KeyIDs)
+		pemKeys := []string{rootTufKeyPem1.IDs()[0], rootTufKeyPem2.IDs()[0]}
+		sort.Strings(pemKeys)
+		if !cmp.Equal(role.KeyIDs, pemKeys) {
 			t.Fatal("expected PEM ECDSA TUF key")
 		}
 	}
 
-	// Check that there are 2 signature pre-entries on root
-	// one for Hex and one for PEM.
-	rootTufKeyHex, err := keys.ConstructTufKey(ctx, rootSigner, true)
+	// Check that there are 4 signature pre-entries on root
+	// 2 for Hex and 2 for PEM.
+	rootTufKeyHex1, err := keys.ConstructTufKey(ctx, rootSigner1, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	rootTufKeyHex2, err := keys.ConstructTufKey(ctx, rootSigner2, true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -785,31 +800,39 @@ func TestEcdsaHexToPEMMigration(t *testing.T) {
 	if err := json.Unmarshal(md, signed); err != nil {
 		t.Fatal(err)
 	}
-	if len(signed.Signatures) != 2 {
-		t.Fatalf("expected 2 signature pre-entries on root, got %d", len(signed.Signatures))
+	if len(signed.Signatures) != 4 {
+		t.Fatalf("expected 4 signature pre-entries on root, got %d", len(signed.Signatures))
 	}
 	var preEntries []string
 	for _, sig := range signed.Signatures {
 		preEntries = append(preEntries, sig.KeyID)
 	}
 	sort.Strings(preEntries)
-	expectedKeyIds := append(rootTufKeyHex.IDs(), rootTufKeyPem.IDs()...)
-	sort.Strings(expectedKeyIds)
-	if !cmp.Equal(expectedKeyIds, preEntries) {
-		t.Fatalf("expected key IDs %s, got %s", expectedKeyIds, preEntries)
+	expectedPEMKeyIDs := append(rootTufKeyPem1.IDs(), rootTufKeyPem2.IDs()...)
+	expectedAllKeyIDs := append(append(rootTufKeyHex1.IDs(), rootTufKeyHex2.IDs()...),
+		expectedPEMKeyIDs...)
+	sort.Strings(expectedAllKeyIDs)
+	if !cmp.Equal(expectedAllKeyIDs, preEntries) {
+		t.Fatalf("expected key IDs %s, got %s", expectedAllKeyIDs, preEntries)
 	}
 
-	// Check that there is 1 signature pre-entry on targets, just the new PEM.
+	// Check that there is 2 signature pre-entry on targets, just the new PEMs.
 	md = stack.getManifest(t, "targets.json")
 	signed = &data.Signed{}
 	if err := json.Unmarshal(md, signed); err != nil {
 		t.Fatal(err)
 	}
-	if len(signed.Signatures) != 1 {
-		t.Fatalf("expected 1 signature pre-entries on targets, got %d", len(signed.Signatures))
+	if len(signed.Signatures) != 2 {
+		t.Fatalf("expected 2 signature pre-entries on targets, got %d", len(signed.Signatures))
 	}
-	if !cmp.Equal(signed.Signatures[0].KeyID, rootTufKeyPem.IDs()[0]) {
-		t.Fatalf("expected key IDs %s, got %s", expectedKeyIds, preEntries)
+	sort.Strings(expectedPEMKeyIDs)
+	var targetsPlaceholders []string
+	for _, sig := range signed.Signatures {
+		targetsPlaceholders = append(targetsPlaceholders, sig.KeyID)
+	}
+	sort.Strings(targetsPlaceholders)
+	if !cmp.Equal(targetsPlaceholders, expectedPEMKeyIDs) {
+		t.Fatalf("expected key IDs %s, got %s", expectedPEMKeyIDs, targetsPlaceholders)
 	}
 
 	// Check that snapshot and timestamp only have 1 key, the new PEM format.
@@ -842,8 +865,20 @@ func TestEcdsaHexToPEMMigration(t *testing.T) {
 	}
 
 	// Now sign with both key types.
-	if err := app.SignCmd(ctx, stack.repoDir, []string{"root", "targets"}, rootSigner, false, true); err != nil {
+	if err := app.SignCmd(ctx, stack.repoDir, []string{"root", "targets"}, rootSigner1, false, true); err != nil {
 		t.Fatal(err)
+	}
+
+	// Expect that we still have 4 placeholders: 2 for each key ID.
+	for _, metaName := range []string{"root.json"} {
+		md := stack.getManifest(t, metaName)
+		signed := &data.Signed{}
+		if err := json.Unmarshal(md, signed); err != nil {
+			t.Fatal(err)
+		}
+		if len(signed.Signatures) != 4 {
+			t.Fatalf("expected 4 signature places on %s, got %d", metaName, len(signed.Signatures))
+		}
 	}
 
 	// Finish publishing.

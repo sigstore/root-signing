@@ -197,18 +197,18 @@ func SignMeta(ctx context.Context, store tuf.LocalStore, name string, signer sig
 	}
 
 	// Get TUF public IDs associated to the signer.
-	var keyIDs []string
+	var candidateKeyIDs []string
 	pubKey, err := keys.ConstructTufKey(ctx, signer, false)
 	if err != nil {
 		return err
 	}
-	keyIDs = append(keyIDs, pubKey.IDs()...)
+	candidateKeyIDs = append(candidateKeyIDs, pubKey.IDs()...)
 	if addDeprecatedKeyFormat {
 		oldPubKey, err := keys.ConstructTufKey(ctx, signer, true)
 		if err != nil {
 			return err
 		}
-		keyIDs = append(keyIDs, oldPubKey.IDs()...)
+		candidateKeyIDs = append(candidateKeyIDs, oldPubKey.IDs()...)
 	}
 
 	role := strings.TrimSuffix(name, ".json")
@@ -217,10 +217,9 @@ func SignMeta(ctx context.Context, store tuf.LocalStore, name string, signer sig
 		return err
 	}
 
-	// Add it to your key entry
-	var added bool
-	sigs := make([]data.Signature, 0, len(s.Signatures))
-	for _, id := range keyIDs {
+	// Filter key IDs with the role signing key map.
+	var keyIDs []string
+	for _, id := range candidateKeyIDs {
 		// We check to make sure that the key ID (which may include deprecated IDs)
 		// is associated with the role's keys.
 		// For example, targets signers are HSM keys and may be interpreted with both
@@ -229,20 +228,34 @@ func SignMeta(ctx context.Context, store tuf.LocalStore, name string, signer sig
 		if _, ok := roleSigningKeys[id]; !ok {
 			continue
 		}
-		// If pre-entries are defined, update the entry with the new signature.
-		if arePreEntriesDefined(s) {
-			for _, entry := range s.Signatures {
+		keyIDs = append(keyIDs, id)
+	}
+
+	// Add it to your key entry
+	var added bool
+	sigs := make([]data.Signature, 0, len(s.Signatures))
+
+	// If pre-entries are defined, update the entry with the new signature.
+	if arePreEntriesDefined(s) {
+		for _, entry := range s.Signatures {
+			// If this matches any of the key IDs, add the signature.
+			var matches bool
+			for _, id := range keyIDs {
 				if entry.KeyID == id {
 					sigs = append(sigs, data.Signature{
 						KeyID:     id,
 						Signature: sig,
 					})
 					added = true
-				} else {
-					sigs = append(sigs, entry)
+					matches = true
 				}
 			}
-		} else {
+			if !matches {
+				sigs = append(sigs, entry)
+			}
+		}
+	} else {
+		for _, id := range keyIDs {
 			sigs = append(sigs, data.Signature{
 				KeyID:     id,
 				Signature: sig,

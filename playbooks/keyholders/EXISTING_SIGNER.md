@@ -101,10 +101,9 @@ This will setup your clone and build the TUF binary to use for metadata generati
 
 ### Signing
 
-When prompted in the Slack channel, begin signing root and targets metadata. If the ceremony started on a prior date, you should add a repository reference by setting `REPO`. Otherwise, for same-day signing, you may omit to default to the current date. Run:
+When prompted in the Slack channel, begin signing root and targets metadata. If the ceremony started on a prior date (or the date in your timezone does not match the date in the orchestrator's timezone), you should add a repository reference by setting `REPO`. Otherwise, for same-day signing, you may omit to default to the current date. Run:
 ```
-REPO=$(pwd)/ceremony/$DATE ./scripts/step-2.sh
+REPO=$(pwd)/ceremony/<START_DATE> ./scripts/step-2.sh
 ```
-
 
 Again, this will populate a signature for your key id in the `signatures` section for these two top-level roles and push a PR that will be verified and merged.

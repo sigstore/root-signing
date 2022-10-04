@@ -42,6 +42,7 @@ checkout_branch() {
     if [ -n "$LOCAL" ]; then
         echo "Working on local changes. There may be uncommitted changes, so skipping upstream pull..."
     else 
+        git fetch upstream
         git pull upstream $BRANCH
     fi
     git rev-parse HEAD

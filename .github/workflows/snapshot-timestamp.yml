@@ -30,6 +30,22 @@ on:
     paths:
       - 'repository/staged/root.json'
   workflow_dispatch:
+    inputs:
+      snapshot_timestamp:
+        description: 'Enables snapshot/timestamp step. During ceremonies, you may flip this to false to allow for just a publish step.'
+        required: false
+        default: true
+        type: bool
+      publish:
+        description: 'Enables publishing step. During ceremonies, you may flip this to false to allow for reviewing changes before publishing.'
+        required: false
+        default: true
+        type: bool
+      repo:
+        description: 'Sets the repository to perform the operation on: expects relative path to GitHub repository, for example: ceremony/2022-10-03'
+        required: false
+        default: repository/
+        type: string
 
 jobs:
   snapshot_and_timestamp:
@@ -42,42 +58,48 @@ jobs:
           fetch-depth: 0
       - name: setup
         run: |
-          echo "REPO=$(pwd)/repository/" >> $GITHUB_ENV
-          echo "SNAPSHOT_KEY=gcpkms://projects/project-rekor/locations/global/keyRings/sigstore-root/cryptoKeys/snapshot" >> $GITHUB_ENV
-          echo "TIMESTAMP_KEY=gcpkms://projects/project-rekor/locations/global/keyRings/sigstore-root/cryptoKeys/timestamp" >> $GITHUB_ENV
+          echo "GITHUB_USER=${{ github.actor }}" >> $GITHUB_ENV
+          echo "REPO=$(pwd)/${{ inputs.repo }}" >> $GITHUB_ENV
+          echo "SNAPSHOT_KEY=gcpkms://projects/sigstore-root-signing/locations/global/keyRings/sigstore-root/cryptoKeys/snapshot" >> $GITHUB_ENV
+          echo "TIMESTAMP_KEY=gcpkms://projects/sigstore-root-signing/locations/global/keyRings/sigstore-root/cryptoKeys/timestamp" >> $GITHUB_ENV
+          # Note: we set LOCAL=1 because we manually push the changes in the next job.
+          echo "LOCAL=1" >> $GITHUB_ENV
       - uses: actions/setup-go@268d8c0ca0432bb2cf416faae41297df9d262d7f # v2.2.0
         with:
           go-version: 1.18.x
       - uses: google-github-actions/setup-gcloud@877d4953d2c70a0ba7ef3290ae968eb24af233bb # v0.5.1
         with:
-          project_id: project-rekor
+          project_id: sigstore-root-signing
       # Setup OIDC->SA auth
       - uses: google-github-actions/auth@dac4e13deb3640f22e3ffe758fd3f95e6e89f712 # v0.7.2
         id: auth
         with:
           token_format: 'access_token'
-          workload_identity_provider: 'projects/237800849078/locations/global/workloadIdentityPools/root-signing-pool/providers/sigstore-root'
-          service_account: 'sigstore-root-signing@project-rekor.iam.gserviceaccount.com'
+          workload_identity_provider: 'projects/163070369698/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions-provider'
+          service_account: 'github-actions@sigstore-root-signing.iam.gserviceaccount.com'
           create_credentials_file: true
       - name: Login
         run: |
           gcloud auth login --brief --cred-file="${{ steps.auth.outputs.credentials_file_path }}"
           gcloud auth list
 
-      # Snapshot and timestamp
+      # Build binary
       - name: build
         run: |
           sudo apt-get install libpcsclite-dev
           go build -o tuf -tags=pivkey ./cmd/tuf/
+
+      # Snapshot and timestamp
       - name: snapshot and timestamp
+        if: ${{ github.snapshot_timestamp }}
         run: |
-          ./tuf snapshot -repository $REPO
-          ./tuf sign -repository $REPO -roles snapshot -key ${SNAPSHOT_KEY} -add-deprecated true
-          ./tuf timestamp -repository $REPO
-          ./tuf sign -repository $REPO -roles timestamp -key ${TIMESTAMP_KEY} -add-deprecated true
+          ./scripts/step-3.sh
+
+      # Publish
       - name: publish
+        if: ${{ github.publish }}
         run: |
-          ./tuf publish -repository $REPO
+          ./scripts/step-4.sh
       - name: Upload snapshot and timestamp
         uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # v2.3.1
         with:

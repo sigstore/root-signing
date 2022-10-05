@@ -91,13 +91,13 @@ jobs:
 
       # Snapshot and timestamp
       - name: snapshot and timestamp
-        if: ${{ github.snapshot_timestamp }}
+        if: ${{ inputs.snapshot_timestamp }}
         run: |
           ./scripts/step-3.sh
 
       # Publish
       - name: publish
-        if: ${{ github.publish }}
+        if: ${{ inputs.publish }}
         run: |
           ./scripts/step-4.sh
       - name: Upload snapshot and timestamp

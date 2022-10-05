@@ -104,7 +104,7 @@ jobs:
         uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # v2.3.1
         with:
           name: snapshot-and-timestamp
-          path: repository/repository/
+          path: ${{ inputs.repo }}
           retention-days: 5
 
   if-failed:
@@ -134,7 +134,7 @@ jobs:
       - uses: actions/download-artifact@fb598a63ae348fa914e94cd0ff38f362e927b741 # v2.1.0
         with:
           name: snapshot-and-timestamp
-          path: repository/repository/
+          path: ${{ inputs.repo }}
       # Open pull request changes
       - name: create pull request
         uses: peter-evans/create-pull-request@671dc9c9e0c2d73f07fa45a3eb0220e1622f0c5f # v4.1.3

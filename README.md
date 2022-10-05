@@ -42,11 +42,11 @@ The pre-production root is published on a GCS bucket located at `https://storage
 
 | Keyholder        |  TUF Key ID |  Yubikey Material| Term | 
 | ----- |--------- |  --- | ---- |
-| Joshua Lock       |  `75e867ab10e121fdef32094af634707f43ddd79c6bab8ad6c5ab9f03f4ea8c90` | [18158855](https://github.com/sigstore/root-signing/ceremony/2022-07-12/keys/18158855)  | July 2022 -  | 
-| Bob Callaway        |  `f505595165a177a41750a8e864ed1719b1edfccd5a426fd2c0ffda33ce7ff209` | [15938791](https://github.com/sigstore/root-signing/tree/main/ceremony/2021-06-18/keys/15938791)  | June 2021 -  | 
-| Dan Lorenc        |  `2f64fb5eac0cf94dd39bb45308b98920055e9a0d8e012a7220787834c60aef97` | [13078778](https://github.com/sigstore/root-signing/tree/main/ceremony/2021-06-18/keys/13078778)  | June 2021 -  | 
-| Marina Moore        |  `eaf22372f417dd618a46f6c627dbc276e9fd30a004fc94f9be946e73f8bd090b` | [14470876](https://github.com/sigstore/root-signing/tree/main/ceremony/2021-06-18/keys/14470876)  | June 2021 -  | 
-| Santiago Torres-Arias        |  `f40f32044071a9365505da3d1e3be6561f6f22d0e60cf51df783999f6c3429cb` | [15938765](https://github.com/sigstore/root-signing/tree/main/ceremony/2021-06-18/keys/15938765) | June 2021 -  | 
+| Joshua Lock       |  `2e61cd0cbf4a8f45809bda9f7f78c0d33ad11842ff94ae340873e2664dc843de` (new, v5+) `75e867ab10e121fdef32094af634707f43ddd79c6bab8ad6c5ab9f03f4ea8c90` (deprecated) | [18158855](https://github.com/sigstore/root-signing/tree/main/ceremony/2022-07-12/keys/18158855)  | July 2022 -  |
+| Bob Callaway        |  `7f7513b25429a64473e10ce3ad2f3da372bbdd14b65d07bbaf547e7c8bbbe62b` (new, v5+) `f505595165a177a41750a8e864ed1719b1edfccd5a426fd2c0ffda33ce7ff209` (deprecated) | [15938791](https://github.com/sigstore/root-signing/tree/main/ceremony/2021-06-18/keys/15938791)  | June 2021 -  |
+| Dan Lorenc        |  `ff51e17fcf253119b7033f6f57512631da4a0969442afcf9fc8b141c7f2be99c` (new, v5+) `2f64fb5eac0cf94dd39bb45308b98920055e9a0d8e012a7220787834c60aef97` (deprecated) | [13078778](https://github.com/sigstore/root-signing/tree/main/ceremony/2021-06-18/keys/13078778)  | June 2021 -  |
+| Marina Moore        |  `25a0eb450fd3ee2bd79218c963dce3f1cc6118badf251bf149f0bd07d5cabe99` (new, v5+) `eaf22372f417dd618a46f6c627dbc276e9fd30a004fc94f9be946e73f8bd090b` (deprecated) | [14470876](https://github.com/sigstore/root-signing/tree/main/ceremony/2021-06-18/keys/14470876)  | June 2021 -  |
+| Santiago Torres-Arias        | `f5312f542c21273d9485a49394386c4575804770667f2ddb59b3bf0669fddd2f` (new, v5+) `f40f32044071a9365505da3d1e3be6561f6f22d0e60cf51df783999f6c3429cb` (deprecated) | [15938765](https://github.com/sigstore/root-signing/tree/main/ceremony/2021-06-18/keys/15938765) | June 2021 -  |
 
 ### Emeritus Keyholders
 | Keyholder        |  TUF Key ID |  Yubikey Material| Term | 

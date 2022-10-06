@@ -56,7 +56,17 @@ jobs:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v3.1.0
         with:
           fetch-depth: 0
-      - name: setup
+      - name: setup current production keys
+        if: ${{ inputs.repo }} == 'repository/'
+        run: |
+          echo "GITHUB_USER=${{ github.actor }}" >> $GITHUB_ENV
+          echo "REPO=$(pwd)/${{ inputs.repo }}" >> $GITHUB_ENV
+          echo "SNAPSHOT_KEY=gcpkms://projects/project-rekor/locations/global/keyRings/sigstore-root/cryptoKeys/snapshot" >> $GITHUB_ENV
+          echo "TIMESTAMP_KEY=gcpkms://projects/project-rekor/locations/global/keyRings/sigstore-root/cryptoKeys/timestamp" >> $GITHUB_ENV
+          # Note: we set LOCAL=1 because we manually push the changes in the next job.
+          echo "LOCAL=1" >> $GITHUB_ENV
+      - name: setup current staging keys
+        if: ${{ inputs.repo }} == 'ceremony/2022-10-03'
         run: |
           echo "GITHUB_USER=${{ github.actor }}" >> $GITHUB_ENV
           echo "REPO=$(pwd)/${{ inputs.repo }}" >> $GITHUB_ENV

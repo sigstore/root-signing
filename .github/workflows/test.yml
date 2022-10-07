@@ -67,10 +67,10 @@ jobs:
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v3.1.0
       - name: Check workflow files
-        uses: docker://rhysd/actionlint:1.6.20
+        uses: reviewdog/action-actionlint@8ce1a5c1df6c19443f6edfaffa97c781833f3039 # v1.32.0
         # TODO(asraa): Re-enable shellcheck from actionlint
         with:
-          args: -color -shellcheck=
+          actionlint_flags: -color -shellcheck=
 
   test:
     runs-on: ubuntu-20.04

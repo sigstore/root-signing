@@ -33,16 +33,15 @@ on:
 
 jobs:
   run_snapshot_timestamp_publish:
-    runs-on: ubuntu-20.04
     permissions:
       id-token: 'write'
       issues: 'write'
       pull-requests: 'write'
       contents: 'write'
     uses: sigstore/root-signing/.github/workflows/reuseable-snapshot-timestamp.yml@main
-      with:
-        snapshot_key: 'gcpkms://projects/project-rekor/locations/global/keyRings/sigstore-root/cryptoKeys/snapshot'
-        timestamp_key: 'gcpkms://projects/project-rekor/locations/global/keyRings/sigstore-root/cryptoKeys/timestamp'
-        repo: 'repository/'
-        provider: projects/237800849078/locations/global/workloadIdentityPools/root-signing-pool/providers/sigstore-root'
-        service_account: 'sigstore-root-signing@project-rekor.iam.gserviceaccount.com'
+    with:
+      snapshot_key: 'gcpkms://projects/project-rekor/locations/global/keyRings/sigstore-root/cryptoKeys/snapshot'
+      timestamp_key: 'gcpkms://projects/project-rekor/locations/global/keyRings/sigstore-root/cryptoKeys/timestamp'
+      repo: 'repository/'
+      provider: projects/237800849078/locations/global/workloadIdentityPools/root-signing-pool/providers/sigstore-root'
+      service_account: 'sigstore-root-signing@project-rekor.iam.gserviceaccount.com'

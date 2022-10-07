@@ -13,24 +13,34 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: Snapshot and Timestamp
+name: Snapshot and Timestamp Template
 
-permissions: read-all
-
-# Execute this as a biweekly cron job and on changes to repository/
-# when new published metadata is submitted.
+# Reusable workflow that runs snapshot and timestamp on directories.
+# TODO(asraa): Create user workflows for repository-beta/, and ceremony/ flows.
 on:
-  # Enable cron for re-signing snapshot and timestamp every week
-  schedule:
-    - cron: '0 0 */7 * *' # every 7 days
-  # When a new root is staged
-  push:
-    branches:
-      - main
-    paths:
-      - 'repository/staged/root.json'
-  workflow_dispatch:
+  workflow_call:
     inputs:
+      snapshot_key:
+        description: 'Sets the snapshotting key reference'
+        required: true
+        type: string
+      timestamp_key:
+        description: 'Sets the timestamping key reference'
+        required: true
+        type: string
+      repo:
+        description: 'Sets the repository to perform the operation on: expects relative path to GitHub repository, for example: ceremony/2022-10-03'
+        required: false
+        default: repository/
+        type: string
+      provider:
+        description: 'Sets the workflow identity provider'
+        required: true
+        type: string
+      service_account:
+        description: 'Sets the GitHub service account authorized for keys'
+        required: true
+        type: string
       snapshot_timestamp:
         description: 'Enables snapshot/timestamp step. During ceremonies, you may flip this to false to allow for just a publish step.'
         required: false
@@ -41,11 +51,6 @@ on:
         required: false
         default: true
         type: bool
-      repo:
-        description: 'Sets the repository to perform the operation on: expects relative path to GitHub repository, for example: ceremony/2022-10-03'
-        required: false
-        default: repository/
-        type: string
 
 jobs:
   snapshot_and_timestamp:
@@ -60,8 +65,8 @@ jobs:
         run: |
           echo "GITHUB_USER=${{ github.actor }}" >> $GITHUB_ENV
           echo "REPO=$(pwd)/${{ inputs.repo }}" >> $GITHUB_ENV
-          echo "SNAPSHOT_KEY=gcpkms://projects/sigstore-root-signing/locations/global/keyRings/root/cryptoKeys/snapshot" >> $GITHUB_ENV
-          echo "TIMESTAMP_KEY=gcpkms://projects/sigstore-root-signing/locations/global/keyRings/root/cryptoKeys/timestamp" >> $GITHUB_ENV
+          echo "SNAPSHOT_KEY={{ inputs.snapshot_key }}" >> $GITHUB_ENV
+          echo "TIMESTAMP_KEY={{ inputs.timestamp_key }}" >> $GITHUB_ENV
           # Note: we set LOCAL=1 because we manually push the changes in the next job.
           echo "LOCAL=1" >> $GITHUB_ENV
       - uses: actions/setup-go@268d8c0ca0432bb2cf416faae41297df9d262d7f # v2.2.0
@@ -75,8 +80,8 @@ jobs:
         id: auth
         with:
           token_format: 'access_token'
-          workload_identity_provider: 'projects/163070369698/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions-provider'
-          service_account: 'github-actions@sigstore-root-signing.iam.gserviceaccount.com'
+          workload_identity_provider: ${{ inputs.provider }}
+          service_account: ${{ inputs.service_account }}
           create_credentials_file: true
       - name: Login
         run: |
@@ -114,6 +119,7 @@ jobs:
       issues: 'write'
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      ISSUE_REPOSITORY: sigstore/root-signing
     if: always() && needs.snapshot_and_timestamp.result == 'failure'
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v3.1.0
@@ -153,6 +159,7 @@ jobs:
       issues: 'write'
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      ISSUE_REPOSITORY: sigstore/root-signing
     if: always() && needs.push.result == 'failure'
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v3.1.0

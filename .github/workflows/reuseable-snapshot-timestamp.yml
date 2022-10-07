@@ -45,12 +45,12 @@ on:
         description: 'Enables snapshot/timestamp step. During ceremonies, you may flip this to false to allow for just a publish step.'
         required: false
         default: true
-        type: bool
+        type: boolean
       publish:
         description: 'Enables publishing step. During ceremonies, you may flip this to false to allow for reviewing changes before publishing.'
         required: false
         default: true
-        type: bool
+        type: boolean
 
 jobs:
   snapshot_and_timestamp:

@@ -17,7 +17,7 @@
 set -euo pipefail
 
 # Gets the name of the currently running workflow file.
-# Note: this requires GH_TOKEN to be set in the workflows.
+# Note: this requires GITHUB_TOKEN to be set in the workflows.
 this_file() {
     gh api -H "Accept: application/vnd.github.v3+json" "/repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" | jq -r '.path' | cut -d '/' -f3
 }
@@ -47,7 +47,7 @@ ISSUE_ID=$(gh -R "$ISSUE_REPOSITORY" issue list --label "type:bug" --state open 
 if [[ -z "$ISSUE_ID" ]]; then
     # Replace `-`` by ` `, remove the last 4 characters `.yml`. Expected: "snapshot timestamp".
     TITLE=$(echo "$THIS_FILE" | sed -e 's/\-/ /g' | rev | cut -c5- | rev)
-    GH_TOKEN=$TOKEN gh -R "$ISSUE_REPOSITORY" issue create -t "[bug]: Updating workflow $TITLE" -F ./BODY --label "type:bug" 
+    GH_TOKEN=$GITHUB_TOKEN gh -R "$ISSUE_REPOSITORY" issue create -t "[bug]: Updating workflow $TITLE" -F ./BODY --label "type:bug"
 else
-    GH_TOKEN=$TOKEN gh -R "$ISSUE_REPOSITORY" issue comment "$ISSUE_ID" -F ./BODY
+    GH_TOKEN=$GITHUB_TOKEN gh -R "$ISSUE_REPOSITORY" issue comment "$ISSUE_ID" -F ./BODY
 fi

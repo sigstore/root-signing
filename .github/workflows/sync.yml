@@ -40,7 +40,6 @@ jobs:
       - uses: google-github-actions/setup-gcloud@877d4953d2c70a0ba7ef3290ae968eb24af233bb # v0.5.1
         with:
           project_id: project-rekor
-          install_components: alpha
       # Setup OIDC->SA auth
       - uses: google-github-actions/auth@dac4e13deb3640f22e3ffe758fd3f95e6e89f712 # v0.7.2
         id: auth

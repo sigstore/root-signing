@@ -43,5 +43,5 @@ jobs:
       snapshot_key: 'gcpkms://projects/project-rekor/locations/global/keyRings/sigstore-root/cryptoKeys/snapshot'
       timestamp_key: 'gcpkms://projects/project-rekor/locations/global/keyRings/sigstore-root/cryptoKeys/timestamp'
       repo: 'repository/'
-      provider: projects/237800849078/locations/global/workloadIdentityPools/root-signing-pool/providers/sigstore-root'
+      provider: 'projects/237800849078/locations/global/workloadIdentityPools/root-signing-pool/providers/sigstore-root'
       service_account: 'sigstore-root-signing@project-rekor.iam.gserviceaccount.com'

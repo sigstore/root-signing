@@ -17,11 +17,11 @@ name: Sync Repository with GCS Preprod Bucket
 
 # Execute this on changes to repository/repository/
 on:
-  # When a new root is published.
   push:
     branches:
       - main
     paths:
+      # When any repository metadata is changed.
       - 'repository/repository/**'
   workflow_dispatch:
 
@@ -54,7 +54,6 @@ jobs:
           gcloud auth login --brief --cred-file="${{ steps.auth.outputs.credentials_file_path }}"
           gcloud auth list
       # Sync
-      # TODO(297): Switch to stable gcloud API, use rsync when available
       - name: sync
         run: |
           check_expiration() {
@@ -78,19 +77,19 @@ jobs:
                 check_expiration repository/repository/$f
             fi;
 
-            gcloud alpha --quiet storage cp --cache-control=no-store -r repository/repository/$f gs://sigstore-preprod-tuf-root/
+            gcloud --quiet storage cp --cache-control=no-store -r repository/repository/$f gs://sigstore-preprod-tuf-root/
           done
 
           # Upload timestamp after checking latest timestamp expiration
           check_expiration repository/repository/timestamp.json
-          gcloud alpha --quiet storage cp --cache-control=no-store -r repository/repository/*timestamp.json gs://sigstore-preprod-tuf-root/
+          gcloud --quiet storage cp --cache-control=no-store -r repository/repository/*timestamp.json gs://sigstore-preprod-tuf-root/
 
           # delete any files present in sigstore-preprod-tuf-root not in repository/repository
-          gcloud alpha --quiet storage cp -r gs://sigstore-preprod-tuf-root/ .
+          gcloud --quiet storage cp -r gs://sigstore-preprod-tuf-root/ .
 
           diff -qr repository/repository sigstore-preprod-tuf-root | while read l; do
             if [[ $l =~ "Only in sigstore-preprod-tuf-root" ]]; then
               path=$(python3 -c "import re; s='$l'; pattern=r'^Only in sigstore-preprod-tuf-root(\/?)(.*): (.*)$'; match=re.search(pattern, s); print('/'.join([match.group(2), match.group(3)]).lstrip('/'))")
-              gcloud alpha --quiet storage rm gs://sigstore-preprod-tuf-root/$path
+              gcloud --quiet storage rm gs://sigstore-preprod-tuf-root/$path
             fi;
           done

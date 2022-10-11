@@ -2,8 +2,8 @@
 	"signed": {
 		"_type": "snapshot",
 		"spec_version": "1.0",
-		"version": 50,
-		"expires": "2022-10-24T16:40:00Z",
+		"version": 51,
+		"expires": "2022-11-01T17:56:29Z",
 		"meta": {
 			"rekor.json": {
 				"length": 797,
@@ -50,7 +50,7 @@
 	"signatures": [
 		{
 			"keyid": "fc61191ba8a516fe386c7d6c97d918e1d241e1589729add09b122725b8c32451",
-			"sig": "3045022100b91732f5ea0c105ecf309f212845e768088cac7da41e4f0e38fdcf76bea43135022008bb9bce4c2059a55833852ddbacb6f3a8401e5adb21ebde8b97a2617151618f"
+			"sig": "3046022100f152cc5834c837cef317a1e823c1f6c8c62175926500e4698d7a6b69eac107b8022100f4e915c64687461940a128aec9b99d8eb300c13922aefa89c45f61d63883cc78"
 		}
 	]
 }

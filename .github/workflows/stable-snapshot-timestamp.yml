@@ -33,6 +33,7 @@ on:
 
 jobs:
   run_snapshot_timestamp_publish:
+    if: (github.event_name == 'schedule' && github.repository == 'sigstore/root-signing') || (github.event_name != 'schedule')  # Don't run workflow in forks on cron
     permissions:
       id-token: 'write'
       issues: 'write'

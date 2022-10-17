@@ -118,6 +118,10 @@ jobs:
       # Create commits
       - name: Create commits
         run: |
+          # Set identity.
+          git config --global user.email "noreply@github.com"
+          git config --global user.name "GitHub"
+
           # First commit the old repository data.
           git add ceremony/"${DATE}"/repository/ ceremony/"${DATE}"/keys/
           git commit -s -m "Copy current repository metadata and keys"

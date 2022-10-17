@@ -16,12 +16,12 @@ fulcio.crt.pem:
     status: Expired
 ctfe.pub:
   sigstore:
-    uri: https://ctfe.sigstore.dev
+    uri: https://ctfe.sigstore.dev/test
     usage: CTFE
     status: Active
 ctfe_2022.pub:
   sigstore:
-    uri: https://ctfe.sigstore.dev
+    uri: https://ctfe.sigstore.dev/2022
     usage: CTFE
     status: Active
 rekor.pub:

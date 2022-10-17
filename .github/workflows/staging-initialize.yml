@@ -30,6 +30,11 @@ on:
         required: false
         default: repository/
         type: string
+      draft:
+        description: 'Use for testing; creates a draft pull request'
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   init_root:
@@ -119,4 +124,5 @@ jobs:
           body: Initializes a new root and targets to version ${{ env.VERSION }}
           branch: init-root-targets
           signoff: true
+          draft: ${{ inputs.draft }}
           reviewers: asraa,dlorenc,haydentherapper,joshuagl

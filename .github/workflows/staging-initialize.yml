@@ -131,7 +131,7 @@ jobs:
         uses: peter-evans/create-pull-request@ad43dccb4d726ca8514126628bec209b8354b6dd # v4.1.3
         with:
           commit-message: update root and targets
-          title: Update Root and Targets to ${{ env.VERSION }}
+          title: Update Root and Targets to version ${{ env.VERSION }}
           body: Initializes a new root and targets to version ${{ env.VERSION }}
           branch: init-root-targets
           signoff: true

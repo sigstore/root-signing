@@ -104,3 +104,18 @@ jobs:
               gcloud --quiet storage rm gs://sigstore-tuf-root/$path
             fi;
           done
+
+  if-failed:
+    runs-on: ubuntu-latest
+    needs: [sync]
+    permissions:
+      issues: 'write'
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      ISSUE_REPOSITORY: sigstore/root-signing
+    if: always() && needs.sync.result == 'failure'
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v3.1.0
+      - run: |
+          set -euo pipefail
+          ./.github/workflows/scripts/report-failure.sh

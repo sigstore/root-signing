@@ -99,13 +99,24 @@ jobs:
         with:
           name: ceremony
           path: ceremony/
+      # Detect new version and expiration to add to the PR description.
+      - name: Detect new version
+        run: |
+          # Detects the ceremony date.
+          DATE=$(git status -s | grep --regexp=ceremony/* | cut -f2 -d /)
+          echo "DATE=$DATE" >> $GITHUB_ENV
+
+          # Detects the new root version.
+          VERSION=$(cat ceremony/${DATE}/staged/root.json | jq -r '.signed.version')
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
       # Open pull request changes
       - name: create pull request
         uses: peter-evans/create-pull-request@ad43dccb4d726ca8514126628bec209b8354b6dd # v4.1.3
         with:
           commit-message: update root and targets
-          title: Update Root and Targets
-          body: Initializes a new root and targets
+          title: Update Root and Targets to ${{ env.VERSION }}
+          body: Initializes a new root and targets to version ${{ env.VERSION }}
           branch: init-root-targets
           signoff: true
           reviewers: asraa,dlorenc,haydentherapper,joshuagl

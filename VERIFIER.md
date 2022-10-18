@@ -6,10 +6,10 @@ Pre-requisites:
 
 0. **Verifiers** should fork [this](https://github.com/sigstore/root-signing) git repository by clicking the "fork" button on GitHub.
 
-1. To verify a PR, run the script with the pull request ID to verify, where `YOUR_GITHUB_USERNAME` is your GitHub username:
+1. To verify a PR, run the script with the pull request ID to verify, where `YOUR_GITHUB_USERNAME` is your GitHub username, and `REPO` is the date of the ceremony. Note that if the ceremony date differs from your current date, you will need to change that.
 
 ```
-GITHUB_USER=${YOUR_GITHUB_USERNAME} ./scripts/verify.sh ${PULL_REQUEST_ID}
+GITHUB_USER=${YOUR_GITHUB_USERNAME} REPO=$(pwd)/ceremony/$(date '+%Y-%m-%d') ./scripts/verify.sh ${PULL_REQUEST_ID}
 ```
 
 This will download the Yubico root CA. For each key added, it will verify:

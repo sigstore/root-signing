@@ -107,7 +107,7 @@
 	"signatures": [
 		{
 			"keyid": "ff51e17fcf253119b7033f6f57512631da4a0969442afcf9fc8b141c7f2be99c",
-			"sig": ""
+			"sig": "3044022021f72d66bf62701663222d459bd7151d165c2a5799cfdd556b3934016a2ba7b40220748fa624a9f76b978bff065adfb7daca6f005d7ed62c65ea58d7c1c7cd2c53ec"
 		},
 		{
 			"keyid": "25a0eb450fd3ee2bd79218c963dce3f1cc6118badf251bf149f0bd07d5cabe99",

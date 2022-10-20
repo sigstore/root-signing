@@ -55,7 +55,7 @@ jobs:
       - name: verify staged ceremony changes
         run: |
           set -euo pipefail
-          export CHANGED=$(git diff --name-only HEAD^ HEAD ceremony/ | grep ".*staged.*" | head -1)
+          export CHANGED=$(git diff --name-only HEAD^ HEAD ceremony/20* | grep ".*staged.*" | head -1)
           echo "$CHANGED"
           if [ -n "$CHANGED" ]; then
             export REPO=$(echo "$CHANGED" | cut -d/ -f 1-2)

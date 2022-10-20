@@ -204,6 +204,10 @@ This will create a PR moving the files. Verify that the TUF client can update to
 
 ### Other
 
+#### Encountering a configuration mistake
+
+In case there is a configuration mistake or a breakage that renders a ceremony ineffective, move the half-completed ceremony directory into `ceremony/defunct`. This may help avoid keyholders from pointing to an invalid ceremony directory when signing.
+
 #### Adding a Delegation
 
 1. Add an environment variable for the delegation key named `$DELEGATION_KEY` in [./scripts/step-1.5.sh].

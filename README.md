@@ -55,6 +55,9 @@ The pre-production root is published on a GCS bucket located at `https://storage
 
 
 ### Ceremony Overview
+
+Ceremonies are currently staged in `ceremony/YYYY-MM-DD` according to the date the ceremony was initiated. Ceremonies that resulted in invalid metadata (for whatever reason) and are incomplete are moved into the `ceremony/defunct` directory.
+
 At the end of the ceremony, new repository metadata will be written to a `ceremony/YYYY-MM-DD/repository` directory.
 
 The ceremony will be completed in five rounds:

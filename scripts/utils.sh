@@ -89,10 +89,10 @@ commit_and_push_changes() {
     fi
 
     # Create a commit
-    git checkout -b "$1"
+    git checkout -b "$1-${REPO: -10}"
     git add ceremony/ repository/
     git commit -s -a -m "$1 for ${GITHUB_USER}"
-    git push -f origin "$1"
+    git push -f origin "$1-${REPO: -10}"
 
     # Open the browser
     GITHUB_URL=$(git remote -v | awk '/^upstream/{print $2}'| head -1 | sed -Ee 's#(git@|git://)#https://#' -e 's@com:@com/@' -e 's#\.git$##')

@@ -122,7 +122,7 @@
 	"signatures": [
 		{
 			"keyid": "ff51e17fcf253119b7033f6f57512631da4a0969442afcf9fc8b141c7f2be99c",
-			"sig": ""
+			"sig": "3045022100fc1c2be509ce50ea917bbad1d9efe9d96c8c2ebea04af2717aa3d9c6fe617a75022012eef282a19f2d8bd4818aa333ef48a06489f49d4d34a20b8fe8fc867bb25a7a"
 		},
 		{
 			"keyid": "25a0eb450fd3ee2bd79218c963dce3f1cc6118badf251bf149f0bd07d5cabe99",
@@ -142,7 +142,7 @@
 		},
 		{
 			"keyid": "2f64fb5eac0cf94dd39bb45308b98920055e9a0d8e012a7220787834c60aef97",
-			"sig": ""
+			"sig": "3045022100fc1c2be509ce50ea917bbad1d9efe9d96c8c2ebea04af2717aa3d9c6fe617a75022012eef282a19f2d8bd4818aa333ef48a06489f49d4d34a20b8fe8fc867bb25a7a"
 		},
 		{
 			"keyid": "eaf22372f417dd618a46f6c627dbc276e9fd30a004fc94f9be946e73f8bd090b",

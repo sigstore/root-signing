@@ -42,7 +42,6 @@ with tempfile.TemporaryDirectory() as tmpdirname:
             metadata_base_url=f"{REPO_URL}",
             target_base_url=f"{REPO_URL}/targets/",
             target_dir=tmpdirname)
-        updater.refresh()
 
         info = updater.get_targetinfo(fulcio_cert)
 
@@ -53,6 +52,7 @@ with tempfile.TemporaryDirectory() as tmpdirname:
         path = updater.download_target(info)
         print(f"Fetched {fulcio_cert} to {path}")
 
-    except:
+    except Exception as e:
         print(f"Updated and fetch of {fulcio_cert} failed")
+        print(e)
         sys.exit(2)

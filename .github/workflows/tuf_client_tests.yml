@@ -44,10 +44,16 @@ jobs:
         with:
           go-version: '1.18.x'
       - run: |
-          go install github.com/theupdateframework/go-tuf/cmd/tuf-client@v0.4.0
+          go install github.com/theupdateframework/go-tuf/cmd/tuf-client@v0.5.1
       - run: |
-          tuf-client init http://localhost:8001 repository/repository/1.root.json
-          tuf-client list http://localhost:8001
+          # Only 5.root.json is compatible with new versions of go-tuf
+          if [ -f repository/repository/5.root.json ]; then
+            tuf-client init http://localhost:8001 repository/repository/5.root.json
+            tuf-client list http://localhost:8001
+          fi
+          # Verify with a go-tuf client that can understand deprecated keys
+          go run ./tests/client-tests init http://localhost:8001 repository/repository/1.root.json
+          go run ./tests/client-tests list http://localhost:8001
       # Test with rust client
       - name: Install tuftool
         uses: actions-rs/install@9da1d2adcfe5e7c16992e8242ca33a56b6d9b101 # v0.1.2

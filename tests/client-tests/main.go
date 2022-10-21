@@ -68,10 +68,10 @@ List available target files.
 		if len(cmdArgs) == 0 { // `tuf-client help`
 			fmt.Fprint(os.Stdout, usage)
 			return
-		} else { // `tuf-client help <command>`
-			cmd = cmdArgs[0]
-			cmdArgs = []string{"--help"}
 		}
+		// `tuf-client help <command>`
+		cmd = cmdArgs[0]
+		cmdArgs = []string{"--help"}
 	}
 
 	if err := runCommand(cmd, cmdArgs); err != nil {

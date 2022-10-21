@@ -15,6 +15,7 @@
 
 import os
 import shutil
+import sys
 import tempfile
 
 from tuf.ngclient import Updater
@@ -34,9 +35,24 @@ with tempfile.TemporaryDirectory() as tmpdirname:
         "repository/repository/4.root.json",
         f"{METADATA_DIR}/root.json")
 
-    updater = Updater(
-        metadata_dir=METADATA_DIR,
-        metadata_base_url=f"{REPO_URL}/metadata/",
-        target_base_url=f"{REPO_URL}/targets/",
-        target_dir=tmpdirname)
-    updater.refresh()
+    fulcio_cert = "fulcio.crt.pem"
+    try:
+        updater = Updater(
+            metadata_dir=METADATA_DIR,
+            metadata_base_url=f"{REPO_URL}",
+            target_base_url=f"{REPO_URL}/targets/",
+            target_dir=tmpdirname)
+        updater.refresh()
+
+        info = updater.get_targetinfo(fulcio_cert)
+
+        if info is None:
+            print(f"Failed to fetch {fulcio_cert}")
+            sys.exit(1)
+
+        path = updater.download_target(info)
+        print(f"Fetched {fulcio_cert} to {path}")
+
+    except:
+        print(f"Updated and fetch of {fulcio_cert} failed")
+        sys.exit(2)

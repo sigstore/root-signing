@@ -26,13 +26,13 @@ with tempfile.TemporaryDirectory() as tmpdirname:
     METADATA_DIR = f"{tmpdirname}/metadata"
     os.mkdir(METADATA_DIR)
 
-    # Copy in root metadata to use as trusted root
-    # NOTE: we have to use v5 or newer, once it exists, because prior versions
-    # were not compatible with python-tuf:
+    # Copy in root metadata to use as trusted root.
+    # NOTE: we have to use v5 or newer because prior versions were not
+    # compatible with python-tuf:
     # https://github.com/sigstore/root-signing/issues/103
     # https://github.com/sigstore/root-signing/issues/329
     shutil.copyfile(
-        "repository/repository/4.root.json",
+        "repository/repository/5.root.json",
         f"{METADATA_DIR}/root.json")
 
     fulcio_cert = "fulcio.crt.pem"

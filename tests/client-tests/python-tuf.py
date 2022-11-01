@@ -35,6 +35,8 @@ with tempfile.TemporaryDirectory() as tmpdirname:
         "repository/repository/5.root.json",
         f"{METADATA_DIR}/root.json")
 
+    # TODO: we hard-code a single target here and will need to update this
+    # if the target retrieval API changes.
     fulcio_cert = "fulcio.crt.pem"
     try:
         updater = Updater(

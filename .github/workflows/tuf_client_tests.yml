@@ -66,7 +66,6 @@ jobs:
             -t http://localhost:8001/targets \
             -m http://localhost:8001
       # Test with python-tuf ngclient
-      - continue-on-error: true # remove once v5 root is published
-        run: |
+      - run: |
           python3 -m pip install securesystemslib[crypto,pynacl] tuf
           python3 tests/client-tests/python-tuf.py

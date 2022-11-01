@@ -15,6 +15,7 @@
 
 import os
 import shutil
+import sys
 import tempfile
 
 from tuf.ngclient import Updater
@@ -25,18 +26,35 @@ with tempfile.TemporaryDirectory() as tmpdirname:
     METADATA_DIR = f"{tmpdirname}/metadata"
     os.mkdir(METADATA_DIR)
 
-    # Copy in root metadata to use as trusted root
-    # NOTE: we have to use v5 or newer, once it exists, because prior versions
-    # were not compatible with python-tuf:
+    # Copy in root metadata to use as trusted root.
+    # NOTE: we have to use v5 or newer because prior versions were not
+    # compatible with python-tuf:
     # https://github.com/sigstore/root-signing/issues/103
     # https://github.com/sigstore/root-signing/issues/329
     shutil.copyfile(
-        "repository/repository/4.root.json",
+        "repository/repository/5.root.json",
         f"{METADATA_DIR}/root.json")
 
-    updater = Updater(
-        metadata_dir=METADATA_DIR,
-        metadata_base_url=f"{REPO_URL}/metadata/",
-        target_base_url=f"{REPO_URL}/targets/",
-        target_dir=tmpdirname)
-    updater.refresh()
+    # TODO: we hard-code a single target here and will need to update this
+    # if the target retrieval API changes.
+    fulcio_cert = "fulcio.crt.pem"
+    try:
+        updater = Updater(
+            metadata_dir=METADATA_DIR,
+            metadata_base_url=f"{REPO_URL}",
+            target_base_url=f"{REPO_URL}/targets/",
+            target_dir=tmpdirname)
+
+        info = updater.get_targetinfo(fulcio_cert)
+
+        if info is None:
+            print(f"Failed to fetch {fulcio_cert}")
+            sys.exit(1)
+
+        path = updater.download_target(info)
+        print(f"Fetched {fulcio_cert} to {path}")
+
+    except Exception as e:
+        print(f"Updated and fetch of {fulcio_cert} failed")
+        print(e)
+        sys.exit(2)

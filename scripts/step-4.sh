@@ -39,7 +39,7 @@ checkout_branch
 # Clear and copy into the repository/
 TEMP_REPO="$(mktemp -d)"
 cp -r "$REPO"/ "$TEMP_REPO"
-rm -r repository/
+rm -r repository/*
 cp -r "$TEMP_REPO"/* repository/
 
 commit_and_push_changes publish

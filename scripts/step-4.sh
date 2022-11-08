@@ -38,7 +38,7 @@ checkout_branch
 ./tuf publish -repository "$REPO"
 # Clear and copy into the repository/
 TEMP_REPO="$(mktemp -d)"
-cp -r "$REPO"/ "$TEMP_REPO"
+cp -r "$REPO"/* "$TEMP_REPO"
 rm -r repository/*
 cp -r "$TEMP_REPO"/* repository/
 

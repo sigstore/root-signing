@@ -11,17 +11,20 @@ require (
 	github.com/sigstore/cosign v1.13.1
 	github.com/sigstore/sigstore v1.4.5
 	github.com/spf13/cobra v1.6.1
-	github.com/spf13/viper v1.13.0
+	github.com/spf13/viper v1.14.0
 	github.com/tent/canonical-json-go v0.0.0-20130607151641-96e4ba3a7613
 	github.com/theupdateframework/go-tuf v0.5.2-0.20220930112810-3890c1e7ace4
 	golang.org/x/term v0.2.0
 )
 
-require gopkg.in/yaml.v2 v2.4.0 // indirect
+require (
+	cloud.google.com/go/compute/metadata v0.2.1 // indirect
+	gopkg.in/yaml.v2 v2.4.0 // indirect
+)
 
 require (
 	bitbucket.org/creachadair/shell v0.0.7 // indirect
-	cloud.google.com/go/compute v1.10.0 // indirect
+	cloud.google.com/go/compute v1.12.1 // indirect
 	cloud.google.com/go/iam v0.5.0 // indirect
 	cloud.google.com/go/kms v1.4.0 // indirect
 	github.com/Azure/go-autorest v14.2.0+incompatible // indirect
@@ -56,7 +59,7 @@ require (
 	github.com/envoyproxy/go-control-plane v0.10.2-0.20220325020618-49ff273808a1 // indirect
 	github.com/envoyproxy/protoc-gen-validate v0.6.2 // indirect
 	github.com/flynn/go-docopt v0.0.0-20140912013429-f6dd2ebbb31e
-	github.com/fsnotify/fsnotify v1.5.4 // indirect
+	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/fullstorydev/grpcurl v1.8.7 // indirect
 	github.com/go-chi/chi v4.1.2+incompatible // indirect
 	github.com/go-logr/logr v1.2.3 // indirect
@@ -142,11 +145,11 @@ require (
 	github.com/sigstore/rekor v0.12.1-0.20220915152154-4bb6f441c1b2 // indirect
 	github.com/sirupsen/logrus v1.9.0 // indirect
 	github.com/soheilhy/cmux v0.1.5 // indirect
-	github.com/spf13/afero v1.8.2 // indirect
+	github.com/spf13/afero v1.9.2 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	github.com/stretchr/testify v1.8.0 // indirect
+	github.com/stretchr/testify v1.8.1 // indirect
 	github.com/subosito/gotenv v1.4.1 // indirect
 	github.com/syndtr/goleveldb v1.0.1-0.20220721030215-126854af5e6d // indirect
 	github.com/thales-e-security/pool v0.0.2 // indirect
@@ -192,9 +195,9 @@ require (
 	golang.org/x/text v0.4.0 // indirect
 	golang.org/x/time v0.0.0-20220922220347-f3bd1da661af // indirect
 	golang.org/x/tools v0.1.12 // indirect
-	google.golang.org/api v0.100.0 // indirect
+	google.golang.org/api v0.102.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/genproto v0.0.0-20221014213838-99cd37c6964a // indirect
+	google.golang.org/genproto v0.0.0-20221024183307-1bc688fe9f3e // indirect
 	google.golang.org/grpc v1.50.1 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/cheggaaa/pb.v1 v1.0.28 // indirect

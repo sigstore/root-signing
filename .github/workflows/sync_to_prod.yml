@@ -33,7 +33,7 @@ jobs:
     permissions:
       id-token: 'write'
     steps:
-      - uses: google-github-actions/setup-gcloud@75fd574e9690e7c4a4681d1255d1c341cf0d9a8c # v0.5.1
+      - uses: google-github-actions/setup-gcloud@75fd574e9690e7c4a4681d1255d1c341cf0d9a8c # v1.0.0
         with:
           project_id: project-rekor
       # Setup OIDC->SA auth

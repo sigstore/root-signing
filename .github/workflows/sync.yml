@@ -37,7 +37,7 @@ jobs:
       - uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v2.2.0
         with:
           go-version: 1.18.x
-      - uses: google-github-actions/setup-gcloud@75fd574e9690e7c4a4681d1255d1c341cf0d9a8c # v0.5.1
+      - uses: google-github-actions/setup-gcloud@75fd574e9690e7c4a4681d1255d1c341cf0d9a8c # v1.0.0
         with:
           project_id: project-rekor
       # Setup OIDC->SA auth

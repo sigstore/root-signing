@@ -51,6 +51,10 @@ on:
         required: false
         default: true
         type: boolean
+      token:
+        description: 'GitHub token used to create the PR. This allows the PR to trigger CI workflows'
+        required: false
+        default: ${{ github.token }}
 
 jobs:
   snapshot_and_timestamp:
@@ -133,6 +137,8 @@ jobs:
     permissions:
       pull-requests: 'write'
       contents: 'write'
+    secrets:
+      token: ${{ input.token }}
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v3.1.0
         with:

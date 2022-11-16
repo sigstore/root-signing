@@ -25,7 +25,6 @@ on:
           Optional token.
           This argument is passed, unchanged, to the job that creates the pull request.
         required: false
-        default: ${{ github.token }}
     inputs:
       snapshot_key:
         description: 'Sets the snapshotting key reference'

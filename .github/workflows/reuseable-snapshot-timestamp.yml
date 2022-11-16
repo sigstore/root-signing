@@ -158,7 +158,7 @@ jobs:
           branch: update-snapshot-timestamp
           signoff: true
           reviewers: asraa,dlorenc,haydentherapper,joshuagl
-          token: ${{ inputs.token }}
+          token: ${{ secrets.token }}
 
   if-push-failed:
     runs-on: ubuntu-latest

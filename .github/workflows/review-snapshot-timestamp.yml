@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: Stable Snapshot and Timestamp
+name: Review Snapshot and Timestamp
 
 permissions: read-all
 
@@ -21,7 +21,7 @@ permissions: read-all
 # when new published metadata is submitted.
 on:
   # Enable cron for checking if a snapshot/timestamp PR needs review
-  # every 
+  # every 6 hours and attempts to merge.
   schedule:
     - cron: '0 */6 * * *' # every 6 hours
   workflow_dispatch:

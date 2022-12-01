@@ -14,7 +14,7 @@ to a preproduction GCS bucket. Probers run against the bucket to (Repo only visi
 * Verify an artifact using the production TUF repository [here](https://github.com/sigstore/public-good-instance/blob/main/.github/workflows/reusable-prober.yml#L220-L249)
 * Verify the repository and the expiration of the metadata [here](https://github.com/sigstore/public-good-instance/blob/main/.github/workflows/reusable-prober.yml#L134-L156)
 
-Note the staging environment refers to the sigstage.dev environment, not the preproduction environment.
+Note the staging environment refers to the `sigstage.dev` environment, not the preproduction environment.
 
 After a few days, another GHA runs to [sync](https://github.com/sigstore/root-signing/blob/main/.github/workflows/sync_to_prod.yml)
 the preproduction bucket to the production bucket.
@@ -23,10 +23,12 @@ the preproduction bucket to the production bucket.
 
 If the snapshot/timestamp GHA needs to be manually run, you can do so by:
 
-* Navigating to https://github.com/sigstore/root-signing/actions/workflows/stable-snapshot-timestamp.yml
+* Navigating to the [snapshot workflow](https://github.com/sigstore/root-signing/actions/workflows/stable-snapshot-timestamp.yml)
 * Select "Run workflow" and click "Run workflow"
 
 After the PR is created, approve and merge.
+
+Note: You will need maintainer permissions to run the workflow.
 
 ## Syncing preproduction and production
 
@@ -34,6 +36,7 @@ After manually creating new metadata, if the timestamp is nearing expiration (<=
 Otherwise, the timestamp in the production bucket will expiration before preproduction is synced.
 
 After merging the PR, check that the [sync](https://github.com/sigstore/root-signing/actions/workflows/sync.yml) to preproduction has finished.
+Wait until the preproduction probers are healthy.
 
 After that is done, manually run the [sync preprod to prod](https://github.com/sigstore/root-signing/actions/workflows/sync_to_prod.yml)
 GHA:
@@ -41,3 +44,5 @@ GHA:
 * Select "Run workflow"
 * Check the box for "Whether to manually trigger a sync, otherwise only syncs pre-prod to prod with a 2 day delay"
 * Click "Run workflow" 
+
+Note: You will need maintainer permissions to run the workflow.

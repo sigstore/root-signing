@@ -18,33 +18,33 @@ set -euo pipefail
 
 # Gets the open snapshot/timestamp update pull requests of the repository
 timestamp_update() {
-    gh api -H "Accept: application/vnd.github.v3+json" "/repos/$GITHUB_REPOSITORY/pulls?head=sigstore:update-snapshot-timestamp" | jq '.[0]' | jq 'select (.!=null)'
+    gh api -H "Accept: application/vnd.github.v3+json" "/repos/${GITHUB_REPOSITORY}/pulls?head=sigstore:update-snapshot-timestamp" | jq '.[0]' | jq 'select (.!=null)'
 }
 
 UPDATE_PR=$(timestamp_update)
-if [[ -z "$UPDATE_PR" ]]; then
-    PULL_NUMBER=$(echo $UPDATE_PR | jq -r '.number')
+if [[ -z "${UPDATE_PR}" ]]; then
+    PULL_NUMBER=$(echo "${UPDATE_PR}" | jq -r '.number')
 
     # Approve PR
     curl \
-    -o review_output.json
+    -o review_output.json \
     -X POST \
     -H "Accept: application/vnd.github+json" \
-    -H "Authorization: Bearer $GITHUB_TOKEN" \
-    https://api.github.com/repos/$GITHUB_REPOSITORY/pulls/$PULL_NUMBER/reviews
+    -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+    https://api.github.com/repos/"${GITHUB_REPOSITORY}"/pulls/"${PULL_NUMBER}"/reviews
 
-    REVIEW_ID=$(cat review_output.json | jq -r '.id')
+    REVIEW_ID=$(jq -r '.id' review_output.json)
     GH_TOKEN=$GITHUB_TOKEN gh api \
     --method POST \
     -H "Accept: application/vnd.github+json" \
-    /repos/$GITHUB_REPOSITORY/pulls/$PULL_NUMBER/reviews/$REVIEW_ID/events \
+    /repos/"${GITHUB_REPOSITORY}"/pulls/"${PULL_NUMBER}"/reviews/"${REVIEW_ID}"/events \
     -f event='APPROVE'
 
     # Attempt to merge PR
-    GH_TOKEN=$GITHUB_TOKEN gh api \
+    GH_TOKEN="${GITHUB_TOKEN}" gh api \
     --method PUT \
     -H "Accept: application/vnd.github+json" \
-    /repos/$GITHUB_REPOSITORY/pulls/$PULL_NUMBER/merge \
+    /repos/"${GITHUB_REPOSITORY}"/pulls/"${PULL_NUMBER}"/merge \
     -f commit_title='Update Snapshot and Timestamp' \
     -f commit_message='update snapshot and timestamp' 
 fi

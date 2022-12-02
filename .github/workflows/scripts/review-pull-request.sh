@@ -24,6 +24,8 @@ timestamp_update() {
 UPDATE_PR=$(timestamp_update)
 if [[ -z "${UPDATE_PR}" ]]; then
     PULL_NUMBER=$(echo "${UPDATE_PR}" | jq -r '.number')
+    echo "pull request found: "
+    echo "${PULL_NUMBER}"
 
     # Approve PR
     curl \
@@ -32,6 +34,9 @@ if [[ -z "${UPDATE_PR}" ]]; then
     -H "Accept: application/vnd.github+json" \
     -H "Authorization: Bearer ${GITHUB_TOKEN}" \
     https://api.github.com/repos/"${GITHUB_REPOSITORY}"/pulls/"${PULL_NUMBER}"/reviews
+
+    echo "review: "
+    cat review_output.json
 
     REVIEW_ID=$(jq -r '.id' review_output.json)
     GH_TOKEN=$GITHUB_TOKEN gh api \

@@ -55,7 +55,7 @@ if [[ -n "${UPDATE_PR}" ]]; then
     /repos/"${GITHUB_REPOSITORY}"/pulls/"${PULL_NUMBER}"/merge \
     -f commit_title='Update Snapshot and Timestamp' \
     -f commit_message='update snapshot and timestamp' \
-    -f merge_methodstring='squash'
+    -f merge_method='squash'
 
 else
     echo "No open snapshot/timestamp pull request found"

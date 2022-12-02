@@ -38,6 +38,7 @@ if [[ -z "${UPDATE_PR}" ]]; then
     echo "review: "
     cat review_output.json
 
+    # TODO: Use gh pr review PR_NUMBER --approve
     REVIEW_ID=$(jq -r '.id' review_output.json)
     GH_TOKEN=$GITHUB_TOKEN gh api \
     --method POST \

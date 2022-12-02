@@ -46,5 +46,5 @@ if [[ -z "${UPDATE_PR}" ]]; then
     -H "Accept: application/vnd.github+json" \
     /repos/"${GITHUB_REPOSITORY}"/pulls/"${PULL_NUMBER}"/merge \
     -f commit_title='Update Snapshot and Timestamp' \
-    -f commit_message='update snapshot and timestamp' 
+    -f commit_message='update snapshot and timestamp'
 fi

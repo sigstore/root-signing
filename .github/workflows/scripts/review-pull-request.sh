@@ -14,7 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -euo pipefail
+set -o errexit
+set -o nounset
+set -o pipefail
 
 # Gets the open snapshot/timestamp update pull requests of the repository
 timestamp_update() {
@@ -52,7 +54,9 @@ if [[ -n "${UPDATE_PR}" ]]; then
     -H "Accept: application/vnd.github+json" \
     /repos/"${GITHUB_REPOSITORY}"/pulls/"${PULL_NUMBER}"/merge \
     -f commit_title='Update Snapshot and Timestamp' \
-    -f commit_message='update snapshot and timestamp'
+    -f commit_message='update snapshot and timestamp' \
+    -f merge_methodstring='squash'
+
 else
     echo "No open snapshot/timestamp pull request found"
 fi

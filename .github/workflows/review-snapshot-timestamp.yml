@@ -1,0 +1,41 @@
+#
+# Copyright 2022 The Sigstore Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: Review Snapshot and Timestamp
+
+permissions: read-all
+
+# Execute this as a biweekly cron job and on changes to repository/
+# when new published metadata is submitted.
+on:
+  # Enable cron for checking if a snapshot/timestamp PR needs review
+  # every 6 hours and attempts to merge.
+  schedule:
+    - cron: '0 */6 * * *' # every 6 hours
+  workflow_dispatch:
+
+jobs:
+  review:
+    runs-on: ubuntu-20.04
+    permissions:
+      pull-requests: 'write'
+      contents: 'write'
+    env:
+      GITHUB_TOKEN: ${{ secrets.SIGSTORE_ROOT_SIGNING_FINE_GRAINED_PAT }}
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v3.1.0
+      - run: |
+          set -euo pipefail
+          ./.github/workflows/scripts/report-failure.sh

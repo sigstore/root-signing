@@ -33,7 +33,7 @@ Note: You will need maintainer permissions to run the workflow.
 ## Syncing preproduction and production
 
 After manually creating new metadata, if the timestamp is nearing expiration (<= 3 days), then you will need to manually sync preproduction and production.
-Otherwise, the timestamp in the production bucket will expiration before preproduction is synced.
+Otherwise, the timestamp in the production bucket will expire before preproduction is synced.
 
 After merging the PR, check that the [sync](https://github.com/sigstore/root-signing/actions/workflows/sync.yml) to preproduction has finished.
 Wait until the preproduction probers are healthy.

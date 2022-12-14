@@ -37,7 +37,8 @@ jobs:
           echo "GCS_PREPROD_REPO=https://storage.googleapis.com/sigstore-preprod-tuf-root" >> $GITHUB_ENV
       - uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v3.5.0
         with:
-          go-version: '1.18.x'
+          go-version: 1.19
+          check-latest: true
       - name: install deps
         run: |
           sudo apt-get install libpcsclite-dev

@@ -35,7 +35,7 @@ jobs:
           echo "REPO=$(pwd)/repository" >> $GITHUB_ENV
           echo "GCS_REPO=https://storage.googleapis.com/sigstore-tuf-root" >> $GITHUB_ENV
           echo "GCS_PREPROD_REPO=https://storage.googleapis.com/sigstore-preprod-tuf-root" >> $GITHUB_ENV
-      - uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v2.2.0
+      - uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v3.5.0
         with:
           go-version: '1.18.x'
       - name: install deps

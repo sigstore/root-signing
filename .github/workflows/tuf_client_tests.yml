@@ -42,7 +42,8 @@ jobs:
       # Test with go-tuf client
       - uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v3.5.0
         with:
-          go-version: '1.18.x'
+          go-version: 1.19
+          check-latest: true
       - run: |
           go install github.com/theupdateframework/go-tuf/cmd/tuf-client@v0.5.1
       - run: |

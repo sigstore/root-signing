@@ -101,7 +101,7 @@ func (r fileRemoteStore) GetTarget(target string) (io.ReadCloser, int64, error) 
 }
 
 // Metadata helpers
-type signedMeta struct {
+type SignedMeta struct {
 	Type    string    `json:"_type"`
 	Expires time.Time `json:"expires"`
 	Version int       `json:"version"`
@@ -120,8 +120,8 @@ func isMetaFile(e os.DirEntry) (bool, error) {
 	return info.Mode().IsRegular(), nil
 }
 
-func PrintAndGetSignedMeta(role string, signed json.RawMessage) (*signedMeta, error) {
-	sm := &signedMeta{}
+func PrintAndGetSignedMeta(role string, signed json.RawMessage) (*SignedMeta, error) {
+	sm := &SignedMeta{}
 	if err := json.Unmarshal(signed, sm); err != nil {
 		return nil, err
 	}
@@ -247,9 +247,9 @@ func verifySignatures(db *verify.DB, s *data.Signed, role string) (int, error) {
 	return dbRole.Threshold, nil
 }
 
-func getClientState(local client.LocalStore) (map[string]signedMeta, error) {
+func getClientState(local client.LocalStore) (map[string]SignedMeta, error) {
 	trustedMeta, err := local.GetMeta()
-	res := make(map[string]signedMeta, len(trustedMeta))
+	res := make(map[string]SignedMeta, len(trustedMeta))
 	if err != nil {
 		return nil, errors.Wrap(err, "getting trusted meta")
 	}

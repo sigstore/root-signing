@@ -1,0 +1,70 @@
+project_name: root-signing
+
+env:
+  - GO111MODULE=on
+  - CGO_ENABLED=0
+  - COSIGN_EXPERIMENTAL=true
+
+# Prevents parallel builds from stepping on eachothers toes downloading modules
+before:
+  hooks:
+    - go mod tidy
+    - /bin/bash -c 'if [ -n "$(git --no-pager diff --exit-code go.mod go.sum)" ]; then exit 1; fi'
+
+gomod:
+  proxy: true
+
+sboms:
+  - artifacts: binary
+
+builds:
+  - id: root-verify
+    binary: root-verify-linux-{{ .Arch }}
+    no_unique_dist_dir: true
+    main: ./cmd/verify
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm64
+      - arm
+    goarm:
+      - 7
+    flags:
+      - -trimpath
+    mod_timestamp: '{{ .CommitTimestamp }}'
+    ldflags:
+      - "{{ .Env.LDFLAGS }}"
+
+signs:
+  # Keyless
+  - id: keyless
+    signature: "${artifact}-keyless.sig"
+    certificate: "${artifact}-keyless.pem"
+    cmd: cosign
+    args: ["sign-blob", "--output-signature", "${artifact}-keyless.sig", "--output-certificate", "${artifact}-keyless.pem", "${artifact}"]
+    artifacts: binary
+  - id: checksum-keyless
+    signature: "${artifact}-keyless.sig"
+    certificate: "${artifact}-keyless.pem"
+    cmd: cosign
+    args: ["sign-blob", "--output-signature", "${artifact}-keyless.sig", "--output-certificate", "${artifact}-keyless.pem", "${artifact}"]
+    artifacts: checksum
+
+archives:
+  - format: binary
+    name_template: "{{ .Binary }}"
+    allow_different_binary_count: true
+
+checksum:
+  name_template: "{{ .ProjectName }}_checksums.txt"
+
+snapshot:
+  name_template: SNAPSHOT-{{ .ShortCommit }}
+
+release:
+  prerelease: auto
+  draft: true # allow for manual edits
+  github:
+    owner: sigstore
+    name: root-signing

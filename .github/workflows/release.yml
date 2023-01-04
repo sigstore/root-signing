@@ -20,8 +20,7 @@ on:
     tags:
       - "v*"
 
-permissions: read-all
-
+# Note: read permissions are set globally.
 jobs:
   release:
     runs-on: ubuntu-latest

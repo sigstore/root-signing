@@ -42,7 +42,7 @@ jobs:
     permissions:
       id-token: 'write'
     steps:
-      - uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b # v3.2.0
+      - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
         with:
           fetch-depth: 0
       # TODO(https://github.com/sigstore/root-signing/issues/98): Use a common configuration checked into source control
@@ -98,7 +98,7 @@ jobs:
       pull-requests: 'write'
       contents: 'write'
     steps:
-      - uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b # v3.2.0
+      - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
         with:
           fetch-depth: 0
       - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v2.1.0

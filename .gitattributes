@@ -1,0 +1,4 @@
+# These directories contain TUF and other assets that are either digested
+# or sized-checked so CRLF normalization breaks them.
+ceremony/** binary
+repository/** binary

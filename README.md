@@ -26,8 +26,8 @@ The current published repository metadata lives in the [repository](/repository/
 | [ctfe_2022.pub](repository/repository/targets/ctfe_2022.pub)        |  Certificate Transparency log key for the 2022 log shard (`ctfe.sigstore.dev/2022`), that is used for certificates issued by Fulcio and used to verify signed certificate timestamps (SCTs) for inclusion into the log. | 
 | [artifact.pub](repository/repository/targets/artifact.pub) | Key that signs Sigstore project (Cosign, Rekor, Fulcio) releases. |
 
-* [snapshot.json]((repository/repository/snapshot.json)): The snapshot ensures consistency of the metadata files. It has a lifetime of 2 weeks and is re-signed by a [GitHub workflow](https://github.com/sigstore/root-signing/blob/main/.github/workflows/snapshot-timestamp.yml).
-* [timestamp.json]((repository/repository/timestamp.json)): The timestamp indicates the freshness of the metadata files. It has a lifetime of 2 weeks and is re-signed by a [GitHub workflow](https://github.com/sigstore/root-signing/blob/main/.github/workflows/snapshot-timestamp.yml).
+* [snapshot.json](repository/repository/snapshot.json): The snapshot ensures consistency of the metadata files. It has a lifetime of 2 weeks and is re-signed by a [GitHub workflow](https://github.com/sigstore/root-signing/blob/main/.github/workflows/stable-snapshot-timestamp.yml).
+* [timestamp.json](repository/repository/timestamp.json): The timestamp indicates the freshness of the metadata files. It has a lifetime of 2 weeks and is re-signed by a [GitHub workflow](https://github.com/sigstore/root-signing/blob/main/.github/workflows/stable-snapshot-timestamp.yml).
 
 
 ### Root locations

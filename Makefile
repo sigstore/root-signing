@@ -39,3 +39,11 @@ yamllint: ## Runs the yamllint linter.
 			extraargs="-f github"; \
 		fi; \
 		yamllint -c .yamllint.yaml . $$extraargs
+
+.PHONY: keygen
+keygen:
+	@go build -tags=pivkey -o $@ ./tests/keygen
+
+.PHONY: tuf
+tuf:
+	@go build -tags=pivkey -o $@ ./cmd/tuf

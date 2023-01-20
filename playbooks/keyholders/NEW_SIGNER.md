@@ -109,7 +109,7 @@ export REPO=$(pwd)/ceremony/$(date '+%Y-%m-%d')
 
 ## Ceremony Signing
 
-During the actual ceremony, you will need to renew the [setup](#setup-1) and perform a subset of the operations above. In particuar, you will only need to register and sign (you will not need to initialize the metadata yourself).
+During the actual ceremony, you will need to renew the [setup](#setup-1) and perform a subset of the operations above. In particular, you will only need to register and sign (you will not need to initialize the metadata yourself).
 
 ### Pre-requisites
 

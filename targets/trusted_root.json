@@ -6,7 +6,10 @@
       "hashAlgorithm": "SHA2_256",
       "publicKey": {
         "rawBytes": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE2G2Y+2tabdTV5BcGiBIx0a9fAFwrkBbmLSGtks4L3qX6yYY0zufBnhC8Ur/iy55GhWP/9A/bY2LhC30M9+RYtw==",
-        "keyDetails": "PKIX_ECDSA_P256_SHA_256"
+        "keyDetails": "PKIX_ECDSA_P256_SHA_256",
+        "validFor": {
+          "start": "2020-06-17T12:44:14.000Z"
+        }
       },
       "logId": {
         "keyId": "wNI9atQGlz+VWfO6LRygH4QUfY/8W4RFwiT5i5WRgB0="
@@ -60,7 +63,11 @@
       "hashAlgorithm": "SHA2_256",
       "publicKey": {
         "rawBytes": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEbfwR+RJudXscgRBRpKX1XFDy3PyudDxz/SfnRi1fT8ekpfBd2O1uoz7jr3Z8nKzxA69EUQ+eFCFI3zeubPWU7w==",
-        "keyDetails": "PKIX_ECDSA_P256_SHA_256"
+        "keyDetails": "PKIX_ECDSA_P256_SHA_256",
+        "validFor": {
+          "start": "2021-03-07T03:20:29.000Z",
+          "end": "2022-01-01T00:00:00.000Z"
+        }
       },
       "logId": {
         "keyId": "CGCS8ChS/2hF0dFrJ4ScRWcYrBY9wzjSbea8IgY2b3I="
@@ -71,7 +78,10 @@
       "hashAlgorithm": "SHA2_256",
       "publicKey": {
         "rawBytes": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEiPSlFi0CmFTfEjCUqF9HuCEcYXNKAaYalIJmBZ8yyezPjTqhxrKBpMnaocVtLJBI1eM3uXnQzQGAJdJ4gs9Fyw==",
-        "keyDetails": "PKIX_ECDSA_P256_SHA_256"
+        "keyDetails": "PKIX_ECDSA_P256_SHA_256",
+        "validFor": {
+          "start": "2022-01-01T00:00:00.000Z"
+        }
       },
       "logId": {
         "keyId": "3T0wasbHETJjGR4cmWc3AqJKXrjePK3/h4pygC8p7o4="

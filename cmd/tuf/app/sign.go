@@ -56,7 +56,7 @@ func Sign() *ffcli.Command {
 		roles      = roleFlag{}
 		repository = flagset.String("repository", "", "path to the staged repository")
 		sk         = flagset.Bool("sk", false, "indicates use of a hardware key for signing")
-		key        = flagset.String("key", "", "reference to an online signer for signing")
+		key        = flagset.String("key", "", "reference to an signer for signing")
 		// TODO(https://github.com/sigstore/root-signing/issues/381):
 		// This can be removed after v5 root-signing is complete.
 		addDeprecatedKeyFormat = flagset.Bool("add-deprecated", false, "adds the deprecated ecdsa key format to associate signatures")
@@ -137,11 +137,17 @@ func getSigner(ctx context.Context, sk bool, keyRef string) (signature.Signer, e
 		return pivKey.SignerVerifier()
 	}
 	// A key reference was provided.
+	// First try to load it as a regular PEM encoded private key.
 	signer, err := signature.LoadSignerFromPEMFile(keyRef, crypto.SHA256, nil)
 	if err != nil {
-		signer, err = csignature.SignerVerifierFromKeyRef(ctx, keyRef, nil)
-		if err != nil {
-			return nil, err
+		var innerError error
+		signer, innerError = csignature.SignerVerifierFromKeyRef(ctx, keyRef, nil)
+		if innerError != nil {
+			// Only print this message if both attempts failed.
+			// As there is a natual fallthrough here, always
+			// logging the first error could be noisy.
+			fmt.Printf("failed to load key as PEM encoded: %s, trying other methods", err)
+			return nil, innerError
 		}
 
 	}

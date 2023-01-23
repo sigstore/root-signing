@@ -73,6 +73,5 @@ var genRootCmd = &cobra.Command{
 func init() {
 	genRootCmd.Flags().StringVar(&outputCA, "output-ca", "test-root-attestation.ca", "path to file to write output root CA")
 	genRootCmd.Flags().StringVar(&outputSigner, "output-signer", "test-root.pem", "path to file to write output root CA signer")
-
 	rootCmd.AddCommand(genRootCmd)
 }

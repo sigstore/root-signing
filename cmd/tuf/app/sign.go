@@ -21,6 +21,7 @@ package app
 import (
 	"bytes"
 	"context"
+	"crypto"
 	"flag"
 	"fmt"
 	"strings"
@@ -55,7 +56,7 @@ func Sign() *ffcli.Command {
 		roles      = roleFlag{}
 		repository = flagset.String("repository", "", "path to the staged repository")
 		sk         = flagset.Bool("sk", false, "indicates use of a hardware key for signing")
-		key        = flagset.String("key", "", "reference to an onine signer for signing")
+		key        = flagset.String("key", "", "reference to a signer for signing")
 		// TODO(https://github.com/sigstore/root-signing/issues/381):
 		// This can be removed after v5 root-signing is complete.
 		addDeprecatedKeyFormat = flagset.Bool("add-deprecated", false, "adds the deprecated ecdsa key format to associate signatures")
@@ -68,9 +69,9 @@ func Sign() *ffcli.Command {
 		ShortHelp:  "tuf signs the top-level metadata for role in the given repository",
 		LongHelp: `tuf signs the top-level metadata for role in the given repository.
 		Signing a lower level, e.g. snapshot or timestamp, before signing the root and target
-		will trigger a warning. 
+		will trigger a warning.
 		One of sk or a key reference must be provided.
-		
+
 	EXAMPLES
 	# sign staged repository at ceremony/YYYY-MM-DD
 	tuf sign -role root -repository ceremony/YYYY-MM-DD`,
@@ -136,7 +137,21 @@ func getSigner(ctx context.Context, sk bool, keyRef string) (signature.Signer, e
 		return pivKey.SignerVerifier()
 	}
 	// A key reference was provided.
-	return csignature.SignerVerifierFromKeyRef(ctx, keyRef, nil)
+	// First try to load it as a regular PEM encoded private key.
+	signer, err := signature.LoadSignerFromPEMFile(keyRef, crypto.SHA256, nil)
+	if err != nil {
+		var innerError error
+		signer, innerError = csignature.SignerVerifierFromKeyRef(ctx, keyRef, nil)
+		if innerError != nil {
+			// Only print this message if both attempts failed.
+			// As there is a natual fallthrough here, always
+			// logging the first error could be noisy.
+			fmt.Printf("failed to load key as PEM encoded: %s, trying other methods", err)
+			return nil, innerError
+		}
+
+	}
+	return signer, nil
 }
 
 func SignCmd(ctx context.Context, directory string, roles []string, signer signature.Signer,

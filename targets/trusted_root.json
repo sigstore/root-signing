@@ -80,7 +80,7 @@
         "rawBytes": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEiPSlFi0CmFTfEjCUqF9HuCEcYXNKAaYalIJmBZ8yyezPjTqhxrKBpMnaocVtLJBI1eM3uXnQzQGAJdJ4gs9Fyw==",
         "keyDetails": "PKIX_ECDSA_P256_SHA_256",
         "validFor": {
-          "start": "2022-01-01T00:00:00.000Z"
+          "start": "2022-10-20T00:00:00.000Z"
         }
       },
       "logId": {

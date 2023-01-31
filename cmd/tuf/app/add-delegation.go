@@ -47,13 +47,11 @@ func (f *keysFlag) Set(value string) error {
 
 func AddDelegation() *ffcli.Command {
 	var (
-		flagset     = flag.NewFlagSet("tuf add-delegation", flag.ExitOnError)
-		repository  = flagset.String("repository", "", "path to the staged repository")
-		name        = flagset.String("name", "", "name of the delegatee")
-		keys        = keysFlag{}
-		path        = flagset.String("path", "", "path for the delegation. The name must be a prefix of the path.")
-		terminating = flagset.Bool("terminating", false, "indicated whether the delegation is terminating")
-		targets     = flagset.String("target-meta", "", "path to a target configuration file")
+		flagset    = flag.NewFlagSet("tuf add-delegation", flag.ExitOnError)
+		repository = flagset.String("repository", "", "path to the staged repository")
+		name       = flagset.String("name", "", "name of the delegatee")
+		keys       = keysFlag{}
+		targets    = flagset.String("target-meta", "", "path to a target configuration file")
 	)
 	flagset.Var(&keys, "public-key", "public key reference for the delegatee")
 	return &ffcli.Command{
@@ -66,7 +64,7 @@ but will default to the name if unspecified.
 
 	EXAMPLES
 	# add-delegation repository at ceremony/YYYY-MM-DD
-	tuf add-delegation -repository ceremony/YYYY-MM-DD -name $NAME -key $KEY_A -key $KEY_B -path $PATH`,
+	tuf add-delegation -repository ceremony/YYYY-MM-DD -name $NAME -key $KEY_A -key $KEY_B`,
 		FlagSet: flagset,
 		Exec: func(ctx context.Context, args []string) error {
 			if *repository == "" {
@@ -78,12 +76,9 @@ but will default to the name if unspecified.
 			if len(keys) == 0 {
 				return flag.ErrHelp
 			}
-			if !strings.HasPrefix(*path, *name) {
-				// The path must be contained to start with
-				// name of the delegation
-				return flag.ErrHelp
-			}
-			return DelegationCmd(ctx, *repository, *name, *path, *terminating, keys, *targets)
+			path := filepath.Join(*name, "*")
+			terminating := true
+			return DelegationCmd(ctx, *repository, *name, path, terminating, keys, *targets)
 		},
 	}
 }

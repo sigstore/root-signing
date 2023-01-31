@@ -180,6 +180,28 @@ func createTestSigner(t *testing.T) string {
 	return f.Name()
 }
 
+// Create fake key signer in testDirectory. Returns file reference to signer
+// and verifier.
+func createTestSignVerifier(t *testing.T) (string, string) {
+	keys, err := cosign.GenerateKeyPair(nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	temp := t.TempDir()
+	priv, _ := os.CreateTemp(temp, "*.key")
+	pub, _ := os.CreateTemp(temp, "*.pub")
+
+	if _, err := io.Copy(priv, bytes.NewBuffer(keys.PrivateBytes)); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := io.Copy(pub, bytes.NewBuffer(keys.PublicBytes)); err != nil {
+		t.Fatal(err)
+	}
+
+	return priv.Name(), pub.Name()
+}
+
+
 func CreateRootCA() (*x509.Certificate, crypto.PrivateKey, error) {
 	// set up our CA certificate
 	ca := &x509.Certificate{

@@ -17,6 +17,7 @@ package keys
 
 import (
 	"context"
+	"crypto"
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/x509"
@@ -208,10 +209,17 @@ func ConstructTufKey(ctx context.Context, signer signature.Signer,
 	if err != nil {
 		return nil, err
 	}
-	switch kt := pub.(type) {
+	return ConstructTufKeyFromPublic(ctx, pub, deprecated)
+}
+
+// ConstructTufKey constructs a TUF public key from a public key
+func ConstructTufKeyFromPublic(ctx context.Context, pubKey crypto.PublicKey,
+	deprecated bool) (*data.PublicKey, error) {
+
+	switch kt := pubKey.(type) {
 	case *ecdsa.PublicKey:
 		return EcdsaTufKey(kt, deprecated)
 	default:
-		return nil, fmt.Errorf("key type %s not supported", kt)
+		return nil, fmt.Errorf("ConstructTufKeyFromPublic: key type %s not supported", kt)
 	}
 }

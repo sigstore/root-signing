@@ -31,7 +31,6 @@ import (
 	csignature "github.com/sigstore/cosign/pkg/signature"
 	"github.com/sigstore/root-signing/pkg/keys"
 	"github.com/sigstore/root-signing/pkg/repo"
-	prepo "github.com/sigstore/root-signing/pkg/repo"
 	"github.com/sigstore/sigstore/pkg/signature"
 	"github.com/sigstore/sigstore/pkg/signature/options"
 	cjson "github.com/tent/canonical-json-go"
@@ -146,7 +145,7 @@ func getSigner(ctx context.Context, sk bool, keyRef string) (signature.Signer, e
 			// Only print this message if both attempts failed.
 			// As there is a natual fallthrough here, always
 			// logging the first error could be noisy.
-			fmt.Printf("failed to load key as PEM encoded: %s, trying other methods", err)
+			fmt.Printf("failed to load key as PEM encoded: %s, trying other methods: ", err)
 			return nil, innerError
 		}
 
@@ -164,7 +163,7 @@ func SignCmd(ctx context.Context, directory string, roles []string, signer signa
 
 	for _, name := range roles {
 		if bumpVersion {
-			if err := prepo.BumpMetadataVersion(store, name); err != nil {
+			if err := repo.BumpMetadataVersion(store, name); err != nil {
 				return err
 			}
 		}
@@ -284,7 +283,7 @@ func SignMeta(ctx context.Context, store tuf.LocalStore, name string, signer sig
 			strings.Join(keyIDs, ", "), name, roleSigningKeys)
 	}
 
-	return prepo.SetSignedMeta(store, name, &data.Signed{Signatures: sigs, Signed: s.Signed})
+	return repo.SetSignedMeta(store, name, &data.Signed{Signatures: sigs, Signed: s.Signed})
 }
 
 // Pre-entries are defined when there are Signatures in the Signed metadata

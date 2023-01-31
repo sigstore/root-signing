@@ -17,6 +17,7 @@ package app
 
 import (
 	"context"
+	"crypto"
 	"flag"
 	"fmt"
 	"io"
@@ -24,9 +25,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	csignature "github.com/sigstore/cosign/pkg/signature"
 	pkeys "github.com/sigstore/root-signing/pkg/keys"
 	prepo "github.com/sigstore/root-signing/pkg/repo"
+	"github.com/sigstore/sigstore/pkg/signature"
 	"github.com/theupdateframework/go-tuf/data"
 
 	"github.com/peterbourgon/ff/v3/ffcli"
@@ -50,19 +51,19 @@ func AddDelegation() *ffcli.Command {
 		repository  = flagset.String("repository", "", "path to the staged repository")
 		name        = flagset.String("name", "", "name of the delegatee")
 		keys        = keysFlag{}
-		path        = flagset.String("path", "", "path for the delegation")
+		path        = flagset.String("path", "", "path for the delegation. The name must be a prefix of the path.")
 		terminating = flagset.Bool("terminating", false, "indicated whether the delegation is terminating")
 		targets     = flagset.String("target-meta", "", "path to a target configuration file")
 	)
-	flagset.Var(&keys, "key", "key reference for the delegatee")
+	flagset.Var(&keys, "public-key", "public key reference for the delegatee")
 	return &ffcli.Command{
 		Name:       "add-delegation",
 		ShortUsage: "tuf add-delegation a role delegation from the top-level targets",
 		ShortHelp:  "tuf add-delegation a role delegation from the top-level targets",
 		LongHelp: `tuf add-delegation a role delegation from the top-level targets.
-		Adds a targets delegation with a name and specified keys. The optional path can also be set, 
+		Adds a targets delegation with a name and specified keys. The optional path can also be set,
 but will default to the name if unspecified.
-		
+
 	EXAMPLES
 	# add-delegation repository at ceremony/YYYY-MM-DD
 	tuf add-delegation -repository ceremony/YYYY-MM-DD -name $NAME -key $KEY_A -key $KEY_B -path $PATH`,
@@ -75,6 +76,11 @@ but will default to the name if unspecified.
 				return flag.ErrHelp
 			}
 			if len(keys) == 0 {
+				return flag.ErrHelp
+			}
+			if !strings.HasPrefix(*path, *name) {
+				// The path must be contained to start with
+				// name of the delegation
 				return flag.ErrHelp
 			}
 			return DelegationCmd(ctx, *repository, *name, *path, *terminating, keys, *targets)
@@ -103,13 +109,17 @@ func DelegationCmd(ctx context.Context, directory, name, path string, terminatin
 	keys := []*data.PublicKey{}
 	ids := []string{}
 	for _, keyRef := range keyRefs {
-		signer, err := csignature.SignerVerifierFromKeyRef(ctx, keyRef, nil)
+		verifier, err := getVerifier(ctx, keyRef)
 		if err != nil {
 			return err
 		}
 
 		// Construct TUF key.
-		tufKey, err := pkeys.ConstructTufKey(ctx, signer, DeprecatedEcdsaFormat)
+		publicKey, err := verifier.PublicKey()
+		if err != nil {
+			return err
+		}
+		tufKey, err := pkeys.ConstructTufKeyFromPublic(ctx, publicKey, DeprecatedEcdsaFormat)
 		if err != nil {
 			return err
 		}
@@ -190,4 +200,10 @@ func DelegationCmd(ctx context.Context, directory, name, path string, terminatin
 		return err
 	}
 	return prepo.SetSignedMeta(store, "targets.json", &data.Signed{Signatures: sigs, Signed: signed})
+}
+
+func getVerifier(ctx context.Context, keyRef string) (signature.Verifier, error) {
+	verifier, err := signature.LoadVerifierFromPEMFile(keyRef, crypto.SHA256)
+
+	return verifier, err
 }

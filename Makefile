@@ -47,3 +47,7 @@ keygen:
 .PHONY: tuf
 tuf:
 	@go build -tags=pivkey -o $@ ./cmd/tuf
+
+.PHONY: test
+test:
+	@go test -tags=pivkey ./...

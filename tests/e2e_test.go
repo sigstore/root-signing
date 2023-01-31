@@ -1113,7 +1113,7 @@ func TestSignWithVersionBump(t *testing.T) {
 	// Add a delegation fsn
 	delegationKeyRef, delegationPubKeyRef := createTestSignVerifier(t)
 	if err := app.DelegationCmd(ctx, stack.repoDir,
-		"delegation", "path/*", true, []string{delegationPubKeyRef}, ""); err != nil {
+		"delegation", "path/*", true, []string{delegationPubKeyRef}, 1, ""); err != nil {
 		t.Fatal(err)
 	}
 

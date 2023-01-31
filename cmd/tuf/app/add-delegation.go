@@ -52,6 +52,7 @@ func AddDelegation() *ffcli.Command {
 		name       = flagset.String("name", "", "name of the delegatee")
 		keys       = keysFlag{}
 		targets    = flagset.String("target-meta", "", "path to a target configuration file")
+		threshold  = flagset.Int("threshold", 1, "default delegation signer threshold")
 	)
 	flagset.Var(&keys, "public-key", "public key reference for the delegatee")
 	return &ffcli.Command{
@@ -76,15 +77,23 @@ but will default to the name if unspecified.
 			if len(keys) == 0 {
 				return flag.ErrHelp
 			}
+			if len(keys) < *threshold {
+				return flag.ErrHelp
+			}
 			path := filepath.Join(*name, "*")
 			terminating := true
-			return DelegationCmd(ctx, *repository, *name, path, terminating, keys, *targets)
+			return DelegationCmd(ctx, *repository, *name, path, terminating, keys, *threshold, *targets)
 		},
 	}
 }
 
-func DelegationCmd(ctx context.Context, directory, name, path string, terminating bool, keyRefs keysFlag, targets string) error {
+func DelegationCmd(ctx context.Context, directory, name, path string, terminating bool, keyRefs keysFlag, threshold int, targets string) error {
 	store := tuf.FileSystemStore(directory, nil)
+
+	if len(keyRefs) < threshold {
+		return fmt.Errorf("configured threshold is %d but only %d keys provided",
+			threshold, len(keyRefs))
+	}
 
 	repo, err := tuf.NewRepoIndent(store, "", "\t", "sha512", "sha256")
 	if err != nil {
@@ -132,7 +141,7 @@ func DelegationCmd(ctx context.Context, directory, name, path string, terminatin
 		Name:        name,
 		KeyIDs:      ids,
 		Paths:       []string{path},
-		Threshold:   1,
+		Threshold:   threshold,
 		Terminating: terminating,
 	}, keys, GetExpiration("targets")); err != nil {
 		// If delegation already added, then we just want to bump version and expiration.

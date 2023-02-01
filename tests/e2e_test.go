@@ -1110,7 +1110,7 @@ func TestSignWithVersionBump(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// Add a delegation fsn
+	// Add a delegation
 	delegationKeyRef, delegationPubKeyRef := createTestSignVerifier(t)
 	if err := app.DelegationCmd(ctx,
 		&app.DelegationOptions{
@@ -1166,4 +1166,29 @@ func TestSignWithVersionBump(t *testing.T) {
 
 	// Check delegation version bump
 	checkMetadataVersion(t, stack.repoDir, []string{"delegation.json"}, 2)
+}
+
+func TestKeyPOP(t *testing.T) {
+	ctx := context.Background()
+	keyRef, pubKeyRef := createTestSignVerifier(t)
+	challenge := "some data"
+	nonce := "not random at all"
+
+	verifier, err := app.GetVerifier(ctx, pubKeyRef)
+	if err != nil {
+		t.Fatal(err)
+	}
+	signer, err := app.GetSigner(ctx, false, keyRef)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	sig, err := app.DoKeyPOPSign(ctx, challenge, nonce, signer)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = app.KeyPOPVerifyCmd(ctx, challenge, nonce, verifier, sig)
+	if err != nil {
+		t.Fatal(err)
+	}
 }

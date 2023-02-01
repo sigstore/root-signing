@@ -18,6 +18,7 @@ package app
 import (
 	"context"
 	"crypto"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -43,6 +44,16 @@ func (f *keysFlag) String() string {
 func (f *keysFlag) Set(value string) error {
 	*f = append(*f, value)
 	return nil
+}
+
+type DelegationOptions struct {
+	Directory   string
+	Name        string
+	Path        string
+	Terminating bool
+	KeyRefs     []string
+	Threshold   int
+	Targets     string
 }
 
 func AddDelegation() *ffcli.Command {
@@ -80,27 +91,34 @@ but will default to the name if unspecified.
 			if len(keys) < *threshold {
 				return flag.ErrHelp
 			}
-			path := filepath.Join(*name, "*")
-			terminating := true
-			return DelegationCmd(ctx, *repository, *name, path, terminating, keys, *threshold, *targets)
+			opts := DelegationOptions{
+				Directory:   *repository,
+				Name:        *name,
+				Path:        filepath.Join(*name, "*"),
+				Terminating: true,
+				KeyRefs:     []string(keys),
+				Threshold:   *threshold,
+				Targets:     *targets,
+			}
+			return DelegationCmd(ctx, &opts)
 		},
 	}
 }
 
-func DelegationCmd(ctx context.Context, directory, name, path string, terminating bool, keyRefs keysFlag, threshold int, targets string) error {
-	store := tuf.FileSystemStore(directory, nil)
+func DelegationCmd(ctx context.Context, opts *DelegationOptions) error {
+	store := tuf.FileSystemStore(opts.Directory, nil)
 
-	if len(keyRefs) < threshold {
+	if len(opts.KeyRefs) < opts.Threshold {
 		return fmt.Errorf("configured threshold is %d but only %d keys provided",
-			threshold, len(keyRefs))
+			opts.Threshold, len(opts.KeyRefs))
+	}
+	if opts.Path == "" {
+		return errors.New("empty path provided")
 	}
 
 	repo, err := tuf.NewRepoIndent(store, "", "\t", "sha512", "sha256")
 	if err != nil {
 		return err
-	}
-	if path == "" {
-		path = name
 	}
 
 	// Store signature placeholders
@@ -112,7 +130,7 @@ func DelegationCmd(ctx context.Context, directory, name, path string, terminatin
 
 	keys := []*data.PublicKey{}
 	ids := []string{}
-	for _, keyRef := range keyRefs {
+	for _, keyRef := range opts.KeyRefs {
 		verifier, err := getVerifier(ctx, keyRef)
 		if err != nil {
 			return err
@@ -138,19 +156,19 @@ func DelegationCmd(ctx context.Context, directory, name, path string, terminatin
 	}
 
 	if err := repo.AddDelegatedRoleWithExpires("targets", data.DelegatedRole{
-		Name:        name,
+		Name:        opts.Name,
 		KeyIDs:      ids,
-		Paths:       []string{path},
-		Threshold:   threshold,
-		Terminating: terminating,
+		Paths:       []string{opts.Path},
+		Threshold:   opts.Threshold,
+		Terminating: opts.Terminating,
 	}, keys, GetExpiration("targets")); err != nil {
 		// If delegation already added, then we just want to bump version and expiration.
 		fmt.Fprintln(os.Stdout, "Adding targets delegation: ", err)
 	}
 
 	// Add targets (copy them into the repository and add them to the targets.json)
-	if targets != "" {
-		targetCfg, err := os.ReadFile(targets)
+	if opts.Targets != "" {
+		targetCfg, err := os.ReadFile(opts.Targets)
 		if err != nil {
 			return err
 		}
@@ -167,7 +185,7 @@ func DelegationCmd(ctx context.Context, directory, name, path string, terminatin
 			}
 			defer from.Close()
 			base := filepath.Base(tt)
-			to, err := os.Create(filepath.Join(directory, "staged", "targets", base))
+			to, err := os.Create(filepath.Join(opts.Directory, "staged", "targets", base))
 			if err != nil {
 				return err
 			}
@@ -176,7 +194,7 @@ func DelegationCmd(ctx context.Context, directory, name, path string, terminatin
 				return err
 			}
 			fmt.Fprintln(os.Stderr, "Created target file at ", to.Name())
-			if err := repo.AddTargetsWithExpiresToPreferredRole([]string{base}, custom, GetExpiration("targets"), name); err != nil {
+			if err := repo.AddTargetsWithExpiresToPreferredRole([]string{base}, custom, GetExpiration("targets"), opts.Name); err != nil {
 				return fmt.Errorf("error adding targets %w", err)
 			}
 		}

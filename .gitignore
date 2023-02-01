@@ -4,3 +4,4 @@ piv-attestation-ca.pem
 /keygen
 test-root.pem
 test-root-attestation.ca
+*~

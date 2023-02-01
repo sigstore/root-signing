@@ -1191,4 +1191,13 @@ func TestKeyPOP(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	// Verify that we got proper protection against canonicalizaton
+	// attacks
+	challenge = "some dat"
+	nonce = "anot random at all"
+	err = app.KeyPOPVerifyCmd(ctx, challenge, nonce, verifier, sig)
+	if err == nil {
+		t.Fatal("verification should fail")
+	}
 }

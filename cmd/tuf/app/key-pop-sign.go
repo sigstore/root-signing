@@ -53,7 +53,7 @@ func KeyPOPSign() *ffcli.Command {
 				return flag.ErrHelp
 			}
 
-			signer, err := getSigner(ctx, *sk, *key)
+			signer, err := GetSigner(ctx, *sk, *key)
 			if err != nil {
 				return err
 			}
@@ -61,14 +61,6 @@ func KeyPOPSign() *ffcli.Command {
 			return KeyPOPSignCmd(ctx, *challenge, *nonce, signer)
 		},
 	}
-}
-
-// The DSSE Pre-Authentication Encoding
-// https://github.com/secure-systems-lab/dsse/blob/master/protocol.md#signature-definition
-func PAE(challenge, nonce string) []byte {
-	return []byte(fmt.Sprintf("key-kop-v1 %d %s %d %s",
-		len(challenge), challenge,
-		len(nonce), nonce))
 }
 
 func KeyPOPSignCmd(ctx context.Context,

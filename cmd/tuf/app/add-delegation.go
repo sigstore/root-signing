@@ -17,7 +17,6 @@ package app
 
 import (
 	"context"
-	"crypto"
 	"errors"
 	"flag"
 	"fmt"
@@ -28,7 +27,6 @@ import (
 
 	pkeys "github.com/sigstore/root-signing/pkg/keys"
 	prepo "github.com/sigstore/root-signing/pkg/repo"
-	"github.com/sigstore/sigstore/pkg/signature"
 	"github.com/theupdateframework/go-tuf/data"
 
 	"github.com/peterbourgon/ff/v3/ffcli"
@@ -131,7 +129,7 @@ func DelegationCmd(ctx context.Context, opts *DelegationOptions) error {
 	keys := []*data.PublicKey{}
 	ids := []string{}
 	for _, keyRef := range opts.KeyRefs {
-		verifier, err := getVerifier(ctx, keyRef)
+		verifier, err := GetVerifier(ctx, keyRef)
 		if err != nil {
 			return err
 		}
@@ -222,10 +220,4 @@ func DelegationCmd(ctx context.Context, opts *DelegationOptions) error {
 		return err
 	}
 	return prepo.SetSignedMeta(store, "targets.json", &data.Signed{Signatures: sigs, Signed: signed})
-}
-
-func getVerifier(ctx context.Context, keyRef string) (signature.Verifier, error) {
-	verifier, err := signature.LoadVerifierFromPEMFile(keyRef, crypto.SHA256)
-
-	return verifier, err
 }

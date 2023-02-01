@@ -56,7 +56,7 @@ func KeyPOPVerify() *ffcli.Command {
 				return flag.ErrHelp
 			}
 
-			verifier, err := getVerifier(ctx, *key)
+			verifier, err := GetVerifier(ctx, *key)
 			if err != nil {
 				return err
 			}

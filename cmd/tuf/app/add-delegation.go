@@ -185,9 +185,11 @@ func DelegationCmd(ctx context.Context, opts *DelegationOptions) error {
 			base := filepath.Base(tt)
 			dir := filepath.Dir(tt)
 			toDir := filepath.Join(opts.Directory, "staged", "targets", dir)
-			os.MkdirAll(toDir, 0750)
+			err = os.MkdirAll(toDir, 0750)
+			if err != nil {
+				return err
+			}
 			to, err := os.Create(filepath.Join(toDir, base))
-
 			if err != nil {
 				return err
 			}

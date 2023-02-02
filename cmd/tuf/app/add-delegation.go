@@ -183,7 +183,11 @@ func DelegationCmd(ctx context.Context, opts *DelegationOptions) error {
 			}
 			defer from.Close()
 			base := filepath.Base(tt)
-			to, err := os.Create(filepath.Join(opts.Directory, "staged", "targets", base))
+			dir := filepath.Dir(tt)
+			toDir := filepath.Join(opts.Directory, "staged", "targets", dir)
+			os.MkdirAll(toDir, 0750)
+			to, err := os.Create(filepath.Join(toDir, base))
+
 			if err != nil {
 				return err
 			}
@@ -192,7 +196,7 @@ func DelegationCmd(ctx context.Context, opts *DelegationOptions) error {
 				return err
 			}
 			fmt.Fprintln(os.Stderr, "Created target file at ", to.Name())
-			if err := repo.AddTargetsWithExpiresToPreferredRole([]string{base}, custom, GetExpiration("targets"), opts.Name); err != nil {
+			if err := repo.AddTargetsWithExpiresToPreferredRole([]string{tt}, custom, GetExpiration("targets"), opts.Name); err != nil {
 				return fmt.Errorf("error adding targets %w", err)
 			}
 		}

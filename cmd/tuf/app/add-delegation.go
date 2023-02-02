@@ -176,7 +176,15 @@ func DelegationCmd(ctx context.Context, opts *DelegationOptions) error {
 			return err
 		}
 
-		for tt, custom := range meta {
+		// Remove the targets as requested
+		for tt := range meta.Del {
+			err = repo.RemoveTarget(tt)
+			if err != nil {
+				return err
+			}
+		}
+
+		for tt, custom := range meta.Add {
 			from, err := os.Open(tt)
 			if err != nil {
 				return err

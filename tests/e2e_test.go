@@ -1035,16 +1035,16 @@ func TestProdTargetsConfig(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(targetFiles) != len(targetsConfig) {
-		t.Fatalf("expected %d target, got %d", len(targetsConfig), len(targetFiles))
+	if len(targetFiles) != len(targetsConfig.Add) {
+		t.Fatalf("expected %d target, got %d", len(targetsConfig.Add), len(targetFiles))
 	}
 	// Validate presence of custom metadata per configuration.
 	for name, tFiles := range targetFiles {
 		var v1, v2 interface{}
-		json.Unmarshal([]byte(targetsConfig[name]), &v1)
+		json.Unmarshal([]byte(targetsConfig.Add[name]), &v1)
 		json.Unmarshal([]byte(*tFiles.Custom), &v2)
 		if !reflect.DeepEqual(v1, v2) {
-			t.Errorf("expected custom %s, got %s", targetsConfig[name], *tFiles.Custom)
+			t.Errorf("expected custom %s, got %s", targetsConfig.Add[name], *tFiles.Custom)
 		}
 	}
 

@@ -1035,16 +1035,16 @@ func TestProdTargetsConfig(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(targetFiles) != len(targetsConfig) {
-		t.Fatalf("expected %d target, got %d", len(targetsConfig), len(targetFiles))
+	if len(targetFiles) != len(targetsConfig.Add) {
+		t.Fatalf("expected %d target, got %d", len(targetsConfig.Add), len(targetFiles))
 	}
 	// Validate presence of custom metadata per configuration.
 	for name, tFiles := range targetFiles {
 		var v1, v2 interface{}
-		json.Unmarshal([]byte(targetsConfig[name]), &v1)
+		json.Unmarshal([]byte(targetsConfig.Add[name]), &v1)
 		json.Unmarshal([]byte(*tFiles.Custom), &v2)
 		if !reflect.DeepEqual(v1, v2) {
-			t.Errorf("expected custom %s, got %s", targetsConfig[name], *tFiles.Custom)
+			t.Errorf("expected custom %s, got %s", targetsConfig.Add[name], *tFiles.Custom)
 		}
 	}
 
@@ -1111,9 +1111,17 @@ func TestSignWithVersionBump(t *testing.T) {
 	}
 
 	// Add a delegation
-	delegationKeyRef := stack.genKey(t, false)
-	if err := app.DelegationCmd(ctx, stack.repoDir,
-		"delegation", "path/*", true, []string{delegationKeyRef}, ""); err != nil {
+	delegationKeyRef, delegationPubKeyRef := createTestSignVerifier(t)
+	if err := app.DelegationCmd(ctx,
+		&app.DelegationOptions{
+			Directory: stack.repoDir,
+			Name: "delegation",
+			Path: "path/*",
+			Terminating: true,
+			KeyRefs: []string{delegationPubKeyRef},
+			Threshold: 1,
+			Targets: "",
+		}); err != nil {
 		t.Fatal(err)
 	}
 
@@ -1158,4 +1166,38 @@ func TestSignWithVersionBump(t *testing.T) {
 
 	// Check delegation version bump
 	checkMetadataVersion(t, stack.repoDir, []string{"delegation.json"}, 2)
+}
+
+func TestKeyPOP(t *testing.T) {
+	ctx := context.Background()
+	keyRef, pubKeyRef := createTestSignVerifier(t)
+	challenge := "some data"
+	nonce := "not random at all"
+
+	verifier, err := app.GetVerifier(ctx, pubKeyRef)
+	if err != nil {
+		t.Fatal(err)
+	}
+	signer, err := app.GetSigner(ctx, false, keyRef)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	sig, err := app.DoKeyPOPSign(ctx, challenge, nonce, signer)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = app.KeyPOPVerifyCmd(ctx, challenge, nonce, verifier, sig)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Verify that we got proper protection against canonicalizaton
+	// attacks
+	challenge = "some dat"
+	nonce = "anot random at all"
+	err = app.KeyPOPVerifyCmd(ctx, challenge, nonce, verifier, sig)
+	if err == nil {
+		t.Fatal("verification should fail")
+	}
 }

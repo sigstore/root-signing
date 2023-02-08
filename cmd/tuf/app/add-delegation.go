@@ -17,6 +17,7 @@ package app
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -24,7 +25,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	csignature "github.com/sigstore/cosign/pkg/signature"
 	pkeys "github.com/sigstore/root-signing/pkg/keys"
 	prepo "github.com/sigstore/root-signing/pkg/repo"
 	"github.com/theupdateframework/go-tuf/data"
@@ -44,28 +44,37 @@ func (f *keysFlag) Set(value string) error {
 	return nil
 }
 
+type DelegationOptions struct {
+	Directory   string
+	Name        string
+	Path        string
+	Terminating bool
+	KeyRefs     []string
+	Threshold   int
+	Targets     string
+}
+
 func AddDelegation() *ffcli.Command {
 	var (
-		flagset     = flag.NewFlagSet("tuf add-delegation", flag.ExitOnError)
-		repository  = flagset.String("repository", "", "path to the staged repository")
-		name        = flagset.String("name", "", "name of the delegatee")
-		keys        = keysFlag{}
-		path        = flagset.String("path", "", "path for the delegation")
-		terminating = flagset.Bool("terminating", false, "indicated whether the delegation is terminating")
-		targets     = flagset.String("target-meta", "", "path to a target configuration file")
+		flagset    = flag.NewFlagSet("tuf add-delegation", flag.ExitOnError)
+		repository = flagset.String("repository", "", "path to the staged repository")
+		name       = flagset.String("name", "", "name of the delegatee")
+		keys       = keysFlag{}
+		targets    = flagset.String("target-meta", "", "path to a target configuration file")
+		threshold  = flagset.Int("threshold", 1, "default delegation signer threshold")
 	)
-	flagset.Var(&keys, "key", "key reference for the delegatee")
+	flagset.Var(&keys, "public-key", "public key reference for the delegatee")
 	return &ffcli.Command{
 		Name:       "add-delegation",
 		ShortUsage: "tuf add-delegation a role delegation from the top-level targets",
 		ShortHelp:  "tuf add-delegation a role delegation from the top-level targets",
 		LongHelp: `tuf add-delegation a role delegation from the top-level targets.
-		Adds a targets delegation with a name and specified keys. The optional path can also be set, 
+		Adds a targets delegation with a name and specified keys. The optional path can also be set,
 but will default to the name if unspecified.
-		
+
 	EXAMPLES
 	# add-delegation repository at ceremony/YYYY-MM-DD
-	tuf add-delegation -repository ceremony/YYYY-MM-DD -name $NAME -key $KEY_A -key $KEY_B -path $PATH`,
+	tuf add-delegation -repository ceremony/YYYY-MM-DD -name $NAME -key $KEY_A -key $KEY_B`,
 		FlagSet: flagset,
 		Exec: func(ctx context.Context, args []string) error {
 			if *repository == "" {
@@ -77,20 +86,37 @@ but will default to the name if unspecified.
 			if len(keys) == 0 {
 				return flag.ErrHelp
 			}
-			return DelegationCmd(ctx, *repository, *name, *path, *terminating, keys, *targets)
+			if len(keys) < *threshold {
+				return flag.ErrHelp
+			}
+			opts := DelegationOptions{
+				Directory:   *repository,
+				Name:        *name,
+				Path:        filepath.Join(*name, "*"),
+				Terminating: true,
+				KeyRefs:     []string(keys),
+				Threshold:   *threshold,
+				Targets:     *targets,
+			}
+			return DelegationCmd(ctx, &opts)
 		},
 	}
 }
 
-func DelegationCmd(ctx context.Context, directory, name, path string, terminating bool, keyRefs keysFlag, targets string) error {
-	store := tuf.FileSystemStore(directory, nil)
+func DelegationCmd(ctx context.Context, opts *DelegationOptions) error {
+	store := tuf.FileSystemStore(opts.Directory, nil)
+
+	if len(opts.KeyRefs) < opts.Threshold {
+		return fmt.Errorf("configured threshold is %d but only %d keys provided",
+			opts.Threshold, len(opts.KeyRefs))
+	}
+	if opts.Path == "" {
+		return errors.New("empty path provided")
+	}
 
 	repo, err := tuf.NewRepoIndent(store, "", "\t", "sha512", "sha256")
 	if err != nil {
 		return err
-	}
-	if path == "" {
-		path = name
 	}
 
 	// Store signature placeholders
@@ -102,14 +128,18 @@ func DelegationCmd(ctx context.Context, directory, name, path string, terminatin
 
 	keys := []*data.PublicKey{}
 	ids := []string{}
-	for _, keyRef := range keyRefs {
-		signer, err := csignature.SignerVerifierFromKeyRef(ctx, keyRef, nil)
+	for _, keyRef := range opts.KeyRefs {
+		verifier, err := GetVerifier(ctx, keyRef)
 		if err != nil {
 			return err
 		}
 
 		// Construct TUF key.
-		tufKey, err := pkeys.ConstructTufKey(ctx, signer, DeprecatedEcdsaFormat)
+		publicKey, err := verifier.PublicKey()
+		if err != nil {
+			return err
+		}
+		tufKey, err := pkeys.ConstructTufKeyFromPublic(ctx, publicKey, DeprecatedEcdsaFormat)
 		if err != nil {
 			return err
 		}
@@ -124,19 +154,19 @@ func DelegationCmd(ctx context.Context, directory, name, path string, terminatin
 	}
 
 	if err := repo.AddDelegatedRoleWithExpires("targets", data.DelegatedRole{
-		Name:        name,
+		Name:        opts.Name,
 		KeyIDs:      ids,
-		Paths:       []string{path},
-		Threshold:   1,
-		Terminating: terminating,
+		Paths:       []string{opts.Path},
+		Threshold:   opts.Threshold,
+		Terminating: opts.Terminating,
 	}, keys, GetExpiration("targets")); err != nil {
 		// If delegation already added, then we just want to bump version and expiration.
 		fmt.Fprintln(os.Stdout, "Adding targets delegation: ", err)
 	}
 
 	// Add targets (copy them into the repository and add them to the targets.json)
-	if targets != "" {
-		targetCfg, err := os.ReadFile(targets)
+	if opts.Targets != "" {
+		targetCfg, err := os.ReadFile(opts.Targets)
 		if err != nil {
 			return err
 		}
@@ -146,14 +176,28 @@ func DelegationCmd(ctx context.Context, directory, name, path string, terminatin
 			return err
 		}
 
-		for tt, custom := range meta {
+		// Remove the targets as requested
+		for tt := range meta.Del {
+			err = repo.RemoveTarget(tt)
+			if err != nil {
+				return err
+			}
+		}
+
+		for tt, custom := range meta.Add {
 			from, err := os.Open(tt)
 			if err != nil {
 				return err
 			}
 			defer from.Close()
 			base := filepath.Base(tt)
-			to, err := os.Create(filepath.Join(directory, "staged", "targets", base))
+			dir := filepath.Dir(tt)
+			toDir := filepath.Join(opts.Directory, "staged", "targets", dir)
+			err = os.MkdirAll(toDir, 0750)
+			if err != nil {
+				return err
+			}
+			to, err := os.Create(filepath.Join(toDir, base))
 			if err != nil {
 				return err
 			}
@@ -162,7 +206,7 @@ func DelegationCmd(ctx context.Context, directory, name, path string, terminatin
 				return err
 			}
 			fmt.Fprintln(os.Stderr, "Created target file at ", to.Name())
-			if err := repo.AddTargetsWithExpiresToPreferredRole([]string{base}, custom, GetExpiration("targets"), name); err != nil {
+			if err := repo.AddTargetsWithExpiresToPreferredRole([]string{tt}, custom, GetExpiration("targets"), opts.Name); err != nil {
 				return fmt.Errorf("error adding targets %w", err)
 			}
 		}

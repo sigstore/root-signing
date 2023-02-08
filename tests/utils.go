@@ -44,6 +44,7 @@ import (
 	csignature "github.com/sigstore/cosign/pkg/signature"
 	"github.com/sigstore/root-signing/cmd/tuf/app"
 	"github.com/sigstore/root-signing/pkg/keys"
+	"github.com/sigstore/root-signing/pkg/repo"
 	"github.com/sigstore/sigstore/pkg/cryptoutils"
 	"github.com/sigstore/sigstore/pkg/signature"
 	"github.com/theupdateframework/go-tuf"
@@ -54,7 +55,7 @@ type repoTestStack struct {
 	repoDir       string
 	hsmRootCA     *x509.Certificate
 	hsmRootSigner crypto.PrivateKey
-	targetsConfig map[string]json.RawMessage
+	targetsConfig *repo.TargetMetaConfig
 	snapshotRef   string
 	timestampRef  string
 }
@@ -73,7 +74,10 @@ func newRepoTestStack(ctx context.Context, t *testing.T) *repoTestStack {
 		repoDir:       td,
 		hsmRootCA:     rootCA,
 		hsmRootSigner: rootSigner,
-		targetsConfig: make(map[string]json.RawMessage, 0),
+		targetsConfig: &repo.TargetMetaConfig{
+			Add: map[string]json.RawMessage{},
+			Del: map[string]json.RawMessage{},
+		},
 		snapshotRef:   createTestSigner(t),
 		timestampRef:  createTestSigner(t),
 	}
@@ -84,11 +88,11 @@ func (s *repoTestStack) addTarget(t *testing.T, name, content string, custom jso
 	if err := os.WriteFile(testTarget, []byte(content), 0600); err != nil {
 		t.Fatal(err)
 	}
-	s.targetsConfig[name] = custom
+	s.targetsConfig.Add[name] = custom
 }
 
 func (s *repoTestStack) removeTarget(t *testing.T, name string) {
-	delete(s.targetsConfig, name)
+	delete(s.targetsConfig.Add, name)
 }
 
 func (s *repoTestStack) genKey(t *testing.T, hsm bool) string {
@@ -179,6 +183,28 @@ func createTestSigner(t *testing.T) string {
 	}
 	return f.Name()
 }
+
+// Create fake key signer in testDirectory. Returns file reference to signer
+// and verifier.
+func createTestSignVerifier(t *testing.T) (string, string) {
+	keys, err := cosign.GenerateKeyPair(nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	temp := t.TempDir()
+	priv, _ := os.CreateTemp(temp, "*.key")
+	pub, _ := os.CreateTemp(temp, "*.pub")
+
+	if _, err := io.Copy(priv, bytes.NewBuffer(keys.PrivateBytes)); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := io.Copy(pub, bytes.NewBuffer(keys.PublicBytes)); err != nil {
+		t.Fatal(err)
+	}
+
+	return priv.Name(), pub.Name()
+}
+
 
 func CreateRootCA() (*x509.Certificate, crypto.PrivateKey, error) {
 	// set up our CA certificate

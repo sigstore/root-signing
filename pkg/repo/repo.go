@@ -186,7 +186,7 @@ func GetMetaFromStore(msg []byte, name string) (interface{}, error) {
 }
 
 // Target metadata helpers
-func SigstoreTargetMetaFromString(b []byte) (map[string]json.RawMessage, error) {
+func SigstoreTargetMetaFromString222(b []byte) (map[string]json.RawMessage, error) {
 	jsonBytes, err := kyaml.YAMLToJSON(b)
 	if err != nil {
 		return nil, err
@@ -196,6 +196,23 @@ func SigstoreTargetMetaFromString(b []byte) (map[string]json.RawMessage, error) 
 		return nil, err
 	}
 	return targetsMetaJSON, nil
+}
+
+type TargetMetaConfig struct {
+	Add map[string]json.RawMessage `json:"add"`
+	Del map[string]json.RawMessage `json:"delete"`
+}
+
+func SigstoreTargetMetaFromString(b []byte) (*TargetMetaConfig, error) {
+	jsonBytes, err := kyaml.YAMLToJSON(b)
+	if err != nil {
+		return nil, err
+	}
+	var targetsMetaJSON TargetMetaConfig
+	if err := json.Unmarshal(jsonBytes, &targetsMetaJSON); err != nil {
+		return nil, err
+	}
+	return &targetsMetaJSON, nil
 }
 
 func IsVersionedManifest(name string) bool {

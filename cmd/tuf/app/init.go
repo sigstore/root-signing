@@ -17,7 +17,6 @@ package app
 
 import (
 	"context"
-	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
@@ -80,11 +79,11 @@ func Init() *ffcli.Command {
 		Name:       "init",
 		ShortUsage: "tuf init initializes a new TUF repository",
 		ShortHelp:  "tuf init initializes a new TUF repository",
-		LongHelp: `tuf init initializes a new TUF repository to the 
-		specified repository directory. It will create unpopulated directories 
+		LongHelp: `tuf init initializes a new TUF repository to the
+		specified repository directory. It will create unpopulated directories
 		keys/, staged/, and staged/targets under the repository with threshold 3
 		and a 4 month expiration.
-		
+
 	EXAMPLES
 	# initialize repository at ceremony/YYYY-MM-DD
 	tuf init -repository ceremony/YYYY-MM-DD`,
@@ -137,7 +136,7 @@ func Init() *ffcli.Command {
 // Revoked keys will be automatically calculated given the previous root and the signers in directory.
 // Signature placeholders for each key will be added to the root.json and targets.json file.
 func InitCmd(ctx context.Context, directory, previous string,
-	threshold int, targetsConfig map[string]json.RawMessage,
+	threshold int, targetsConfig *prepo.TargetMetaConfig,
 	targetsDir string,
 	snapshotRef string, timestampRef string,
 	deprecatedKeyFormat bool) error {
@@ -204,7 +203,7 @@ func InitCmd(ctx context.Context, directory, previous string,
 	// Add targets (copy them into the repository and add them to the targets.json)
 	// Add the new targets in the config.
 	expectedTargets := make(map[string]bool)
-	for tt, custom := range targetsConfig {
+	for tt, custom := range targetsConfig.Add {
 		from, err := os.Open(filepath.Join(targetsDir, tt))
 		if err != nil {
 			return err

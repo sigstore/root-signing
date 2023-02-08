@@ -21,17 +21,13 @@ package app
 import (
 	"bytes"
 	"context"
-	"crypto"
 	"flag"
 	"fmt"
 	"strings"
 
 	"github.com/peterbourgon/ff/v3/ffcli"
-	"github.com/sigstore/cosign/pkg/cosign/pivkey"
-	csignature "github.com/sigstore/cosign/pkg/signature"
 	"github.com/sigstore/root-signing/pkg/keys"
 	"github.com/sigstore/root-signing/pkg/repo"
-	prepo "github.com/sigstore/root-signing/pkg/repo"
 	"github.com/sigstore/sigstore/pkg/signature"
 	"github.com/sigstore/sigstore/pkg/signature/options"
 	cjson "github.com/tent/canonical-json-go"
@@ -83,7 +79,7 @@ func Sign() *ffcli.Command {
 			if !*sk && *key == "" {
 				return flag.ErrHelp
 			}
-			signer, err := getSigner(ctx, *sk, *key)
+			signer, err := GetSigner(ctx, *sk, *key)
 			if err != nil {
 				return err
 			}
@@ -128,32 +124,6 @@ func checkMetaForRole(store tuf.LocalStore, role []string) error {
 	return nil
 }
 
-func getSigner(ctx context.Context, sk bool, keyRef string) (signature.Signer, error) {
-	if sk {
-		pivKey, err := pivkey.GetKeyWithSlot("signature")
-		if err != nil {
-			return nil, err
-		}
-		return pivKey.SignerVerifier()
-	}
-	// A key reference was provided.
-	// First try to load it as a regular PEM encoded private key.
-	signer, err := signature.LoadSignerFromPEMFile(keyRef, crypto.SHA256, nil)
-	if err != nil {
-		var innerError error
-		signer, innerError = csignature.SignerVerifierFromKeyRef(ctx, keyRef, nil)
-		if innerError != nil {
-			// Only print this message if both attempts failed.
-			// As there is a natual fallthrough here, always
-			// logging the first error could be noisy.
-			fmt.Printf("failed to load key as PEM encoded: %s, trying other methods", err)
-			return nil, innerError
-		}
-
-	}
-	return signer, nil
-}
-
 func SignCmd(ctx context.Context, directory string, roles []string, signer signature.Signer,
 	bumpVersion bool, addDeprecatedKeyFormat bool) error {
 	store := tuf.FileSystemStore(directory, nil)
@@ -164,7 +134,7 @@ func SignCmd(ctx context.Context, directory string, roles []string, signer signa
 
 	for _, name := range roles {
 		if bumpVersion {
-			if err := prepo.BumpMetadataVersion(store, name); err != nil {
+			if err := repo.BumpMetadataVersion(store, name); err != nil {
 				return err
 			}
 		}
@@ -284,7 +254,7 @@ func SignMeta(ctx context.Context, store tuf.LocalStore, name string, signer sig
 			strings.Join(keyIDs, ", "), name, roleSigningKeys)
 	}
 
-	return prepo.SetSignedMeta(store, name, &data.Signed{Signatures: sigs, Signed: s.Signed})
+	return repo.SetSignedMeta(store, name, &data.Signed{Signatures: sigs, Signed: s.Signed})
 }
 
 // Pre-entries are defined when there are Signatures in the Signed metadata

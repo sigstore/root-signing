@@ -37,8 +37,8 @@ import (
 	"github.com/theupdateframework/go-tuf/data"
 	"github.com/theupdateframework/go-tuf/verify"
 
-	// Allow deprecated ECDSA key formats for v5.
-	// TODO(https://github.com/sigstore/root-signing/issues/381): Cleanup after v5
+	// Allow deprecated ECDSA key formats.
+	// We still allow this so that we may verify against the original root.
 	_ "github.com/theupdateframework/go-tuf/pkg/deprecated/set_ecdsa"
 )
 

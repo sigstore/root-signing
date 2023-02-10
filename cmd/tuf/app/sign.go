@@ -48,15 +48,12 @@ func (f *roleFlag) Set(value string) error {
 
 func Sign() *ffcli.Command {
 	var (
-		flagset    = flag.NewFlagSet("tuf sign", flag.ExitOnError)
-		roles      = roleFlag{}
-		repository = flagset.String("repository", "", "path to the staged repository")
-		sk         = flagset.Bool("sk", false, "indicates use of a hardware key for signing")
-		key        = flagset.String("key", "", "reference to a signer for signing")
-		// TODO(https://github.com/sigstore/root-signing/issues/381):
-		// This can be removed after v5 root-signing is complete.
-		addDeprecatedKeyFormat = flagset.Bool("add-deprecated", false, "adds the deprecated ecdsa key format to associate signatures")
-		bumpVersion            = flagset.Bool("bump-version", false, "bumps the version; useful for re-signing without changes")
+		flagset     = flag.NewFlagSet("tuf sign", flag.ExitOnError)
+		roles       = roleFlag{}
+		repository  = flagset.String("repository", "", "path to the staged repository")
+		sk          = flagset.Bool("sk", false, "indicates use of a hardware key for signing")
+		key         = flagset.String("key", "", "reference to a signer for signing")
+		bumpVersion = flagset.Bool("bump-version", false, "bumps the version; useful for re-signing without changes")
 	)
 	flagset.Var(&roles, "roles", "role(s) to sign")
 	return &ffcli.Command{
@@ -83,7 +80,7 @@ func Sign() *ffcli.Command {
 			if err != nil {
 				return err
 			}
-			return SignCmd(ctx, *repository, roles, signer, *bumpVersion, *addDeprecatedKeyFormat)
+			return SignCmd(ctx, *repository, roles, signer, *bumpVersion)
 		},
 	}
 }
@@ -125,7 +122,7 @@ func checkMetaForRole(store tuf.LocalStore, role []string) error {
 }
 
 func SignCmd(ctx context.Context, directory string, roles []string, signer signature.Signer,
-	bumpVersion bool, addDeprecatedKeyFormat bool) error {
+	bumpVersion bool) error {
 	store := tuf.FileSystemStore(directory, nil)
 
 	if err := checkMetaForRole(store, roles); err != nil {
@@ -138,7 +135,7 @@ func SignCmd(ctx context.Context, directory string, roles []string, signer signa
 				return err
 			}
 		}
-		if err := SignMeta(ctx, store, name+".json", signer, addDeprecatedKeyFormat); err != nil {
+		if err := SignMeta(ctx, store, name+".json", signer); err != nil {
 			return err
 		}
 	}
@@ -147,14 +144,11 @@ func SignCmd(ctx context.Context, directory string, roles []string, signer signa
 }
 
 // Sign metadata. We always associate signatures with the TUF compliant key IDs.
-// addDeprecatedKeyFormat allows additionally associating the signature with the
-// deprecated hex ECDSA key ID.
 //
 // Note that if you were using old format exclusively (for testing), then this will
 // have no impact on repository validity: extraneous key IDs for the role that are
 // not attested to in the trusted root or parent delegation will be ignored.
-func SignMeta(ctx context.Context, store tuf.LocalStore, name string, signer signature.Signer,
-	addDeprecatedKeyFormat bool) error {
+func SignMeta(ctx context.Context, store tuf.LocalStore, name string, signer signature.Signer) error {
 	fmt.Printf("Signing metadata for %s... \n", name)
 	s, err := repo.GetSignedMeta(store, name)
 	if err != nil {
@@ -182,18 +176,9 @@ func SignMeta(ctx context.Context, store tuf.LocalStore, name string, signer sig
 	}
 
 	// Get TUF public IDs associated to the signer.
-	var candidateKeyIDs []string
-	pubKey, err := keys.ConstructTufKey(ctx, signer, false)
+	pubKey, err := keys.ConstructTufKey(ctx, signer)
 	if err != nil {
 		return err
-	}
-	candidateKeyIDs = append(candidateKeyIDs, pubKey.IDs()...)
-	if addDeprecatedKeyFormat {
-		oldPubKey, err := keys.ConstructTufKey(ctx, signer, true)
-		if err != nil {
-			return err
-		}
-		candidateKeyIDs = append(candidateKeyIDs, oldPubKey.IDs()...)
 	}
 
 	role := strings.TrimSuffix(name, ".json")
@@ -204,12 +189,8 @@ func SignMeta(ctx context.Context, store tuf.LocalStore, name string, signer sig
 
 	// Filter key IDs with the role signing key map.
 	var keyIDs []string
-	for _, id := range candidateKeyIDs {
-		// We check to make sure that the key ID (which may include deprecated IDs)
-		// is associated with the role's keys.
-		// For example, targets signers are HSM keys and may be interpreted with both
-		// formats to handle a root migration. However, HSM keys interpreted with the
-		// deprecated format do not need to sign the targets role.
+	for _, id := range pubKey.IDs() {
+		// We check to make sure that the key ID is associated with the role's keys.
 		if _, ok := roleSigningKeys[id]; !ok {
 			continue
 		}

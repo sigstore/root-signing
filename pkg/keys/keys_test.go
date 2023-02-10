@@ -160,19 +160,11 @@ func TestToSigningKey(t *testing.T) {
 				t.Errorf("unexpected error generating signing key (%s): %s", tt.name, err)
 			}
 			if tt.expectSuccess {
-				hexPubKey, err := EcdsaTufKey(key.PublicKey, true)
-				if err != nil {
-					t.Errorf("unexpected error generating hex TUF public key: %s", err)
-				}
-				pemPubKey, err := EcdsaTufKey(key.PublicKey, false)
+				pemPubKey, err := EcdsaTufKey(key.PublicKey)
 				if err != nil {
 					t.Errorf("unexpected error generating PEM TUF public key: %s", err)
 				}
-				// True to get verifiers.
-				_, err = keys.GetVerifier(hexPubKey)
-				if err != nil {
-					t.Errorf("unexpected error getting TUF hex ecdsa verifier: %s", err)
-				}
+				// Try to get verifiers.
 				_, err = keys.GetVerifier(pemPubKey)
 				if err != nil {
 					t.Errorf("unexpected error getting TUF PEM ecdsa verifier: %s", err)
@@ -192,7 +184,7 @@ func TestGetSigningKey(t *testing.T) {
 	}
 
 	t.Run("valid signing key with PEM", func(t *testing.T) {
-		signingKeyPem, err := ConstructTufKey(ctx, signingKey, false)
+		signingKeyPem, err := ConstructTufKey(ctx, signingKey)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -204,26 +196,6 @@ func TestGetSigningKey(t *testing.T) {
 		pemKey := keys.NewEcdsaVerifier()
 		if err := pemKey.UnmarshalPublicKey(signingKeyPem); err != nil {
 			t.Errorf("unexpected error getting TUF PEM ecdsa verifier: %s", err)
-		}
-	})
-	t.Run("valid signing key with hex", func(t *testing.T) {
-		signingKeyHex, err := ConstructTufKey(ctx, signingKey, true)
-		if err != nil {
-			t.Fatal(err)
-		}
-		_, err = keys.GetVerifier(signingKeyHex)
-		if err != nil {
-			t.Fatalf("unexpected error getting hex PEM ecdsa verifier: %s", err)
-		}
-		// Try with explicit verifier.
-		hexKey := keys.NewDeprecatedEcdsaVerifier()
-		if err := hexKey.UnmarshalPublicKey(signingKeyHex); err != nil {
-			t.Errorf("unexpected error unmarshalling with  TUF hex ecdsa verifier: %s", err)
-		}
-		// Fails with other verifier.
-		pemKey := keys.NewEcdsaVerifier()
-		if err := pemKey.UnmarshalPublicKey(signingKeyHex); err == nil {
-			t.Errorf("expected error unmarshalling with TUF PEM ecdsa verifier: %s", err)
 		}
 	})
 }

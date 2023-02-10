@@ -139,7 +139,7 @@ func DelegationCmd(ctx context.Context, opts *DelegationOptions) error {
 		if err != nil {
 			return err
 		}
-		tufKey, err := pkeys.ConstructTufKeyFromPublic(ctx, publicKey, DeprecatedEcdsaFormat)
+		tufKey, err := pkeys.ConstructTufKeyFromPublic(ctx, publicKey)
 		if err != nil {
 			return err
 		}

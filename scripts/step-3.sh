@@ -45,10 +45,10 @@ checkout_branch
 
 # Snapshot and sign the snapshot with snapshot kms key
 ./tuf snapshot -repository "$REPO"
-./tuf sign -repository "$REPO" -roles snapshot -key "${SNAPSHOT_KEY}" -add-deprecated=true
+./tuf sign -repository "$REPO" -roles snapshot -key "${SNAPSHOT_KEY}"
 
 # Timestamp and sign the timestamp with timestamp kms key
 ./tuf timestamp -repository "$REPO"
-./tuf sign -repository "$REPO" -roles timestamp -key "${TIMESTAMP_KEY}" -add-deprecated=true
+./tuf sign -repository "$REPO" -roles timestamp -key "${TIMESTAMP_KEY}"
 
 commit_and_push_changes snapshot-timestamp

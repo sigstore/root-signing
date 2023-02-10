@@ -39,11 +39,6 @@ var DefaultThreshold = 3
 // Enable consistent snapshotting.
 var ConsistentSnapshot = true
 
-// Use deprecated hex-encoded ECDSA keys.
-// TODO(https://github.com/sigstore/root-signing/issues/381):
-// This can be removed after v5 root-signing is executed.
-var DeprecatedEcdsaFormat = false
-
 // Time to role expiration represented as a list of ints corresponding to
 // (years, months, days).
 var RoleExpiration = map[string][]int{
@@ -116,7 +111,7 @@ func Init() *ffcli.Command {
 			return InitCmd(ctx, *repository, *previous,
 				*threshold, targetsConfig,
 				*targetsDir,
-				*snapshot, *timestamp, DeprecatedEcdsaFormat)
+				*snapshot, *timestamp)
 		},
 	}
 }
@@ -138,8 +133,7 @@ func Init() *ffcli.Command {
 func InitCmd(ctx context.Context, directory, previous string,
 	threshold int, targetsConfig *prepo.TargetMetaConfig,
 	targetsDir string,
-	snapshotRef string, timestampRef string,
-	deprecatedKeyFormat bool) error {
+	snapshotRef string, timestampRef string) error {
 	// TODO: Validate directory is a good path.
 	store := tuf.FileSystemStore(directory, nil)
 	repo, err := tuf.NewRepoIndent(store, "", "\t", "sha512", "sha256")
@@ -160,7 +154,7 @@ func InitCmd(ctx context.Context, directory, previous string,
 	}
 
 	// Add the keys we just provisioned to root and targets and revoke any removed ones.
-	keys, err := getKeysFromDir(directory+"/keys", deprecatedKeyFormat)
+	keys, err := getKeysFromDir(directory + "/keys")
 	if err != nil {
 		return fmt.Errorf("getting HSM keys: %s", err)
 	}
@@ -183,7 +177,7 @@ func InitCmd(ctx context.Context, directory, previous string,
 		}
 
 		// Construct TUF key.
-		tufKey, err := pkeys.ConstructTufKey(ctx, signer, deprecatedKeyFormat)
+		tufKey, err := pkeys.ConstructTufKey(ctx, signer)
 		if err != nil {
 			return err
 		}
@@ -321,7 +315,7 @@ func ClearEmptySignatures(store tuf.LocalStore, role string) error {
 	return prepo.SetSignedMeta(store, role, &data.Signed{Signatures: sigs, Signed: signedMeta.Signed})
 }
 
-func getKeysFromDir(dir string, deprecatedKeyFormat bool) ([]*data.PublicKey, error) {
+func getKeysFromDir(dir string) ([]*data.PublicKey, error) {
 	files, err := os.ReadDir(dir)
 	if err != nil {
 		return nil, err
@@ -333,7 +327,7 @@ func getKeysFromDir(dir string, deprecatedKeyFormat bool) ([]*data.PublicKey, er
 			if err != nil {
 				return nil, err
 			}
-			tufKey, err := pkeys.EcdsaTufKey(key.PublicKey, deprecatedKeyFormat)
+			tufKey, err := pkeys.EcdsaTufKey(key.PublicKey)
 			if err != nil {
 				return nil, err
 			}

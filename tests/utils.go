@@ -78,8 +78,8 @@ func newRepoTestStack(ctx context.Context, t *testing.T) *repoTestStack {
 			Add: map[string]json.RawMessage{},
 			Del: map[string]json.RawMessage{},
 		},
-		snapshotRef:   createTestSigner(t),
-		timestampRef:  createTestSigner(t),
+		snapshotRef:  createTestSigner(t),
+		timestampRef: createTestSigner(t),
 	}
 }
 
@@ -137,7 +137,7 @@ func (s *repoTestStack) getManifest(t *testing.T, manifest string) json.RawMessa
 	return md
 }
 
-func (s *repoTestStack) snapshot(t *testing.T, deprecated bool) {
+func (s *repoTestStack) snapshot(t *testing.T) {
 	if err := app.SnapshotCmd(s.ctx, s.repoDir); err != nil {
 		t.Fatalf("expected Snapshot command to pass, got err: %s", err)
 	}
@@ -145,12 +145,12 @@ func (s *repoTestStack) snapshot(t *testing.T, deprecated bool) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := app.SignCmd(s.ctx, s.repoDir, []string{"snapshot"}, snapshotSigner, false, deprecated); err != nil {
+	if err := app.SignCmd(s.ctx, s.repoDir, []string{"snapshot"}, snapshotSigner, false); err != nil {
 		t.Fatal(err)
 	}
 }
 
-func (s *repoTestStack) timestamp(t *testing.T, deprecated bool) {
+func (s *repoTestStack) timestamp(t *testing.T) {
 	if err := app.TimestampCmd(s.ctx, s.repoDir); err != nil {
 		t.Fatalf("expected timestamp command to pass, got err: %s", err)
 	}
@@ -158,7 +158,7 @@ func (s *repoTestStack) timestamp(t *testing.T, deprecated bool) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := app.SignCmd(s.ctx, s.repoDir, []string{"timestamp"}, timestampSigner, false, deprecated); err != nil {
+	if err := app.SignCmd(s.ctx, s.repoDir, []string{"timestamp"}, timestampSigner, false); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -204,7 +204,6 @@ func createTestSignVerifier(t *testing.T) (string, string) {
 
 	return priv.Name(), pub.Name()
 }
-
 
 func CreateRootCA() (*x509.Certificate, crypto.PrivateKey, error) {
 	// set up our CA certificate

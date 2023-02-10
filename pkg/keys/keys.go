@@ -19,7 +19,6 @@ import (
 	"context"
 	"crypto"
 	"crypto/ecdsa"
-	"crypto/elliptic"
 	"crypto/x509"
 	"encoding/asn1"
 	"encoding/json"
@@ -91,19 +90,10 @@ func ToSigningKey(serialNumber int, pubKey []byte, deviceCert []byte, keyCert []
 	return key, nil
 }
 
-// EcdsaTufKey returns a TUF public key for an ecdsa key.
-// If deprecated is true, returns a hex-encoded public key. Otherwise
-// returns a PEM-encoded public key.
-func EcdsaTufKey(pub *ecdsa.PublicKey, deprecated bool) (*data.PublicKey, error) {
-	var keyValBytes []byte
-	var err error
-	if deprecated {
-		keyValBytes, err = json.Marshal(EcdsaPublic{
-			PublicKey: elliptic.Marshal(pub.Curve, pub.X, pub.Y)})
-	} else {
-		keyValBytes, err = json.Marshal(keys.EcdsaVerifier{
-			PublicKey: &keys.PKIXPublicKey{PublicKey: pub}})
-	}
+// EcdsaTufKey returns a PEM-encoded TUF public key for an ecdsa key.
+func EcdsaTufKey(pub *ecdsa.PublicKey) (*data.PublicKey, error) {
+	keyValBytes, err := json.Marshal(keys.EcdsaVerifier{
+		PublicKey: &keys.PKIXPublicKey{PublicKey: pub}})
 	if err != nil {
 		return nil, err
 	}
@@ -203,22 +193,20 @@ func (key SigningKey) Verify(root *x509.Certificate) error {
 }
 
 // ConstructTufKey constructs a TUF public key from a given signer.
-func ConstructTufKey(ctx context.Context, signer signature.Signer,
-	deprecated bool) (*data.PublicKey, error) {
+func ConstructTufKey(ctx context.Context, signer signature.Signer) (*data.PublicKey, error) {
 	pub, err := signer.PublicKey(options.WithContext(ctx))
 	if err != nil {
 		return nil, err
 	}
-	return ConstructTufKeyFromPublic(ctx, pub, deprecated)
+	return ConstructTufKeyFromPublic(ctx, pub)
 }
 
 // ConstructTufKey constructs a TUF public key from a public key
-func ConstructTufKeyFromPublic(ctx context.Context, pubKey crypto.PublicKey,
-	deprecated bool) (*data.PublicKey, error) {
+func ConstructTufKeyFromPublic(ctx context.Context, pubKey crypto.PublicKey) (*data.PublicKey, error) {
 
 	switch kt := pubKey.(type) {
 	case *ecdsa.PublicKey:
-		return EcdsaTufKey(kt, deprecated)
+		return EcdsaTufKey(kt)
 	default:
 		return nil, fmt.Errorf("ConstructTufKeyFromPublic: key type %s not supported", kt)
 	}

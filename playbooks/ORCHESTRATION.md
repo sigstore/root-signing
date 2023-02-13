@@ -4,28 +4,32 @@ This playbook describes how to orchestrate a root signing event.
 
 ## Pre-work
 
-1. Check the [calendar](https://calendar.google.com/calendar/u/0?cid=Y19ydjIxcDJuMzJsbmJoYW5uaXFwOXIzNTJtb0Bncm91cC5jYWxlbmRhci5nb29nbGUuY29t) for upcoming root signing events. 
+1. Check the [calendar](https://calendar.google.com/calendar/u/0?cid=Y19ydjIxcDJuMzJsbmJoYW5uaXFwOXIzNTJtb0Bncm91cC5jYWxlbmRhci5nb29nbGUuY29t) for upcoming root signing events.
 
 2. Make updates to the targets and delegation configuration files, see [configuration](#targets-and-delegation-configuration). To add a delegation, see [Adding a Delegation](#adding-a-delegation).
 
 3. Double-check the configured [role expirations](https://github.com/sigstore/root-signing/blob/e3f1fe5e487984f525afc81ac77fa5ce39737d0f/cmd/tuf/app/init.go#L28).
 
-4. Set any environment variables, including previous repository and online signer references (details [here](#key-configuration)). 
+4. Create (or ask a root-signing maintainer) to create a new upstream branch named by the ceremony date, for example, `ceremony/YYYY-MM-DD`.
+
+5. Set any environment variables, including the repository and online signer references (details [here](#key-configuration)).
 
 | Variable      | Description | Example |
-| ----------- | ----------- | ----------- | 
+| ----------- | ----------- | ----------- |
 | GITHUB_USER      | The GitHub user, used to create PRs and commit messages       | asraa       |
-| BRANCH   | (Optional) The working branch, in case of testing script or configuration changes.        | main        |
+| BRANCH   | The working branch, where a new repository is being staged. Typically, `ceremony/YYYY-MM-DD`. MAY also be used to test changes in a branch.        | main        |
 | LOCAL   | (Optional) If enabled, keeps git state dirty and does not create pull requests. Used to run root signing locally for testing.       |         |
-| REPO   | Specifies the repository folder to act on, see [Configuration](#configuration). By default, uses the current date in `ceremony/YYYY-MM-DD`.       |   `ceremony/2022-02-22`      |
-| PREV_REPO   | (Optional) If set, this specifies a previous repository used to chain a following root signing event (copies previous hardware keys, etc).       |    `repository/`     |
+| REPO   | Specifies the repository folder to act on, see [Configuration](#configuration). By default, uses the top-level `repository/`.       |   `repository/`      |
 | SNAPSHOT_KEY   | The GCP KMS online key for snapshotting.    |     `projects/sigstore-root-signing/locations/global/keyRings/root/cryptoKeys/snapshot`    |
 | TIMESTAMP_KEY   | The GCP KMS online key for timestamping.    |  `projects/sigstore-root-signing/locations/global/keyRings/root/cryptoKeys/timestamp`  |
 
 ## Configuration
 
-Each root signing event occurs inside a folder `ceremony/YYYY-MM-DD/` named by the date the signing event started. This folder contains:
-* A `keys/` subfolder containing subdirectories named after Yubikey serial numbers, and containins public key PEMs, key certificates, and device certificates attesting to the hardware key. See [PIV attestation](https://developers.yubico.com/PIV/Introduction/PIV_attestation.html). 
+Each root signing event occurs inside a branch `ceremony/YYYY-MM-DD` named by the date the signing event started. The branch is only merged into main when the repository is completely signed and validated with any client testing necessary.
+
+The TUF repository is always staged inside the top-level `repository/` folder. This folder contains:
+
+* A `keys/` subfolder containing subdirectories named after Yubikey serial numbers, and containins public key PEMs, key certificates, and device certificates attesting to the hardware key. See [PIV attestation](https://developers.yubico.com/PIV/Introduction/PIV_attestation.html).
 * A `repository/` subfolder containing the finalized TUF repository metadata.
 * A `staging/` subfolder present during root signing events with staged metadata before publishing.
 
@@ -50,7 +54,8 @@ Second, online keys on GCP are used for snapshot, timestamp, and delegation role
 
 ## Step 0: Building the binary
 
-Run the following script to build the TUF repository binary. 
+Run the following script to build the TUF repository binary.
+
 ```bash
 ./scripts/step-0.sh
 ```
@@ -64,7 +69,8 @@ Like mentioned in [Key configuration](#key-configuration), each root key corresp
 Instruct any new root keyholder to follow [Registering a new root key](../KEYHOLDER.md#registering-a-new-root-key)
 
 This will create the following structure.
-```
+
+```bash
 ${REPO}/keys
 └── 89957089
     ├── 89957089_device_cert.pem
@@ -94,7 +100,7 @@ This step initializes or stages a new root and targets file according to the pre
 
 This copies over old repository metadata and keys from the `${PREV_REPO}`, revokes key `123456`, and then updates a new root and targets according to the configuration. The new PR will create a new `root.json`, `targets.json`, and delegation files in the `${REPO}/staged` subfolder. You should see the following directory structure created:
 
-```
+```bash
 $REPO
 ├── keys
 ├── repository
@@ -108,9 +114,10 @@ $REPO
     └── revocation.json 
 ```
 
-**EXPERIMENTAL**: You may also use the GitHub Workflow [init_repository.yml](../.github/workflows/init_repository.yml) with the parameters like above.
+**EXPERIMENTAL**: You may also use the GitHub Workflow [init_repository.yml](../.github/workflows/initialize.yml) with the parameters like above.
 
 Manually check for:
+
 * The expected root and targets expirations.
 * The expected root and targets versions.
 * The expected root and targets thresholds.
@@ -166,7 +173,7 @@ and check that the delegation was successfully signed.
 
 ## Step 3: Snapshotting and Timestamping
 
-Next, the metadata will need to be snapshotted and timestamped. Run 
+Next, the metadata will need to be snapshotted and timestamped. Run
 
 ```bash
 ./scripts/step-3.sh
@@ -215,6 +222,7 @@ In case there is a configuration mistake or a breakage that renders a ceremony i
 2. Create a `./config/$DELEGATION-metadata`.yml file, see [Target and Delegation configuration](#targets-and-delegation-configuration). 
 
 3. Edit [./scripts/step-1.5.sh] to add the delegation after the root and targets are setup via `tuf init`, with a command like:
+
 ```bash
 # Add $DELEGATION delegation
 ./tuf add-delegation -repository $REPO -name "$DELEGATION" -key $DELEGATION_KEY -target-meta config/$DELEGATION-metadata.yml -path $PATH

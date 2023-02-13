@@ -38,11 +38,6 @@ if [ -z "$SNAPSHOT_KEY" ]; then
 fi
 # TODO(https://github.com/sigstore/root-signing/issues/398):
 # Add any necessary delegation keys
-# Repo options
-if [ -z "$PREV_REPO" ]; then
-    echo "Set PREV_REPO"
-    exit
-fi
 
 # Dump the git state and clean-up
 print_git_state
@@ -51,9 +46,6 @@ clean_state
 # Checkout the working branch
 checkout_branch
 
-# Copy the previous keys and repository into the new repository.
-mkdir -p "${REPO}"/staged/targets
-cp -r "${PREV_REPO}"/* "${REPO}"
 # Remove a key by ID that need to be removed from the root keyholders
 if [[ -n $1 ]]; then
     echo "Removing key: $1"
@@ -63,6 +55,6 @@ fi
 # Setup the root and targets
 ./tuf init -repository "$REPO" \
     -targets "$(pwd)"/targets -target-meta config/targets-metadata.yml \
-    -snapshot "${SNAPSHOT_KEY}" -timestamp "${TIMESTAMP_KEY}" -previous "${PREV_REPO}"
+    -snapshot "${SNAPSHOT_KEY}" -timestamp "${TIMESTAMP_KEY}"
 
 commit_and_push_changes setup-root

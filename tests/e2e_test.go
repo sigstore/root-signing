@@ -158,7 +158,7 @@ func TestInitCmd(t *testing.T) {
 	}
 
 	// Initialize succeeds.
-	if err := app.InitCmd(ctx, stack.repoDir, "", 1,
+	if err := app.InitCmd(ctx, stack.repoDir, 1,
 		stack.targetsConfig, stack.repoDir, stack.snapshotRef, stack.timestampRef); err != nil {
 		t.Fatal(err)
 	}
@@ -177,7 +177,7 @@ func TestSignRootTargets(t *testing.T) {
 	rootKeyRef := stack.genKey(t, true)
 
 	// Initialize with 1 succeeds.
-	if err := app.InitCmd(ctx, stack.repoDir, "", 1,
+	if err := app.InitCmd(ctx, stack.repoDir, 1,
 		stack.targetsConfig, stack.repoDir, stack.snapshotRef, stack.timestampRef); err != nil {
 		t.Fatal(err)
 	}
@@ -221,7 +221,7 @@ func TestSnapshotUnvalidatedFails(t *testing.T) {
 	_ = stack.genKey(t, true)
 
 	// Initialize with threshold 1 succeeds.
-	if err := app.InitCmd(ctx, stack.repoDir, "", 1,
+	if err := app.InitCmd(ctx, stack.repoDir, 1,
 		stack.targetsConfig, stack.repoDir, stack.snapshotRef, stack.timestampRef); err != nil {
 		t.Fatal(err)
 	}
@@ -290,7 +290,7 @@ func TestPublishSuccess(t *testing.T) {
 	rootKeyRef := stack.genKey(t, true)
 
 	// Initialize with 1 succeeds.
-	if err := app.InitCmd(ctx, stack.repoDir, "", 1,
+	if err := app.InitCmd(ctx, stack.repoDir, 1,
 		stack.targetsConfig, stack.repoDir, stack.snapshotRef, stack.timestampRef); err != nil {
 		t.Fatal(err)
 	}
@@ -348,7 +348,7 @@ func TestRotateRootKey(t *testing.T) {
 	rootKeyRef2 := stack.genKey(t, true)
 
 	// Initialize succeeds
-	if err := app.InitCmd(ctx, stack.repoDir, "", 1,
+	if err := app.InitCmd(ctx, stack.repoDir, 1,
 		stack.targetsConfig, stack.repoDir, stack.snapshotRef, stack.timestampRef); err != nil {
 		t.Fatal(err)
 	}
@@ -397,7 +397,7 @@ func TestRotateRootKey(t *testing.T) {
 	rootKeyRef3 := stack.genKey(t, true)
 
 	// Create a new root.
-	if err := app.InitCmd(ctx, stack.repoDir, stack.repoDir, 1,
+	if err := app.InitCmd(ctx, stack.repoDir, 1,
 		stack.targetsConfig, stack.repoDir, stack.snapshotRef, stack.timestampRef); err != nil {
 		t.Fatal(err)
 	}
@@ -454,7 +454,7 @@ func TestRotateTarget(t *testing.T) {
 	rootKeyRef := stack.genKey(t, true)
 
 	// Initialize succeeds.
-	if err := app.InitCmd(ctx, stack.repoDir, "", 1,
+	if err := app.InitCmd(ctx, stack.repoDir, 1,
 		stack.targetsConfig, stack.repoDir, stack.snapshotRef, stack.timestampRef); err != nil {
 		t.Fatal(err)
 	}
@@ -495,7 +495,7 @@ func TestRotateTarget(t *testing.T) {
 	stack.addTarget(t, "bar.txt", "abcdef", nil)
 
 	// Initialize succeeds.
-	if err := app.InitCmd(ctx, stack.repoDir, stack.repoDir, 1,
+	if err := app.InitCmd(ctx, stack.repoDir, 1,
 		stack.targetsConfig, stack.repoDir, stack.snapshotRef, stack.timestampRef); err != nil {
 		t.Fatal(err)
 	}
@@ -541,7 +541,7 @@ func TestConsistentSnapshotFlip(t *testing.T) {
 
 	// Initialize succeeds with consistent snapshot off.
 	app.ConsistentSnapshot = false
-	if err := app.InitCmd(ctx, stack.repoDir, "", 1,
+	if err := app.InitCmd(ctx, stack.repoDir, 1,
 		stack.targetsConfig, stack.repoDir, stack.snapshotRef, stack.timestampRef); err != nil {
 		t.Fatal(err)
 	}
@@ -580,7 +580,7 @@ func TestConsistentSnapshotFlip(t *testing.T) {
 	// Flip consistent snapshot on.
 	app.ConsistentSnapshot = true
 	// Initialize succeeds.
-	if err := app.InitCmd(ctx, stack.repoDir, stack.repoDir, 1,
+	if err := app.InitCmd(ctx, stack.repoDir, 1,
 		stack.targetsConfig, stack.repoDir, stack.snapshotRef, stack.timestampRef); err != nil {
 		t.Fatal(err)
 	}
@@ -640,7 +640,7 @@ func TestSnapshotKeyRotate(t *testing.T) {
 	rootKeyRef := stack.genKey(t, true)
 
 	// Initialize succeeds.
-	if err := app.InitCmd(ctx, stack.repoDir, "", 1,
+	if err := app.InitCmd(ctx, stack.repoDir, 1,
 		stack.targetsConfig, stack.repoDir, stack.snapshotRef, stack.timestampRef); err != nil {
 		t.Fatal(err)
 	}
@@ -683,7 +683,7 @@ func TestSnapshotKeyRotate(t *testing.T) {
 	// Now rotate the snapshot signer out.
 	stack.snapshotRef = createTestSigner(t)
 	// Initialize succeeds.
-	if err := app.InitCmd(ctx, stack.repoDir, stack.repoDir, 1,
+	if err := app.InitCmd(ctx, stack.repoDir, 1,
 		stack.targetsConfig, stack.repoDir, stack.snapshotRef, stack.timestampRef); err != nil {
 		t.Fatal(err)
 	}
@@ -741,7 +741,7 @@ func TestProdTargetsConfig(t *testing.T) {
 	}
 
 	// Initialize succeeds.
-	if err := app.InitCmd(ctx, stack.repoDir, "", 1,
+	if err := app.InitCmd(ctx, stack.repoDir, 1,
 		targetsConfig, targetsDir, stack.snapshotRef, stack.timestampRef); err != nil {
 		t.Fatal(err)
 	}
@@ -801,7 +801,7 @@ func TestDelegationsClearedOnInit(t *testing.T) {
 	rootKeyRef := stack.genKey(t, true)
 
 	// Initialize succeeds.
-	if err := app.InitCmd(ctx, stack.repoDir, "", 1,
+	if err := app.InitCmd(ctx, stack.repoDir, 1,
 		stack.targetsConfig, stack.repoDir, stack.snapshotRef, stack.timestampRef); err != nil {
 		t.Fatal(err)
 	}
@@ -836,7 +836,7 @@ func TestSignWithVersionBump(t *testing.T) {
 	rootKeyRef := stack.genKey(t, true)
 
 	// Initialize succeeds.
-	if err := app.InitCmd(ctx, stack.repoDir, "", 1,
+	if err := app.InitCmd(ctx, stack.repoDir, 1,
 		stack.targetsConfig, stack.repoDir, stack.snapshotRef, stack.timestampRef); err != nil {
 		t.Fatal(err)
 	}

@@ -110,8 +110,8 @@ jobs:
       - name: Upload new repository
         uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
         with:
-          name: ceremony
-          path: ceremony/
+          name: ${{ inputs.repo }}
+          path: ${{ inputs.repo }}
           retention-days: 5
 
   push:
@@ -126,32 +126,28 @@ jobs:
           fetch-depth: 0
       - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v2.1.0
         with:
-          name: ceremony
-          path: ceremony/
+          name: ${{ inputs.repo }}
+          path: ${{ inputs.repo }}
       # Detect new version and expiration to add to the PR description.
       - name: Detect new version
+        env:
+          REPO: ${{ inputs.repo }}
         run: |
-          # Detects the ceremony date.
-          DATE=$(git status -s | grep --regexp=ceremony/* | cut -f2 -d /)
-          echo "DATE=$DATE" >> $GITHUB_ENV
-
           # Detects the new root version.
-          VERSION=$(cat ceremony/${DATE}/staged/root.json | jq -r '.signed.version')
+          VERSION=$(cat ${REPO}/staged/root.json | jq -r '.signed.version')
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       # Create commits
       - name: Create commits
+        env:
+          REPO: ${{ inputs.repo }}
         run: |
           # Set identity.
           git config --global user.email "noreply@github.com"
           git config --global user.name "GitHub"
 
-          # First commit the old repository data.
-          git add ceremony/"${DATE}"/repository/ ceremony/"${DATE}"/keys/
-          git commit -s -m "Copy current repository metadata and keys"
-
-          # Now put the staged metadata into a second commit
-          git add ceremony/"${DATE}"/staged/
+          # Commit the REPO changes
+          git add ${REPO}
           git commit -s -m "Add staged repository metadata"
 
       # Open pull request changes

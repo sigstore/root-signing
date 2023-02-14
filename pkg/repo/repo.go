@@ -20,6 +20,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -256,6 +257,7 @@ func GetSigningKeyIDsForRole(name string, store tuf.LocalStore) (
 			}
 			return nil, err
 		}
+		fmt.Fprintf(os.Stderr, "Adding previous root keys from root version %d\n", previousRoot.Version)
 		previousRootRole, ok := previousRoot.Roles[name]
 		if !ok {
 			return nil, fmt.Errorf("missing role %s on previous root", err)

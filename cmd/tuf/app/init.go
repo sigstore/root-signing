@@ -17,6 +17,7 @@ package app
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -64,7 +65,6 @@ func Init() *ffcli.Command {
 		flagset     = flag.NewFlagSet("tuf init", flag.ExitOnError)
 		repository  = flagset.String("repository", "", "path to initialize the staged repository")
 		threshold   = flagset.Int("threshold", DefaultThreshold, "default root and targets signer threshold")
-		previous    = flagset.String("previous", "", "path to the previous repository")
 		snapshot    = flagset.String("snapshot", "", "reference to an online snapshot signer")
 		timestamp   = flagset.String("timestamp", "", "reference to an online timestamp signer")
 		targetsMeta = flagset.String("target-meta", "", "path to a target configuration file")
@@ -108,7 +108,7 @@ func Init() *ffcli.Command {
 			if err != nil {
 				return err
 			}
-			return InitCmd(ctx, *repository, *previous,
+			return InitCmd(ctx, *repository,
 				*threshold, targetsConfig,
 				*targetsDir,
 				*snapshot, *timestamp)
@@ -119,7 +119,6 @@ func Init() *ffcli.Command {
 // InitCmd creates a new staged root.json and targets.json in the specified directory. It populates the top-level
 // roles with signers and adds targets to top-level targets.
 //   - directory: Directory to write newly staged metadata. Must contain a keys/ subdirectory with root/targets signers.
-//   - previous: Optional previous repository to chain the root from.
 //   - threshold: The root and targets threshold.
 //   - targetsConfig: A map of target file names and custom metadata to add to top-level targets.
 //     Target file names are expected to be in the working directory.
@@ -130,7 +129,7 @@ func Init() *ffcli.Command {
 // The root and targets metadata will be initialized with a 6 month expiration.
 // Revoked keys will be automatically calculated given the previous root and the signers in directory.
 // Signature placeholders for each key will be added to the root.json and targets.json file.
-func InitCmd(ctx context.Context, directory, previous string,
+func InitCmd(ctx context.Context, directory string,
 	threshold int, targetsConfig *prepo.TargetMetaConfig,
 	targetsDir string,
 	snapshotRef string, timestampRef string) error {
@@ -145,13 +144,14 @@ func InitCmd(ctx context.Context, directory, previous string,
 		return err
 	}
 
-	if previous == "" {
-		// Only initialize if no previous specified.
-		if err := repo.Init(ConsistentSnapshot); err != nil {
+	if err := repo.Init(ConsistentSnapshot); err != nil {
+		// If there was already a repository present, then this will fail on
+		// ErrInitNotAllowed. Allow this to happen for chaining repositories.
+		if !errors.Is(err, tuf.ErrInitNotAllowed) {
 			return err
 		}
-		fmt.Fprintln(os.Stderr, "TUF repository initialized at ", directory)
 	}
+	fmt.Fprintln(os.Stderr, "TUF repository initialized at ", directory)
 
 	// Add the keys we just provisioned to root and targets and revoke any removed ones.
 	keys, err := getKeysFromDir(directory + "/keys")

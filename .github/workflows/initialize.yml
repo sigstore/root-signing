@@ -51,7 +51,7 @@ jobs:
         env:
           BRANCH: ${{ inputs.branch }}
         run: |
-          branch_exists=$(git ls-remote --heads upstream ${BRANCH})
+          branch_exists=$(git ls-remote --heads origin ${BRANCH})
 
           if [[ -z ${branch_exists} ]]; then
             echo "Staging root branch ${BRANCH} does not exist: has a maintainer created one?"
@@ -60,6 +60,7 @@ jobs:
 
   init_root:
     runs-on: ubuntu-20.04
+    needs: check_branch
     permissions:
       id-token: 'write'
     steps:

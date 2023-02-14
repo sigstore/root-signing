@@ -150,7 +150,7 @@ jobs:
           git add ${REPO}
           git commit -s -m "Add staged repository metadata"
 
-      # Open pull request changes
+      # Open pull request changes. Use the fine-grained PAT in order to trigger presubmits.
       - name: create pull request
         uses: peter-evans/create-pull-request@2b011faafdcbc9ceb11414d64d0573f37c774b04 # v4.2.3
         with:
@@ -161,3 +161,4 @@ jobs:
           signoff: true
           draft: ${{ inputs.draft }}
           reviewers: asraa,dlorenc,haydentherapper,joshuagl
+          token: ${{ secrets.SIGSTORE_ROOT_SIGNING_FINE_GRAINED_PAT }}

@@ -1,6 +1,6 @@
 # Orchestration
 
-This playbook describes how to orchestrate a root signing event.
+This playbook describes how to orchestrate a root signing event and a pre-test.
 
 ## Pre-work
 
@@ -10,18 +10,7 @@ This playbook describes how to orchestrate a root signing event.
 
 3. Double-check the configured [role expirations](https://github.com/sigstore/root-signing/blob/e3f1fe5e487984f525afc81ac77fa5ce39737d0f/cmd/tuf/app/init.go#L28).
 
-4. Create (or ask a root-signing maintainer) to create a new upstream branch named by the ceremony date, for example, `ceremony/YYYY-MM-DD`.
-
-5. Set any environment variables, including the repository and online signer references (details [here](#key-configuration)).
-
-| Variable      | Description | Example |
-| ----------- | ----------- | ----------- |
-| GITHUB_USER      | The GitHub user, used to create PRs and commit messages       | asraa       |
-| BRANCH   | The working branch, where a new repository is being staged. Typically, `ceremony/YYYY-MM-DD`. MAY also be used to test changes in a branch.        | main        |
-| LOCAL   | (Optional) If enabled, keeps git state dirty and does not create pull requests. Used to run root signing locally for testing.       |         |
-| REPO   | Specifies the repository folder to act on, see [Configuration](#configuration). By default, uses the top-level `repository/`.       |   `repository/`      |
-| SNAPSHOT_KEY   | The GCP KMS online key for snapshotting.    |     `projects/sigstore-root-signing/locations/global/keyRings/root/cryptoKeys/snapshot`    |
-| TIMESTAMP_KEY   | The GCP KMS online key for timestamping.    |  `projects/sigstore-root-signing/locations/global/keyRings/root/cryptoKeys/timestamp`  |
+4. Create (or ask a root-signing maintainer) to create a new upstream branch named by the ceremony date, for example, `ceremony/YYYY-MM-DD`. For a test ceremony, use `test-ceremony/YYYY-MM-DD`.
 
 ## Configuration
 
@@ -46,21 +35,26 @@ targets/fulcio_v1.crt.pem:
 
 ### Key configuration
 
-There are two types of keys that are used during root signing. 
+There are two types of keys that are used during root signing.
 
-First, we use hardware Yubikeys for root and target signers. There are 5 [root keyholders](https://github.com/sigstore/root-signing#current-sigstore-root-keyholders) each containing one key. A [default threshold](https://github.com/sigstore/root-signing/blob/e3f1fe5e487984f525afc81ac77fa5ce39737d0f/cmd/tuf/app/init.go#L24) of 3 are required to sign the root and targets. This is configurable through a `threshold` flag on [initialization](#step-2-initializing-a-root-and-targets). Configuring the hardware keyholders is done through management of the `keys/` subfolder, see [Key Management](#step-1-root-key-updates) during the ceremony.
+First, we use hardware Yubikeys for root and target signers. There are 5 [root keyholders](https://github.com/sigstore/root-signing#current-keyholders) each containing one key. A [default threshold](https://github.com/sigstore/root-signing/blob/e3f1fe5e487984f525afc81ac77fa5ce39737d0f/cmd/tuf/app/init.go#L24) of 3 are required to sign the root and targets. This is configurable through a `threshold` flag on [initialization](#step-2-initializing-a-root-and-targets). Configuring the hardware keyholders is done through management of the `keys/` subfolder, see [Key Management](#step-1-root-key-updates-optional) during the ceremony.
 
 Second, online keys on GCP are used for snapshot, timestamp, and delegation roles. These are defined by a [go-cloud](https://gocloud.dev) style URI to refer to the specific provider like `gcpkms://`. See cosign [KMS integrations](https://github.com/sigstore/cosign/blob/main/KMS.md) for details. These are configured through environment variables in the `scripts/` which propagate to command line flags to the binary.
 
-## Step 0: Building the binary
+## Step 0: Workflow configuration check
 
-Run the following script to build the TUF repository binary.
+All ceremony orchestration actions use GitHub workflows in this repository. Before beginning the ceremony, ensure that the workflow options are correct.
 
-```bash
-./scripts/step-0.sh
-```
+You will need the following variables for the online signer references described [here](#key-configuration).
 
-## Step 1: Root Key Updates
+| Variable      | Description | Example |
+| ----------- | ----------- | ----------- |
+| SNAPSHOT_KEY   | The GCP KMS online key for snapshotting.    |     `projects/sigstore-root-signing/locations/global/keyRings/root/cryptoKeys/snapshot`    |
+| TIMESTAMP_KEY   | The GCP KMS online key for timestamping.    |  `projects/sigstore-root-signing/locations/global/keyRings/root/cryptoKeys/timestamp`  |
+
+Ensure that these are the values reflected in the staging snapshot and timestamp [workflow](../.github/workflows/staging-snapshot-timestamp.yml).
+
+## Step 1: Root Key Updates (Optional)
 
 Like mentioned in [Key configuration](#key-configuration), each root key corresponds to a subfolder named by its serial number. The [initialization](#step-2-initializing-a-root-and-targets) script automatically picks up any new subfolders and adds them to the root keys. Any subfolders that are removed are revoked from the root.
 
@@ -88,17 +82,27 @@ You should expect to see their serial number key verified, which should match th
 
 ### Revoking a Root Key
 
-Remove the subfolder. This is done through the [initialization](#step-2-initializing-a-root-and-targets) script by passing the serial number as script argument. See below.
+Removing a root key occurs by removing a key material subfolder. This is done through the [initialization](#step-2-initializing-a-root-and-targets) script by passing the serial number as workflow argument. See below.
 
 ## Step 2: Initializing a root and targets
 
-This step initializes or stages a new root and targets file according to the pre-work and configuration.  Any new key additions from [Step 1](#step-1-root-key-updates) will be picked up. If a key needs to be removed, pass it in as a parameter like follows:
+This step initializes or stages a new root and targets file according to the pre-work and configuration. The GitHub workflow performing this step is [initialize.yml](../.github/workflows/initialize.yml). Invoke this workflow with the following parameters:
+
+* `branch`: The branch you created for the ceremony, like `ceremony/YYYY-MM-DD`.
+* `revoke_key`: The serial number of a key that should be revoked.
+* `repo`: The repository folder to trigger this action against, likely the default `repository/` suffices.
+* `draft`: Creates a draft pull request for testing.
+
+Any new key additions from [Step 1](#step-1-root-key-updates-optional) will be picked up.
+
+If you want to test this action locally first, use:
 
 ```bash
-./scripts/step-1.5.sh 123456
+GITHUB_USER=${GITHUB_USER} ./scripts/step-0.sh
+LOCAL=1 ./scripts/step-1.5.sh $revoke_key
 ```
 
-This copies over old repository metadata and keys from the `${PREV_REPO}`, revokes key `123456`, and then updates a new root and targets according to the configuration. The new PR will create a new `root.json`, `targets.json`, and delegation files in the `${REPO}/staged` subfolder. You should see the following directory structure created:
+This copies over old repository metadata and keys from the `${PREV_REPO}`, revokes key `123456`, and then updates a new root and targets according to the configuration. The new PR will create a new `root.json`, `targets.json`, and `targets` subfolder with the desired targets. You should see the following directory structure created:
 
 ```bash
 $REPO
@@ -109,12 +113,7 @@ $REPO
     ├── targets
     │   └── $TARGET
     ├── targets.json
-    ├── staging.json
-    ├── rekor.json   
-    └── revocation.json 
 ```
-
-**EXPERIMENTAL**: You may also use the GitHub Workflow [init_repository.yml](../.github/workflows/initialize.yml) with the parameters like above.
 
 Manually check for:
 
@@ -122,7 +121,7 @@ Manually check for:
 * The expected root and targets versions.
 * The expected root and targets thresholds.
 * The expected keyholders and placeholder signatures.
-* The expected target and delegation files. Check the termination, paths, and targets on each delegation.
+* The expected target files. Check the targets' custom metadata in the targets file.
 
 <!-- TODO: Add playbook for disaster/recovery steps. -->
 

@@ -25,8 +25,12 @@ set -e
 TITLE=$1
 BODY=$2
 
-DELEGATION=`echo ${TITLE} | sed -E 's/(.+) for (.+)/\2/'`
-SIG=`echo ${BODY} | sed -E 's/(.*)Signature: (.+)/\2/'`
+DELEGATION=$(echo ${TITLE} | sed -E 's/(.+) for (.+)/\2/')
+SIG=$(echo ${BODY} | sed -E 's/(.*)Signature: (.+)/\2/')
 # Per https://github.com/sigstore/root-signing/pull/618
 # this should be known a priori
 REPO=./xyz/repository
+
+export REPO
+
+../../../scripts/dpop-verify.sh "${DELEGATION}" "${SIG}"

@@ -19,14 +19,14 @@ set -o errexit
 set -o xtrace
 set -u
 
-BRANCH=`git rev-parse --abbrev-ref HEAD`
-FORK_POINT=`git merge-base --fork-point origin/main ${BRANCH}`
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+FORK_POINT=$(git merge-base --fork-point origin/main ${BRANCH})
 DELEGATION=$1
 SIG=$2
 
 ./tuf key-pop-verify \
-      -role ${DELEGATION}
-      -challenge ${DELEGATION} \
-      -nonce ${FORK_POINT} \
-      -repository ${REPO} \
-      -sig ${SIG}
+      -role "${DELEGATION}" \
+      -challenge "${DELEGATION}" \
+      -nonce "${FORK_POINT}" \
+      -repository "${REPO}" \
+      -sig "${SIG}"

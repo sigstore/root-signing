@@ -32,7 +32,7 @@ on:
       repo:
         description: 'The repository in which to stage a new root and targets'
         required: false
-        default: repository/
+        default: repository
         type: string
       draft:
         description: 'Use for testing; creates a draft pull request'

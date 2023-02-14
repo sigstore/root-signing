@@ -932,3 +932,74 @@ func TestKeyPOP(t *testing.T) {
 		t.Fatal("verification should fail")
 	}
 }
+
+func TestRotateRootKeyTwiceAfter(t *testing.T) {
+	// This tests a corner case of key rotation. If a rotation occurs on
+	// v2, then we expect two signature placeholders for staging the v2 root.
+	// For the next v3, if there are no other root changes we should only
+	// expect one. Under the hood, this is testing that InitCmd always stages
+	// a new root before calculating placeholer signatures.
+	ctx := context.Background()
+	stack := newRepoTestStack(ctx, t)
+	stack.addTarget(t, "foo.txt", "abc", nil)
+	rootKeyRef1 := stack.genKey(t, true)
+	rootKeyRef2 := stack.genKey(t, true)
+
+	// Initialize succeeds
+	if err := app.InitCmd(ctx, stack.repoDir, 1,
+		stack.targetsConfig, stack.repoDir, stack.snapshotRef, stack.timestampRef); err != nil {
+		t.Fatal(err)
+	}
+
+	// Sign root & targets with key 1
+	rootSigner1 := stack.getSigner(t, rootKeyRef1)
+	if err := app.SignCmd(ctx, stack.repoDir, []string{"root", "targets"},
+		rootSigner1, false); err != nil {
+		t.Fatal(err)
+	}
+	pubKey1, err := keys.ConstructTufKey(ctx, rootSigner1)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Sign snapshot and timestamp
+	stack.snapshot(t)
+	stack.timestamp(t)
+	stack.publish(t)
+
+	// Now remove the second key.
+	stack.removeHsmKey(t, rootKeyRef2)
+	// Create a new root.
+	if err := app.InitCmd(ctx, stack.repoDir, 1,
+		stack.targetsConfig, stack.repoDir, stack.snapshotRef, stack.timestampRef); err != nil {
+		t.Fatal(err)
+	}
+	// Sign root & targets
+	if err := app.SignCmd(ctx, stack.repoDir, []string{"root", "targets"}, rootSigner1,
+		false); err != nil {
+		t.Fatal(err)
+	}
+
+	// Sign snapshot and timestamp
+	stack.snapshot(t)
+	stack.timestamp(t)
+	stack.publish(t)
+
+	// Now, perform no new changes and init v3. Expect only ONE placeholder.
+	if err := app.InitCmd(ctx, stack.repoDir, 1,
+		stack.targetsConfig, stack.repoDir, stack.snapshotRef, stack.timestampRef); err != nil {
+		t.Fatal(err)
+	}
+
+	md := stack.getManifest(t, "root.json")
+	signed := &data.Signed{}
+	if err := json.Unmarshal(md, signed); err != nil {
+		t.Fatal(err)
+	}
+	if len(signed.Signatures) != 1 {
+		t.Fatalf("expected 1 signatures on root.json, got %d", len(signed.Signatures))
+	}
+	if !pubKey1.ContainsID(signed.Signatures[0].KeyID) {
+		t.Fatalf("missing key id for signer on root.json")
+	}
+}

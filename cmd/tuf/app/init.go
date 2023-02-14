@@ -144,10 +144,24 @@ func InitCmd(ctx context.Context, directory string,
 		return err
 	}
 
+	// This initializes a new repository, creating a new root.json.
 	if err := repo.Init(ConsistentSnapshot); err != nil {
 		// If there was already a repository present, then this will fail on
 		// ErrInitNotAllowed. Allow this to happen for chaining repositories.
 		if !errors.Is(err, tuf.ErrInitNotAllowed) {
+			return err
+		}
+		// If there is already a repository present, force a root refresh by
+		// definitely updating the threshold.
+		curThreshold, err := repo.GetThreshold("root")
+		if err != nil {
+			return err
+		}
+		// The risk is mitigated here by increasing the threshold.
+		// This code does not change the threshold, but simply stages the new
+		// root. A fix like https://github.com/theupdateframework/go-tuf/issues/239
+		// to bump expiration would help.
+		if err := repo.SetThreshold("root", curThreshold+1); err != nil {
 			return err
 		}
 	}

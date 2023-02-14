@@ -18,22 +18,34 @@ package app
 import (
 	"bytes"
 	"context"
+	"crypto"
 	"encoding/base64"
 	"flag"
 	"fmt"
+	"os"
+	"strings"
 
 	"github.com/peterbourgon/ff/v3/ffcli"
+	"github.com/sigstore/root-signing/pkg/keys"
+	"github.com/sigstore/root-signing/pkg/repo"
+	"github.com/sigstore/sigstore/pkg/cryptoutils"
 	"github.com/sigstore/sigstore/pkg/signature"
 	"github.com/sigstore/sigstore/pkg/signature/options"
+	"github.com/theupdateframework/go-tuf"
+	"github.com/theupdateframework/go-tuf/data"
 )
+
+const targetsMeta = "targets.json"
 
 func KeyPOPVerify() *ffcli.Command {
 	var (
-		flagset   = flag.NewFlagSet("tuf key-pop-sign", flag.ExitOnError)
-		challenge = flagset.String("challenge", "", "the challenge to sign, for a delegate this is the delegate name")
-		nonce     = flagset.String("nonce", "", "the nonce delivered out of band to the key holder")
-		key       = flagset.String("key", "", "reference to a signer for signing")
-		sig       = flagset.String("sig", "", "base64 encoded signature to verify")
+		flagset    = flag.NewFlagSet("tuf key-pop-sign", flag.ExitOnError)
+		challenge  = flagset.String("challenge", "", "the challenge to sign, for a delegate this is the delegate name")
+		nonce      = flagset.String("nonce", "", "the nonce delivered out of band to the key holder")
+		keyid      = flagset.String("keyid", "", "key id fo the the delegation")
+		sig        = flagset.String("sig", "", "base64 encoded signature to verify")
+		role       = flagset.String("role", "", "delegation to verify")
+		repository = flagset.String("repository", "", "path to the staged repository")
 	)
 
 	return &ffcli.Command{
@@ -49,14 +61,30 @@ func KeyPOPVerify() *ffcli.Command {
 			if *nonce == "" {
 				return flag.ErrHelp
 			}
-			if *key == "" {
+			if (*keyid == "") == (*role == "") {
 				return flag.ErrHelp
 			}
 			if *sig == "" {
 				return flag.ErrHelp
 			}
+			if *repository == "" {
+				return flag.ErrHelp
+			}
 
-			verifier, err := GetVerifier(ctx, *key)
+			if *role != "" {
+				inferredKey, err := GetKeyIDForRole(*repository, *role)
+				if err != nil {
+					return err
+				}
+				keyid = &inferredKey
+				fmt.Fprintf(os.Stderr, "Verifying using keyid %s\n", *keyid)
+			}
+			pubKey, err := GetPublicKeyFromID(*repository, *keyid)
+			if err != nil {
+				return err
+			}
+
+			verifier, err := signature.LoadVerifier(pubKey, crypto.SHA256)
 			if err != nil {
 				return err
 			}
@@ -68,6 +96,63 @@ func KeyPOPVerify() *ffcli.Command {
 			return KeyPOPVerifyCmd(ctx, *challenge, *nonce, verifier, sigBytes)
 		},
 	}
+}
+
+func GetKeyIDForRole(directory, role string) (string, error) {
+	store := tuf.FileSystemStore(directory, nil)
+	signed, err := repo.GetSignedMeta(store, targetsMeta)
+	if err != nil {
+		return "", err
+	}
+	meta, err := repo.GetMetaFromStore(signed.Signed, targetsMeta)
+	if err != nil {
+		return "", err
+	}
+	targets := meta.(*data.Targets)
+
+	for _, delegatedRole := range targets.Delegations.Roles {
+		if delegatedRole.Name != role {
+			continue
+		}
+
+		if len(delegatedRole.KeyIDs) != 1 {
+			return "", fmt.Errorf("found %d keys for role %s, expected 1",
+				len(delegatedRole.KeyIDs), role)
+		}
+
+		return delegatedRole.KeyIDs[0], nil
+	}
+
+	return "", fmt.Errorf("unknown delegation %s", role)
+}
+
+func GetPublicKeyFromID(directory, keyid string) (crypto.PublicKey, error) {
+	store := tuf.FileSystemStore(directory, nil)
+	signed, err := repo.GetSignedMeta(store, targetsMeta)
+	if err != nil {
+		return nil, err
+	}
+	meta, err := repo.GetMetaFromStore(signed.Signed, targetsMeta)
+	if err != nil {
+		return nil, err
+	}
+	targets := meta.(*data.Targets)
+
+	candidateKey, ok := targets.Delegations.Keys[keyid]
+	if !ok {
+		return nil, fmt.Errorf("unknown key %s", keyid)
+	}
+
+	var keyValue keys.KeyValue
+	err = keyValue.Unmarshal(candidateKey)
+	if err != nil {
+		return nil, err
+	}
+
+	pemBytes := keyValue.PublicKey
+	pemBytes = strings.ReplaceAll(pemBytes, "\\n", "\n")
+
+	return cryptoutils.UnmarshalPEMToPublicKey([]byte(pemBytes))
 }
 
 func KeyPOPVerifyCmd(ctx context.Context,

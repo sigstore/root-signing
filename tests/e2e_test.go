@@ -20,7 +20,10 @@ package test
 
 import (
 	"context"
+	"crypto/ecdsa"
+	"crypto/x509"
 	"encoding/json"
+	"encoding/pem"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -1028,5 +1031,76 @@ func TestRotateRootKeyTwiceAfter(t *testing.T) {
 	}
 	if !pubKey1.ContainsID(signed.Signatures[0].KeyID) {
 		t.Fatalf("missing key id for signer on root.json")
+	}
+}
+
+func TestGetPublicKeyFromRepo(t *testing.T) {
+	ctx := context.Background()
+	stack := newRepoTestStack(ctx, t)
+	rootKeyRef := stack.genKey(t, true)
+
+	// Initialize succeeds.
+	if err := app.InitCmd(ctx, stack.repoDir, 1,
+		stack.targetsConfig, stack.repoDir, stack.snapshotRef, stack.timestampRef); err != nil {
+		t.Fatal(err)
+	}
+
+	// Add a delegation
+	//_, delegationPubKeyRef := createTestSignVerifier(t)
+	delegationPubKeyRef := "test_data/cosign.pub"
+	if err := app.DelegationCmd(ctx,
+		&app.DelegationOptions{
+			Directory:   stack.repoDir,
+			Name:        "delegation",
+			Path:        "path/*",
+			Terminating: true,
+			KeyRefs:     []string{delegationPubKeyRef},
+			Threshold:   1,
+			Targets:     "",
+		}); err != nil {
+		t.Fatal(err)
+	}
+
+	// Sign root & targets with key
+	rootSigner := stack.getSigner(t, rootKeyRef)
+	if err := app.SignCmd(ctx, stack.repoDir, []string{"root", "targets"},
+		rootSigner, false); err != nil {
+		t.Fatal(err)
+	}
+
+	cosignKeyID := "314ae73abd3012fc73bfcc3783e31d03852716597642b891d6a33155c4baf600"
+	keyID, err := app.GetKeyIDForRole(stack.repoDir, "delegation")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if keyID != cosignKeyID {
+		t.Fatalf("wrong key %s returned", keyID)
+	}
+
+	pubKey, err := app.GetPublicKeyFromID(stack.repoDir, cosignKeyID)
+	if err != nil {
+		t.Fatal("Failed to get key from repo")
+	}
+	bytes, err := os.ReadFile(delegationPubKeyRef)
+	if err != nil {
+		t.Fatal(err)
+	}
+	block, _ := pem.Decode(bytes)
+	want, err := x509.ParsePKIXPublicKey(block.Bytes)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ecdsaWant := want.(*ecdsa.PublicKey)
+
+	if !ecdsaWant.Equal(pubKey) {
+		t.Fatal("Wrong public key returned")
+	}
+
+	pubKey, err = app.GetPublicKeyFromID(stack.repoDir, "invalid")
+	if pubKey != nil {
+		t.Fatal("Unexpected key")
+	}
+	if err.Error() != "unknown key invalid" {
+		t.Fatalf("Unexpected error '%s'", err)
 	}
 }

@@ -775,6 +775,12 @@ func TestProdTargetsConfig(t *testing.T) {
 	for name, tFiles := range targetFiles {
 		var v1, v2 interface{}
 		json.Unmarshal([]byte(targetsConfig.Add[name]), &v1)
+		if tFiles.Custom == nil {
+			if v2 != nil {
+				t.Errorf("no custom metadata found, expected: %s", v2)
+			}
+			continue
+		}
 		json.Unmarshal([]byte(*tFiles.Custom), &v2)
 		if !reflect.DeepEqual(v1, v2) {
 			t.Errorf("expected custom %s, got %s", targetsConfig.Add[name], *tFiles.Custom)

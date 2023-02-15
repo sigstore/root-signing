@@ -23,6 +23,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/peterbourgon/ff/v3/ffcli"
@@ -144,6 +145,7 @@ func InitCmd(ctx context.Context, directory string,
 		return err
 	}
 
+	// This initializes a new repository, creating a new root.json.
 	if err := repo.Init(ConsistentSnapshot); err != nil {
 		// If there was already a repository present, then this will fail on
 		// ErrInitNotAllowed. Allow this to happen for chaining repositories.
@@ -245,10 +247,6 @@ func InitCmd(ctx context.Context, directory string,
 	// TODO(https://github.com/theupdateframework/go-tuf/issues/402): replace
 	// with `repo.ResetTargetsDelegationsWithExpires` when this issue is resolved.
 	t.Delegations = nil
-	targetKeys, err := prepo.GetSigningKeyIDsForRole("targets", store)
-	if err != nil {
-		return err
-	}
 	// Remove any targets not present: only removes from targets to avoid
 	// removing from delegations.
 	// See https://github.com/theupdateframework/go-tuf/issues/400 and
@@ -258,7 +256,7 @@ func InitCmd(ctx context.Context, directory string,
 		delete(t.Targets, tt)
 	}
 
-	if err := setMetaWithSigKeyIDs(store, "targets.json", t, maps.Keys(targetKeys)); err != nil {
+	if err := setMetaWithSigKeyIDs(store, "targets.json", t); err != nil {
 		return err
 	}
 
@@ -271,15 +269,26 @@ func InitCmd(ctx context.Context, directory string,
 	root.Version = curRootVersion + 1
 	root.Expires = GetExpiration("root")
 	root.ConsistentSnapshot = ConsistentSnapshot
-	allRootKeys, err := prepo.GetSigningKeyIDsForRole("root", store)
+	return setMetaWithSigKeyIDs(store, "root.json", root)
+}
+
+func setMetaWithSigKeyIDs(store tuf.LocalStore, role string, meta interface{}) error {
+	// First, stage the new metadata.
+	signed, err := prepo.MarshalMetadata(meta)
 	if err != nil {
 		return err
 	}
-	return setMetaWithSigKeyIDs(store, "root.json", root, maps.Keys(allRootKeys))
-}
 
-func setMetaWithSigKeyIDs(store tuf.LocalStore, role string, meta interface{}, keyIDs []string) error {
-	signed, err := prepo.MarshalMetadata(meta)
+	if err := prepo.SetSignedMeta(store, role, &data.Signed{Signed: signed}); err != nil {
+		return err
+	}
+
+	// After staging the metadata, compute the signing keys. This ensures correctness when
+	// calculating the root signing keys (which include the v root and (v-1) root key IDs).
+	// If the root metadata is unchanged and not staged, then we risk computing root keys
+	// from a (v-2) and (v-1) root.
+	roleName := strings.TrimSuffix(role, ".json")
+	keys, err := prepo.GetSigningKeyIDsForRole(roleName, store)
 	if err != nil {
 		return err
 	}
@@ -287,7 +296,7 @@ func setMetaWithSigKeyIDs(store tuf.LocalStore, role string, meta interface{}, k
 	// Add empty sigs
 	emptySigs := make([]data.Signature, 0, 1)
 
-	for _, id := range keyIDs {
+	for _, id := range maps.Keys(keys) {
 		emptySigs = append(emptySigs, data.Signature{
 			KeyID: id,
 		})

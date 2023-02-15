@@ -945,10 +945,20 @@ func TestRotateRootKeyTwiceAfter(t *testing.T) {
 	rootKeyRef1 := stack.genKey(t, true)
 	rootKeyRef2 := stack.genKey(t, true)
 
-	// Initialize succeeds
+	// Initialize succeeds at version 1
 	if err := app.InitCmd(ctx, stack.repoDir, 1,
 		stack.targetsConfig, stack.repoDir, stack.snapshotRef, stack.timestampRef); err != nil {
 		t.Fatal(err)
+	}
+
+	// Expect TWO placeholders, root key 1 and root key 2
+	md := stack.getManifest(t, "root.json")
+	signed := &data.Signed{}
+	if err := json.Unmarshal(md, signed); err != nil {
+		t.Fatal(err)
+	}
+	if len(signed.Signatures) != 2 {
+		t.Fatalf("expected 2 signatures on root.json, got %d", len(signed.Signatures))
 	}
 
 	// Sign root & targets with key 1
@@ -967,12 +977,22 @@ func TestRotateRootKeyTwiceAfter(t *testing.T) {
 	stack.timestamp(t)
 	stack.publish(t)
 
-	// Now remove the second key.
+	// Now remove the second key at version 2
 	stack.removeHsmKey(t, rootKeyRef2)
 	// Create a new root.
 	if err := app.InitCmd(ctx, stack.repoDir, 1,
 		stack.targetsConfig, stack.repoDir, stack.snapshotRef, stack.timestampRef); err != nil {
 		t.Fatal(err)
+	}
+	// Expect two signature placeholders, since the removed second key
+	// may still sign on the update.
+	md = stack.getManifest(t, "root.json")
+	signed = &data.Signed{}
+	if err := json.Unmarshal(md, signed); err != nil {
+		t.Fatal(err)
+	}
+	if len(signed.Signatures) != 2 {
+		t.Fatalf("expected 2 signatures on root.json, got %d", len(signed.Signatures))
 	}
 	// Sign root & targets
 	if err := app.SignCmd(ctx, stack.repoDir, []string{"root", "targets"}, rootSigner1,
@@ -985,14 +1005,15 @@ func TestRotateRootKeyTwiceAfter(t *testing.T) {
 	stack.timestamp(t)
 	stack.publish(t)
 
-	// Now, perform no new changes and init v3. Expect only ONE placeholder.
+	// Now, perform no new changes and init v3.
 	if err := app.InitCmd(ctx, stack.repoDir, 1,
 		stack.targetsConfig, stack.repoDir, stack.snapshotRef, stack.timestampRef); err != nil {
 		t.Fatal(err)
 	}
 
-	md := stack.getManifest(t, "root.json")
-	signed := &data.Signed{}
+	//  Expect only ONE placeholder -- the original signer.
+	md = stack.getManifest(t, "root.json")
+	signed = &data.Signed{}
 	if err := json.Unmarshal(md, signed); err != nil {
 		t.Fatal(err)
 	}

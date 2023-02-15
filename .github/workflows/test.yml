@@ -17,11 +17,9 @@ name: CI Test
 
 on:
   push:
-    branches: [main]
     paths-ignore:
       - 'ceremony/**'
   pull_request:
-    branches: [main]
     paths-ignore:
       - 'ceremony/**'
 

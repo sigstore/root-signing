@@ -44,6 +44,7 @@ jobs:
       snapshot_key: 'gcpkms://projects/sigstore-root-signing/locations/global/keyRings/root/cryptoKeys/snapshot'
       timestamp_key: 'gcpkms://projects/sigstore-root-signing/locations/global/keyRings/root/cryptoKeys/timestamp'
       repo: 'repository/'
+      branch: main
       provider: 'projects/163070369698/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions-provider'
       service_account: 'github-actions@sigstore-root-signing.iam.gserviceaccount.com'
     secrets:

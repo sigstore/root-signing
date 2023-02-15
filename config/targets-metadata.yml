@@ -34,3 +34,4 @@ add:
     sigstore:
       usage: Unknown
       status: Active
+  trusted_root.json:

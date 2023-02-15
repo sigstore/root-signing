@@ -18,11 +18,9 @@ name: TUF Client tests
 on:
   workflow_dispatch:
   push:
-    branches: [main]
     paths:
       - 'repository/**'
   pull_request:
-    branches: [main]
 
 jobs:
   client:

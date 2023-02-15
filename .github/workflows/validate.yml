@@ -17,12 +17,10 @@ name: CI Validate
 
 on:
   push:
-    branches: [main]
     paths:
       - 'ceremony/**'
       - 'repository/**'
   pull_request:
-    branches: [main]
 
 jobs:
   validate:

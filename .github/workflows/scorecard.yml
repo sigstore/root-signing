@@ -8,6 +8,7 @@ on:
   schedule:
     - cron: '22 18 * * 6'
   push:
+    # Only default main branch is supported
     branches: ["main"]
 
 # Declare default permissions as none.

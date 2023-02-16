@@ -26,7 +26,7 @@ on:
 
 jobs:
   verify:
-    if: startsWith(github.event.pull_request.title, 'feat add-delegtion for ')
+    if: startsWith(github.event.pull_request.title, 'feat: add-delegtion for ')
     runs-on: ubuntu-latest
     permissions:
       contents: 'write'
@@ -34,6 +34,7 @@ jobs:
     env:
       GITHUB_TOKEN: ${{ secrets.SIGSTORE_REVIEW_BOT_FINE_GRAINED_PAT }}
       PR_NUMBER: ${{ github.event.pull_request.number }}
+      ISSUE_REPOSITORY: sigstore/root-signing
     steps:
       - name: build
         run: make tuf

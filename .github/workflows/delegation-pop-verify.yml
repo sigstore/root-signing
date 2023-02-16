@@ -28,7 +28,14 @@ jobs:
   verify:
     if: startsWith(github.event.pull_request.title, 'feat: add-delegtion for ')
     runs-on: ubuntu-latest
-
+    permissions:
+      contents: 'write'
+      pull-requests: 'read'
+    env:
+      GITHUB_TOKEN: ${{ secrets.SIGSTORE_REVIEW_BOT_FINE_GRAINED_PAT }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
     steps:
+      - name: build
+        run: make tuf
       - name: Veriry POP
-        run: ./script/dpop-wrapper.sh "${{ github.event.pull_request.title }}" "${{ gitnub.event.pull_request.body }}"
+        run: ./github/workflows/script/dpop-wrapper.sh "${{ github.event.pull_request.title }}" "${{ gitnub.event.pull_request.body }}"

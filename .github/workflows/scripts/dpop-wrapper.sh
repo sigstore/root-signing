@@ -14,8 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -u
-set -e
+set -euo pipefail
 
 #
 # This is just a thin wrapper that takes on the input from a pull request
@@ -27,10 +26,9 @@ BODY=$2
 
 DELEGATION=$(echo ${TITLE} | sed -E 's/(.+) for (.+)/\2/')
 SIG=$(echo ${BODY} | sed -E 's/(.*)Signature: (.+)/\2/')
-# Per https://github.com/sigstore/root-signing/pull/618
-# this should be known a priori
-REPO=./xyz/repository
+OUTPUT=$(mktemp)
+./scripts/dpop-verify.sh "${DELEGATION}" "${SIG}" 2>&1 | tee ${OUTPUT}
 
-export REPO
-
-../../../scripts/dpop-verify.sh "${DELEGATION}" "${SIG}"
+# If we made it here, signature verification was successful.
+# Add a comment with the output
+GH_TOKEN=${GITHUB_TOKEN} gh -R \

@@ -21,6 +21,7 @@ set -u
 
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
 FORK_POINT=$(git merge-base --fork-point origin/main ${BRANCH})
+REPO=./repository
 DELEGATION=$1
 SIG=$2
 

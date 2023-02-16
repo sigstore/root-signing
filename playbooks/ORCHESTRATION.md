@@ -139,14 +139,13 @@ Verify their PRs with the PR number as the argument to the script:
 
 You should expect 1 signature added to root and targets on each PR.
 
-After each of the root keyholder PRs are merged, run verification at main:
+After each of the root keyholder PRs are merged, run verification at the head of the ceremony branch:
 
 ```bash
 ./scripts/verify.sh
 ```
 
 and verify that the root and targets are fully signed.
-
 
 <!--  
 TODO(https://github.com/sigstore/root-signing/issues/398):
@@ -169,14 +168,12 @@ This will create a PR signing the delegations. Verify the PR with the PR number 
 and check that the delegation was successfully signed.
  -->
 
-
 ## Step 3: Snapshotting and Timestamping
 
-Next, the metadata will need to be snapshotted and timestamped. Run
+Next, the metadata will need to be snapshotted and timestamped. Invoke the staging snapshot and timestamp GitHub workflow [staging-snapshot-timestamp.yml](../.github/workflows/staging-snapshot-timestamp.yml) with the following parameters:
 
-```bash
-./scripts/step-3.sh
-```
+* `branch`: The branch you created for the ceremony, like `ceremony/YYYY-MM-DD`.
+* `repo`: The repository folder to trigger this action against, likely the default `repository/` suffices.
 
 This will create a PR signing the snapshot and timestamp files. Verify the expirations and the signatures:
 
@@ -184,19 +181,7 @@ This will create a PR signing the snapshot and timestamp files. Verify the expir
 ./scripts/verify.sh $PR
 ```
 
-## Step 4: Publishing
-
-This final step will commit the TUF repository metadata and move it to the top-level folder `repository/repository/`.
-
-```bash
-./scripts/step-4.sh
-```
-
-This will create a PR moving the files. Verify that the TUF client can update to the new metadata with:
-
-```bash
-./scripts/verify.sh $PR
-```
+Note: You cannot test this step locally against the current staged repository, since the snapshot and timestamp keys are only given permissions to the GitHub Workflows. However, under the hood, the workflow is running `./scripts/step-3.sh` and `./scripts/step-4.sh`. If you initialize a ceremony with local testing keys, this action will work.
 
 ## Post-ceremony Steps
 

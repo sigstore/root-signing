@@ -26,7 +26,7 @@ on:
 
 jobs:
   verify:
-    if: startsWith(github.event.pull_request.title, 'feat: add-delegtion for ')
+    if: startsWith(github.event.pull_request.title, 'feat add-delegtion for ')
     runs-on: ubuntu-latest
     permissions:
       contents: 'write'

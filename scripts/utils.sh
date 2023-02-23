@@ -38,11 +38,11 @@ checkout_branch() {
         BRANCH=main
     fi
     echo "Working from branch $BRANCH"
-    git checkout "${BRANCH}"
     if [ -n "$LOCAL" ]; then
         echo "Working on local changes. There may be uncommitted changes, so skipping upstream pull..."
-    else 
+    else
         git fetch upstream
+        git checkout "${BRANCH}"
         git pull upstream "${BRANCH}"
     fi
     git rev-parse HEAD

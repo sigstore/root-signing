@@ -40,3 +40,5 @@ jobs:
       provider: 'projects/163070369698/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions-provider'
       service_account: 'github-actions@sigstore-root-signing.iam.gserviceaccount.com'
       publish: false
+    secrets:
+      token: ${{ secrets.SIGSTORE_ROOT_SIGNING_FINE_GRAINED_PAT }}

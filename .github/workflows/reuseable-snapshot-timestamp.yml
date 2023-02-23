@@ -165,6 +165,7 @@ jobs:
           signoff: true
           reviewers: asraa,dlorenc,haydentherapper,joshuagl
           token: ${{ secrets.token || secrets.GITHUB_TOKEN }}
+          base: ${{ inputs.branch }}
 
   if-push-failed:
     runs-on: ubuntu-latest

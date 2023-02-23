@@ -163,7 +163,7 @@ jobs:
           branch: update-snapshot-timestamp
           signoff: true
           reviewers: asraa,dlorenc,haydentherapper,joshuagl
-          token: ${{ secrets.SIGSTORE_ROOT_SIGNING_FINE_GRAINED_PAT }}
+          token: ${{ secrets.token || secrets.GITHUB_TOKEN }}
 
   if-push-failed:
     runs-on: ubuntu-latest

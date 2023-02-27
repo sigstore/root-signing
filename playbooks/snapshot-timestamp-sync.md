@@ -8,7 +8,7 @@ There is a weekly [GitHub Actions cron job](https://github.com/sigstore/root-sig
 that regenerates the snapshot and timestamp metadata. The GHA will create a PR ([example](https://github.com/sigstore/root-signing/pull/543))
 with the metadata, using a Cloud KMS key to sign the metadata.
 
-After being approved and merged, the metadata is [synced](https://github.com/sigstore/root-signing/blob/main/.github/workflows/sync.yml)
+After being approved and merged, the metadata is [synced](../.github/workflows/sync-main-to-preprod.yml)
 to a preproduction GCS bucket. Probers run against the bucket to (Repo only visible to Sigstore infrastructure developers):
 
 * Verify an artifact using the production TUF repository [here](https://github.com/sigstore/public-good-instance/blob/main/.github/workflows/reusable-prober.yml#L220-L249)
@@ -16,7 +16,7 @@ to a preproduction GCS bucket. Probers run against the bucket to (Repo only visi
 
 Note the staging environment refers to the `sigstage.dev` environment, not the preproduction environment.
 
-After a few days, another GHA runs to [sync](https://github.com/sigstore/root-signing/blob/main/.github/workflows/sync_to_prod.yml)
+After a few days, another GHA runs to [sync](../.github/workflows/sync-preprod-to-prod.yml)
 the preproduction bucket to the production bucket.
 
 ## Manually creating new snapshot/timestamp metadata

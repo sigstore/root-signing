@@ -175,13 +175,21 @@ Next, the metadata will need to be snapshotted and timestamped. Invoke the stagi
 * `branch`: The branch you created for the ceremony, like `ceremony/YYYY-MM-DD`.
 * `repo`: The repository folder to trigger this action against, likely the default `repository/` suffices.
 
-This will create a PR signing the snapshot and timestamp files. Verify the expirations and the signatures:
+This will create a PR signing the snapshot and timestamp files and committed the files. You should see changes in the files in `repository/repository/**` on the branch.
+
+Verify the expirations and the signatures:
 
 ```bash
 ./scripts/verify.sh $PR
 ```
 
 Note: You cannot test this step locally against the current staged repository, since the snapshot and timestamp keys are only given permissions to the GitHub Workflows. However, under the hood, the workflow is running `./scripts/step-3.sh` and `./scripts/step-4.sh`. If you initialize a ceremony with local testing keys, this action will work.
+
+## Step 4: Publication
+
+Once the PR from [Step 3](#step-3-snapshotting-and-timestamping) is merged, a [workflow](../.github/workflows/sync-ceremony-to-main.yml) will automatically create a PR merging the changes on the completed ceremony branch to main.
+
+Submitting this PR will trigger a push to the preproduction GCS bucket, so ensure that this PR is verified and ready to be pushed!
 
 ## Post-ceremony Steps
 

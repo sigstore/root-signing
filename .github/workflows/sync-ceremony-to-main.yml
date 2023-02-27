@@ -14,8 +14,8 @@
 # limitations under the License.
 
 # This workflow is triggered when a ceremony branch is completed, creating a PR
-# that merges the completed ceremony branch to main. 
-# As a result, this updates the files in `repository/repository/**` at main, 
+# that merges the completed ceremony branch to main.
+# As a result, this updates the files in `repository/repository/**` at main,
 # thereby automatically triggering the `sync-main-to-preprod.yml` workflow.
 
 name: Sync Published Ceremony Branch to Main
@@ -62,5 +62,3 @@ jobs:
           pr_title: "Merge ${{ github.ref_name }} into ${{ github.event.repository.default_branch }}"
           pr_body: "Merge ceremony branch to main"
           pr_reviewer: asraa,dlorenc,haydentherapper,joshuagl,kommendorkapten
-
-

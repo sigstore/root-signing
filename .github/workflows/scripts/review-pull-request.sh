@@ -48,13 +48,19 @@ if [[ -n "${UPDATE_PR}" ]]; then
     /repos/"${GITHUB_REPOSITORY}"/pulls/"${PULL_NUMBER}"/reviews/"${REVIEW_ID}"/events \
     -f event='APPROVE'
 
+    # Get login for DCO
+    GH_TOKEN="${GITHUB_TOKEN}" gh api \
+    -H "Accept: application/vnd.github+json" \
+    /user  > login.json
+
+    LOGIN=$(jq -r '.login' login.json)
     # Attempt to merge PR
     GH_TOKEN="${GITHUB_TOKEN}" gh api \
     --method PUT \
     -H "Accept: application/vnd.github+json" \
     /repos/"${GITHUB_REPOSITORY}"/pulls/"${PULL_NUMBER}"/merge \
-    -f commit_title='Update Snapshot and Timestamp' \
-    -f commit_message='update snapshot and timestamp' \
+    -f commit_title="Update Snapshot and Timestamp (#${PULL_NUMBER})" \
+    -f commit_message="Signed-off-by: ${LOGIN} <${LOGIN}@users.noreply.github.com>" \
     -f merge_method='squash'
 
 else

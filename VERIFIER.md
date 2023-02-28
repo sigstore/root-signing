@@ -23,7 +23,13 @@ This will download the Yubico root CA. For each key added, it will verify:
 
 If there is any repository data added in the PR, it will also check signatures in each top-level role.
 
-2. Other verifications:
+2. To verify the state of a ceremony branch, add the environment variable `BRANCH` to indicate the ceremony branch.
+
+```bash
+GITHUB_USER=${YOUR_GITHUB_USERNAME} BRANCH=${CEREMONY_BRANCH} ./scripts/verify.sh
+```
+
+3. Other verifications:
 
 * Verify the targets signed and their SHAs. You may choose to retrieve an independent local copy of the targets (Fulcio Root CA certificate, SigStore signing key, Rekor public key, CTFE key) and verify that the SHA-512 matches the sha in `targets.json`.
 

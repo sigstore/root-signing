@@ -2,23 +2,23 @@
 	"signed": {
 		"_type": "timestamp",
 		"spec_version": "1.0",
-		"version": 71,
-		"expires": "2023-03-08T00:09:05Z",
+		"version": 72,
+		"expires": "2023-03-15T00:09:39Z",
 		"meta": {
 			"snapshot.json": {
-				"length": 1973,
+				"length": 1975,
 				"hashes": {
-					"sha256": "01cc704f575d1548e151d9d3a2d0819c007180964188600e61ebea6346a041aa",
-					"sha512": "2b55a01759d9b00b50fde9fa3eaba50c1372776c85fc353d0fa41151e59ab9f1b30eb09252c196e5010ced4569b56e1fc63e8d77c8fd0633ef2eda0e47b52cc8"
+					"sha256": "bb61446104540a235ee99bc442173fe5c4288310fe2899796c2c95595e854495",
+					"sha512": "4360802e25569863954832b045f4d1633fb2f60f78d79089912352da156348b19fe59672339d9b5d51b65b50ec09558412bbf88b871dabc232a396dae9e1c10e"
 				},
-				"version": 71
+				"version": 72
 			}
 		}
 	},
 	"signatures": [
 		{
 			"keyid": "e1863ba02070322ebc626dcecf9d881a3a38c35c3b41a83765b6ad6c37eaec2a",
-			"sig": "3044022016929155f65f110ce4a8c1ead11f85787c52a68ac86e1ea2174c8384599aaa4b022033f2b29a5159b0337dd6565939031770dbe69852bb39408e0d306fbd60ab5f88"
+			"sig": "304502201757ccc0c3cd15f94091a1b9a7d7f2437df0dbd91faec32e917a8f89ee430332022100fdf0ec87714e951e5f8cdbc0d48b321c3522b4c985a1609417dc05f05124c207"
 		}
 	]
 }

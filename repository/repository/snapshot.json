@@ -2,8 +2,8 @@
 	"signed": {
 		"_type": "snapshot",
 		"spec_version": "1.0",
-		"version": 72,
-		"expires": "2023-03-22T07:40:30Z",
+		"version": 73,
+		"expires": "2023-03-22T16:06:54Z",
 		"meta": {
 			"rekor.json": {
 				"length": 797,
@@ -50,7 +50,7 @@
 	"signatures": [
 		{
 			"keyid": "45b283825eb184cabd582eb17b74fc8ed404f68cf452acabdad2ed6f90ce216b",
-			"sig": "304402200750a6706a7f38ddda3875dd04a1ed718acd06731ef9d3c3aacbe54df3210088022047fe3d63c59f1e62d22cc9ae6bedd7f553f00485b1f425456f1b11bf9f49827a"
+			"sig": "3045022100df42b16a8497f69547f208125da4bb25f0159c996ad88319b321695f0dbecf7402206b88f466fad2d24c8edb26cd3a88cd0db2de0685b2e5634783e497ff33f1df4c"
 		}
 	]
 }

@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       # Install cosign
-      - uses: sigstore/cosign-installer@9becc617647dfa20ae7b1151972e9b3a2c338a2b # v2.8.0
+      - uses: sigstore/cosign-installer@c3667d99424e7e6047999fb6246c0da843953c65 # v2.8.0
 
       # Set up a repository server with python
       - uses: actions/setup-python@2c3dd9e7e29afd70cc0950079bde6c979d1f69f9 # v4.3.1

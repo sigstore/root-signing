@@ -25,9 +25,8 @@ TITLE=$1
 BODY=$2
 
 DELEGATION=$(echo "${TITLE}" | sed -E 's/(.+) for (.+)/\2/')
-SIG=$(echo "${BODY}" | sed -E 's/(.*)Signature: (.+)/\2/')
 OUTPUT=$(mktemp)
-./scripts/dpop-verify.sh "${DELEGATION}" "${SIG}" 2>&1 | tee "${OUTPUT}"
+./scripts/dpop-verify.sh "${DELEGATION}" 2>&1 | tee "${OUTPUT}"
 
 # If we made it here, signature verification was successful.
 # Add a comment with the output

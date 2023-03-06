@@ -23,7 +23,14 @@ BRANCH=$(git rev-parse --abbrev-ref HEAD)
 FORK_POINT=$(git merge-base --fork-point origin/main "${BRANCH}")
 REPO=./repository
 DELEGATION=$1
-SIG=$2
+SIG_FILE="${REPO}"/staged/"${FORK_POINT}".sig
+
+if [ ! -f "${SIG_FILE}" ]; then
+    echo Expected signature file: "${SIG_FILE}" not found
+    exit 1
+fi
+
+SIG=$(cat "${SIG_FILE}")
 
 ./tuf key-pop-verify \
       -role "${DELEGATION}" \

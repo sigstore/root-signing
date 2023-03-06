@@ -16,13 +16,11 @@
 name: Verify POP for a delegation
 
 on:
-  workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - 'repository/**'
   pull_request:
-    branches: [main]
+    branches:
+      - 'ceremony/**'
+      - 'test-ceremony/**'
+      - 'test-delegation/**'
 
 jobs:
   verify:
@@ -36,7 +34,12 @@ jobs:
       PR_NUMBER: ${{ github.event.pull_request.number }}
       ISSUE_REPOSITORY: sigstore/root-signing
     steps:
+      - name: Setup go
+        uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v3.5.0
+        with:
+          go-version: 1.19
+          check-latest: true
       - name: build
         run: make tuf
       - name: Veriry POP
-        run: ./github/workflows/script/dpop-wrapper.sh "${{ github.event.pull_request.title }}" "${{ gitnub.event.pull_request.body }}"
+        run: ./github/workflows/script/dpop-wrapper.sh "${{ github.event.pull_request.title }}"

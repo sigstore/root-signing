@@ -22,7 +22,6 @@ set -euo pipefail
 # It then calls the real script which will invoke the actual verification.
 #
 TITLE=$1
-BODY=$2
 
 DELEGATION=$(echo "${TITLE}" | sed -E 's/(.+) for (.+)/\2/')
 OUTPUT=$(mktemp)

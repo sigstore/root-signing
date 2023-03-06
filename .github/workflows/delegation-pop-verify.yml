@@ -26,9 +26,7 @@ on:
 
 jobs:
   verify:
-    # yamllint disable
-    if: ${{ startsWith(github.event.pull_request.title, 'feat: add-delegtion for ') }}
-    # yamllint enable
+    if: ${{ startsWith(github.event.pull_request.title, 'feat/add-delegtion for ') }}
     runs-on: ubuntu-latest
     permissions:
       contents: 'write'

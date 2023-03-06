@@ -18,26 +18,24 @@
 set -o errexit
 set -o xtrace
 
-if [ -z "$GITHUB_USER" ]; then
-    echo "Set GITHUB_USER"
-    exit 1
-fi
-if [ -z "$REPO" ]; then
-    REPO=$(pwd)/repository
-    echo "Using default REPO $REPO"
-fi
+# shellcheck source=./scripts/utils.sh
+source "./scripts/utils.sh"
 
-# Dump the git state
-git checkout main
-git status
-git remote -v
+# Check that a github user is set.
+check_user
+
+# Set REPO
+set_repository
+
+# Dump the git state and clean-up
+print_git_state
+clean_state
 
 # Setup forks
-git remote rm upstream || true
-git remote add upstream git@github.com:sigstore/root-signing.git
-git remote rm origin || true
-git remote add origin git@github.com:"$GITHUB_USER"/root-signing.git
-git remote -v
+setup_forks
+
+# Checkout branch
+checkout_branch
 
 # build the verification binary
 go build -o verify ./cmd/verify

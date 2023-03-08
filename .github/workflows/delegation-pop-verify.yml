@@ -41,5 +41,5 @@ jobs:
           check-latest: true
       - name: build
         run: make tuf
-      - name: Veriry POP
+      - name: Verify POP
         run: ./github/workflows/script/dpop-wrapper.sh "${{ github.event.pull_request.title }}"

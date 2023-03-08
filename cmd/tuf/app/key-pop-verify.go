@@ -35,7 +35,7 @@ import (
 	"github.com/theupdateframework/go-tuf/data"
 )
 
-const targetsMeta = "targets.json"
+const topLevelTargetsFilename = "targets.json"
 
 func KeyPOPVerify() *ffcli.Command {
 	var (
@@ -100,11 +100,11 @@ func KeyPOPVerify() *ffcli.Command {
 
 func GetKeyIDForRole(directory, role string) (string, error) {
 	store := tuf.FileSystemStore(directory, nil)
-	signed, err := repo.GetSignedMeta(store, targetsMeta)
+	signed, err := repo.GetSignedMeta(store, topLevelTargetsFilename)
 	if err != nil {
 		return "", err
 	}
-	meta, err := repo.GetMetaFromStore(signed.Signed, targetsMeta)
+	meta, err := repo.GetMetaFromStore(signed.Signed, topLevelTargetsFilename)
 	if err != nil {
 		return "", err
 	}
@@ -128,11 +128,11 @@ func GetKeyIDForRole(directory, role string) (string, error) {
 
 func GetPublicKeyFromID(directory, keyid string) (crypto.PublicKey, error) {
 	store := tuf.FileSystemStore(directory, nil)
-	signed, err := repo.GetSignedMeta(store, targetsMeta)
+	signed, err := repo.GetSignedMeta(store, topLevelTargetsFilename)
 	if err != nil {
 		return nil, err
 	}
-	meta, err := repo.GetMetaFromStore(signed.Signed, targetsMeta)
+	meta, err := repo.GetMetaFromStore(signed.Signed, topLevelTargetsFilename)
 	if err != nil {
 		return nil, err
 	}

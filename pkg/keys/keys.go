@@ -50,8 +50,12 @@ type SigningKey struct {
 	KeyCert      *x509.Certificate
 }
 
-type EcdsaPublic struct {
-	PublicKey data.HexBytes `json:"public"`
+type KeyValue struct {
+	PublicKey string `json:"public"`
+}
+
+func (kv *KeyValue) Unmarshal(pubKey *data.PublicKey) error {
+	return json.Unmarshal(pubKey.Value, kv)
 }
 
 func ToCert(pemBytes []byte) (*x509.Certificate, error) {

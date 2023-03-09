@@ -53,4 +53,4 @@ jobs:
         run: make tuf
 
       - name: Verify POP
-        run: ./github/workflows/script/dpop-wrapper.sh "${{ github.event.pull_request.title }}"
+        run: .github/workflows/scripts/dpop-wrapper.sh "${{ github.event.pull_request.title }}"

@@ -39,9 +39,9 @@ import (
 	"time"
 
 	"github.com/go-piv/piv-go/piv"
-	"github.com/sigstore/cosign/cmd/cosign/cli/pivcli"
-	"github.com/sigstore/cosign/pkg/cosign"
-	csignature "github.com/sigstore/cosign/pkg/signature"
+	"github.com/sigstore/cosign/v2/cmd/cosign/cli/pivcli"
+	"github.com/sigstore/cosign/v2/pkg/cosign"
+	csignature "github.com/sigstore/cosign/v2/pkg/signature"
 	"github.com/sigstore/root-signing/cmd/tuf/app"
 	"github.com/sigstore/root-signing/pkg/keys"
 	"github.com/sigstore/root-signing/pkg/repo"

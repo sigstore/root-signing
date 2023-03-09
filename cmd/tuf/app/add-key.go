@@ -28,7 +28,7 @@ import (
 	"path/filepath"
 
 	"github.com/peterbourgon/ff/v3/ffcli"
-	"github.com/sigstore/cosign/cmd/cosign/cli/pivcli"
+	"github.com/sigstore/cosign/v2/cmd/cosign/cli/pivcli"
 	"github.com/sigstore/sigstore/pkg/cryptoutils"
 	"golang.org/x/term"
 )

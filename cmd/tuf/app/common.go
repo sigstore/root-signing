@@ -20,8 +20,8 @@ import (
 	"crypto"
 	"fmt"
 
-	"github.com/sigstore/cosign/pkg/cosign/pivkey"
-	csignature "github.com/sigstore/cosign/pkg/signature"
+	"github.com/sigstore/cosign/v2/pkg/cosign/pivkey"
+	csignature "github.com/sigstore/cosign/v2/pkg/signature"
 	"github.com/sigstore/sigstore/pkg/signature"
 )
 

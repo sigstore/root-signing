@@ -20,7 +20,7 @@ import (
 	"os"
 	"testing"
 
-	csignature "github.com/sigstore/cosign/pkg/signature"
+	csignature "github.com/sigstore/cosign/v2/pkg/signature"
 	"github.com/sigstore/sigstore/pkg/cryptoutils"
 	"github.com/theupdateframework/go-tuf/pkg/keys"
 )

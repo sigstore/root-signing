@@ -39,7 +39,18 @@ jobs:
         with:
           go-version: 1.19
           check-latest: true
+
+      - name: Checkout
+        # v3.3.0
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
+        with:
+          fetch-depth: 0
+
+      - name: Install deps
+        run: sudo apt-get install libpcsclite-dev
+
       - name: build
         run: make tuf
+
       - name: Verify POP
         run: ./github/workflows/script/dpop-wrapper.sh "${{ github.event.pull_request.title }}"

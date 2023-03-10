@@ -43,6 +43,9 @@ if [ $# -gt 1 ]; then
     git checkout VERIFY
 
 else
+  # params are: PR
+  # Intended for usage inside a GitHub workflow context where the 
+  # pull request has already been checked out.
     DELEGATION=$1
     REPO=./repository
 fi

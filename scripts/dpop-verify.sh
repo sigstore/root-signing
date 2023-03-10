@@ -19,10 +19,36 @@ set -o errexit
 set -o xtrace
 set -u
 
+MERGE_BASE=origin/main
+
+if [ $# -gt 1 ]; then
+    # params are: PR DELEGATION NAME
+    PR=$1
+    DELEGATION=$2
+
+    REPO=${REPO:-./repository}
+    LOCAL=${LOCAL:-}
+    . "./scripts/utils.sh"
+    # Prepare the environment
+    check_user
+    set_repository
+    print_git_state
+    clean_state
+    setup_forks
+
+    echo "Pull Request: $1"
+    git branch -D VERIFY || true
+    git fetch upstream pull/"$1"/head:VERIFY
+    git fetch origin
+    git checkout VERIFY
+
+else
+    DELEGATION=$1
+    REPO=./repository
+fi
+
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
-FORK_POINT=$(git merge-base --fork-point origin/main "${BRANCH}")
-REPO=./repository
-DELEGATION=$1
+FORK_POINT=$(git merge-base --fork-point ${MERGE_BASE} "${BRANCH}")
 SIG_FILE="${REPO}"/staged/"${FORK_POINT}".sig
 
 if [ ! -f "${SIG_FILE}" ]; then

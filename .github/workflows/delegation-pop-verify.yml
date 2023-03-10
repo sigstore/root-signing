@@ -32,7 +32,6 @@ jobs:
     env:
       GITHUB_TOKEN: ${{ secrets.SIGSTORE_REVIEW_BOT_FINE_GRAINED_PAT }}
       PR_NUMBER: ${{ github.event.pull_request.number }}
-      ISSUE_REPOSITORY: sigstore/root-signing
     steps:
       - name: Setup go
         uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v3.5.0

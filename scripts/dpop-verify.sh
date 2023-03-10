@@ -36,9 +36,9 @@ if [ $# -gt 1 ]; then
     clean_state
     setup_forks
 
-    echo "Pull Request: $1"
+    echo "Pull Request: ${PR}"
     git branch -D VERIFY || true
-    git fetch upstream pull/"$1"/head:VERIFY
+    git fetch upstream pull/"${PR}"/head:VERIFY
     git fetch origin
     git checkout VERIFY
 

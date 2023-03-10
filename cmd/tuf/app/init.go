@@ -27,7 +27,7 @@ import (
 	"time"
 
 	"github.com/peterbourgon/ff/v3/ffcli"
-	csignature "github.com/sigstore/cosign/pkg/signature"
+	csignature "github.com/sigstore/cosign/v2/pkg/signature"
 	pkeys "github.com/sigstore/root-signing/pkg/keys"
 	prepo "github.com/sigstore/root-signing/pkg/repo"
 	"github.com/theupdateframework/go-tuf"

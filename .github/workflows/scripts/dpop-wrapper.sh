@@ -29,5 +29,4 @@ OUTPUT=$(mktemp)
 
 # If we made it here, signature verification was successful.
 # Add a comment with the output
-GH_TOKEN=${GITHUB_TOKEN} gh -R "${ISSUE_REPOSITORY}" \
-        pr comment "${PR_NUMBER}" -F "${OUTPUT}"
+GH_TOKEN=${GITHUB_TOKEN} gh pr comment "${PR_NUMBER}" -F "${OUTPUT}"

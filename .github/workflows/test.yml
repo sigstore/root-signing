@@ -24,7 +24,7 @@ on:
       - 'ceremony/**'
 
 env:
-  GO_VERSION: 1.19
+  GO_VERSION: '1.20'
 
 jobs:
   golangci:
@@ -40,7 +40,7 @@ jobs:
         uses: golangci/golangci-lint-action@08e2f20817b15149a52b5b3ebe7de50aff2ba8c5 # v3
         with:
           # Required: the version of golangci-lint is required and must be specified without patch version: we always use the latest patch version.
-          version: v1.50.1
+          version: v1.51
           args: --timeout=5m
 
   yamllint:

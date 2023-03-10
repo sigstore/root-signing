@@ -19,10 +19,40 @@ set -o errexit
 set -o xtrace
 set -u
 
+MERGE_BASE=origin/main
+
+if [ $# -gt 1 ]; then
+    # params are: PR DELEGATION_NAME
+    # Intended for users locally verifying a PR that contains a POP
+    PR=$1
+    DELEGATION=$2
+
+    REPO=${REPO:-./repository}
+    LOCAL=${LOCAL:-}
+    . "./scripts/utils.sh"
+    # Prepare the environment
+    check_user
+    set_repository
+    print_git_state
+    clean_state
+    setup_forks
+
+    echo "Pull Request: ${PR}"
+    git branch -D VERIFY || true
+    git fetch upstream pull/"${PR}"/head:VERIFY
+    git fetch origin
+    git checkout VERIFY
+
+else
+  # params are: PR
+  # Intended for usage inside a GitHub workflow context where the 
+  # pull request has already been checked out.
+    DELEGATION=$1
+    REPO=./repository
+fi
+
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
-FORK_POINT=$(git merge-base --fork-point origin/main "${BRANCH}")
-REPO=./repository
-DELEGATION=$1
+FORK_POINT=$(git merge-base --fork-point ${MERGE_BASE} "${BRANCH}")
 SIG_FILE="${REPO}"/staged/"${FORK_POINT}".sig
 
 if [ ! -f "${SIG_FILE}" ]; then

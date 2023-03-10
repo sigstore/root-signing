@@ -23,6 +23,7 @@ MERGE_BASE=origin/main
 
 if [ $# -gt 1 ]; then
     # params are: PR DELEGATION_NAME
+    # Intended for users locally verifying a PR that contains a POP
     PR=$1
     DELEGATION=$2
 

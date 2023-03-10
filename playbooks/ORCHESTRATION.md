@@ -54,6 +54,8 @@ You will need the following variables for the online signer references described
 
 Ensure that these are the values reflected in the staging snapshot and timestamp [workflow](../.github/workflows/staging-snapshot-timestamp.yml).
 
+**NOTE** Ensure that the automated [snapshot and timestamp job](../.github/workflows/stable-snapshot-timestamp.yml) has triggered within the last 5 days. During the week of the ceremony, the job will not push automated updates, and expects the ceremony to be completed within one week. This is to ensure that snapshotting the main ceremony branch does not result in a merge conflict with the new ceremony event. See [693](https://github.com/sigstore/root-signing/issues/693).
+
 ## Step 1: Root Key Updates (Optional)
 
 Like mentioned in [Key configuration](#key-configuration), each root key corresponds to a subfolder named by its serial number. The [initialization](#step-2-initializing-a-root-and-targets) script automatically picks up any new subfolders and adds them to the root keys. Any subfolders that are removed are revoked from the root.

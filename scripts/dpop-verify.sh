@@ -22,7 +22,7 @@ set -u
 MERGE_BASE=origin/main
 
 if [ $# -gt 1 ]; then
-    # params are: PR DELEGATION NAME
+    # params are: PR DELEGATION_NAME
     PR=$1
     DELEGATION=$2
 

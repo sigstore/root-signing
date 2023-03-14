@@ -48,22 +48,25 @@ jobs:
           fetch-depth: 0
       - name: Determine whether to run a snapshot/timestamp
         id: check
+        shell: bash
         run: |
-          BRANCHES=$(git branch  | grep ceremony/)
+          set -euo pipefail
+
+          BRANCHES=$(git for-each-ref --format='%(refname:short)' | grep origin/ceremony/)
           echo "${BRANCHES}"
           # Check whether a ceremony was initiated within a week of the current date.
-          echo "wip=false" >> $GITHUB_OUTPUT
-          ceremony-re="^ceremony/[0-9]{4}-[0-9]{2}-[0-9]{2}$"
-          for branch in "${BRANCHES}"
+          echo "wip=false" >> "${GITHUB_OUTPUT}"
+          ceremonyRegex="origin/ceremony/[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+          for branch in ${BRANCHES}
           do
-            if [[ "$branch" ~= "$ceremony-re" ]]; then
+            if [[ "$branch" =~ ${ceremonyRegex} ]]; then
               echo "found ceremony branch $branch"
-              branch_date=$(echo "$branch" | cut -d '/' -f2)
-              days_diff=$(( (`date -d $branch_date +%s` - `date -d "00:00" +%s`) / (24*3600) ))
+              branch_date=$(echo "${branch}" | cut -d '/' -f3)
+              days_diff=$(( ($(date -d "00:00" +%s) - $(date -d "${branch_date}" +%s)) / (24*3600) ))
               if [[ "$days_diff" -lt 7 ]]; then
                 # Detected ceremony within 7 days of current date
                 echo "detected ceremony branch $branch within 7 days, stopping automated cron"
-                echo "wip=true" >> $GITHUB_OUTPUT
+                echo "wip=true" >> "${GITHUB_OUTPUT}"
               fi
             fi
           done

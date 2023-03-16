@@ -146,8 +146,8 @@ in `${REPO}/staged/${FORK_POINT}.sig`, where the fork point is the
 fork point from `main` and the ceremony branch. This fork point is
 also used as the nonce when computing the pop.
 
-The delegation keyholder would run these commands (on a branch from
-the ceremony branch):
+The delegation keyholder would run these commands (on a branch based
+on the ceremony branch):
 
 Create the delegation metadata
 ```shell
@@ -165,15 +165,15 @@ $ ./tuf sign \
 ```
 
 ```shell
-$ FORK_POINT=$(git merge-base --fork-point origin/main "${BRANCH}")
-./tuf key-pop-sign \
+$ FORK_POINT=$(git merge-base --fork-point origin/main "${BRANCH}") \
+      ./tuf key-pop-sign \
       -key ${KEY_REF} \
       -challenge ${DELEGATION_NAME} \
       -nonce ${FORK_POINT} > ${REPO}/staged/${FORK_POINT}.sig
 ```
 Here `BRANCH` is the ceremony branch, not the branch for the delegation.
 
-When the PR is open, it will trigger the POP verify
+When the PR is created, it will trigger the POP verify
 [workflow](../.github/workflows/delegation-pop-verify.yml), and upon
 successfull verification it will post a comment to the PR with the
 verification output.

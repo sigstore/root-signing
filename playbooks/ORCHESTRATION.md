@@ -62,7 +62,7 @@ Like mentioned in [Key configuration](#key-configuration), each root key corresp
 
 ### Adding a Root Key
 
-Instruct any new root keyholder to follow [Registering a new root key](../KEYHOLDER.md#registering-a-new-root-key)
+Instruct any new root keyholder to follow [Registering a new root key](keyholders/NEW_SIGNER.md#registration).
 
 This will create the following structure.
 
@@ -127,7 +127,63 @@ Manually check for:
 
 <!-- TODO: Add playbook for disaster/recovery steps. -->
 
-### Hardware Key Signing
+## Step 3: Add delegation (Optional)
+
+This step will add a delegated role to the top-level targets that is
+controlled by an external GitHub repository. Coordinate with the
+delegation keyholder to run the `add-delegation` (see
+https://github.com/sigstore/root-signing/blob/main/cmd/tuf/app/add-delegation.go).
+After the delegation metadata is added and signed, the delegation
+keyholder should open a PR against the ceremony branch.
+The name of the PR MUST be `feat/add-delegation for
+<delegation-name>`. When creating the delegation, a  `target-meta`
+file has to be provided that lists the targets, similar when adding
+the top level targets.
+
+As part of running the `add-delegaton` command, a POP (proof of
+possession) has to be generated too. The computed POP should be stored
+in `${REPO}/staged/${FORK_POINT}.sig`, where the fork point is the
+fork point from `main` and the ceremony branch. This fork point is
+also used as the nonce when computing the pop.
+
+The delegation keyholder would run these commands (on a branch from
+the ceremony branch):
+
+Create the delegation metadata
+```shell
+$ ./tuf add-delegation -name ${DELEGATION_NAME} \
+      -public-key ${PUB_KEY_REF} \
+      -target-meta delegate-meta.yaml \
+      -repository repository
+```
+
+```shell
+$ ./tuf sign \
+      -roles ${DELEGATION_NAME} \
+      -key ${KEY_REF} \
+      -repository ${REPO}
+```
+
+```shell
+$ FORK_POINT=$(git merge-base --fork-point origin/main "${BRANCH}")
+./tuf key-pop-sign \
+      -key ${KEY_REF} \
+      -challenge ${DELEGATION_NAME} \
+      -nonce ${FORK_POINT} > ${REPO}/staged/${FORK_POINT}.sig
+```
+Here `BRANCH` is the ceremony branch, not the branch for the delegation.
+
+When the PR is open, it will trigger the POP verify
+[workflow](../.github/workflows/delegation-pop-verify.yml), and upon
+successfull verification it will post a comment to the PR with the
+verification output.
+
+To manually verify the POP, run `./scripts/dpop-verify.sh ${PR_NUM}
+${DELEGATION_NAME}`. Don't forget to ensure that `./scripts/verify.sh
+$PR` runs on the PR to validate the `targets.json` has a valid
+format. Merge the PR against the ceremony branch.
+
+## Step 4: Hardware Key Signing
 
 Next, the root and targets file must be signed. Ask each root keyholder to follow [Signing root and targets](../KEYHOLDER.md#signing-root-and-targets).
 
@@ -149,28 +205,7 @@ After each of the root keyholder PRs are merged, run verification at the head of
 
 and verify that the root and targets are fully signed.
 
-<!--  
-TODO(https://github.com/sigstore/root-signing/issues/398):
-Re-instate when delegation work is complete.
-
-## Step 3: Delegations
-
-After root and targets signing, the delegation files must be signed.
-
-```bash
-./scripts/step-3.sh
-```
-
-This will create a PR signing the delegations. Verify the PR with the PR number as the argument to the script:
-
-```bash
-./scripts/verify.sh $PR
-```
-
-and check that the delegation was successfully signed.
- -->
-
-## Step 3: Snapshotting and Timestamping
+## Step 5: Snapshotting and Timestamping
 
 Next, the metadata will need to be snapshotted and timestamped. Invoke the staging snapshot and timestamp GitHub workflow [staging-snapshot-timestamp.yml](../.github/workflows/staging-snapshot-timestamp.yml) with the following parameters:
 
@@ -187,7 +222,7 @@ Verify the expirations and the signatures:
 
 Note: You cannot test this step locally against the current staged repository, since the snapshot and timestamp keys are only given permissions to the GitHub Workflows. However, under the hood, the workflow is running `./scripts/step-3.sh` and `./scripts/step-4.sh`. If you initialize a ceremony with local testing keys, this action will work.
 
-## Step 4: Publication
+## Step 6: Publication
 
 Once the PR from [Step 3](#step-3-snapshotting-and-timestamping) is merged, a [workflow](../.github/workflows/sync-ceremony-to-main.yml) will automatically create a PR merging the changes on the completed ceremony branch to main.
 
@@ -213,7 +248,7 @@ In case there is a configuration mistake or a breakage that renders a ceremony i
 
 1. Add an environment variable for the delegation key named `$DELEGATION_KEY` in [./scripts/step-1.5.sh].
 
-2. Create a `./config/$DELEGATION-metadata`.yml file, see [Target and Delegation configuration](#targets-and-delegation-configuration). 
+2. Create a `./config/$DELEGATION-metadata`.yml file, see [Target and Delegation configuration](#targets-and-delegation-configuration).
 
 3. Edit [./scripts/step-1.5.sh] to add the delegation after the root and targets are setup via `tuf init`, with a command like:
 

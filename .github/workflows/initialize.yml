@@ -44,7 +44,7 @@ jobs:
   check_branch:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - uses: actions/checkout@24cb9080177205b6e8c946b17badbe402adc938f # v3.4.0
         with:
           fetch-depth: 0
       - name: Check if remote branch exists
@@ -64,7 +64,7 @@ jobs:
     permissions:
       id-token: 'write'
     steps:
-      - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - uses: actions/checkout@24cb9080177205b6e8c946b17badbe402adc938f # v3.4.0
         with:
           fetch-depth: 0
       # TODO(https://github.com/sigstore/root-signing/issues/98): Use a common configuration checked into source control
@@ -121,7 +121,7 @@ jobs:
       pull-requests: 'write'
       contents: 'write'
     steps:
-      - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - uses: actions/checkout@24cb9080177205b6e8c946b17badbe402adc938f # v3.4.0
         with:
           ref: ${{ inputs.branch }}
           fetch-depth: 0

@@ -43,7 +43,7 @@ jobs:
     outputs:
       ceremony_wip: ${{ steps.check.outputs.wip }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@24cb9080177205b6e8c946b17badbe402adc938f # v3.4.0
         with:
           fetch-depth: 0
       - name: Determine whether to run a snapshot/timestamp

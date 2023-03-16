@@ -185,7 +185,9 @@ format. Merge the PR against the ceremony branch.
 
 ## Step 4: Hardware Key Signing
 
-Next, the root and targets file must be signed. Ask each root keyholder to follow [Signing root and targets](../KEYHOLDER.md#signing-root-and-targets).
+Next, the root and targets file must be signed. Ask each root
+keyholder to follow [Signing root and
+targets](keyholders/EXISTING_SIGNER.md#signing).
 
 This will modify `root.json` and `targets.json` with an added signature.
 

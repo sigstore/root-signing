@@ -144,7 +144,7 @@ As part of running the `add-delegaton` command, a POP (proof of
 possession) has to be generated too. The computed POP should be stored
 in `${REPO}/staged/${FORK_POINT}.sig`, where the fork point is the
 fork point from `main` and the ceremony branch. This fork point is
-also used as the nonce when computing the pop.
+also used as the nonce when computing the POP.
 
 The delegation keyholder would run these commands (on a branch based
 on the ceremony branch):

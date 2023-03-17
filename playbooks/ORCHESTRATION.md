@@ -181,7 +181,8 @@ verification output.
 To manually verify the POP, run `./scripts/dpop-verify.sh ${PR_NUM}
 ${DELEGATION_NAME}`. Don't forget to ensure that `./scripts/verify.sh
 $PR` runs on the PR to validate the `targets.json` has a valid
-format. Merge the PR against the ceremony branch.
+format and that the delegation metadata is properly signed. 
+Merge the PR against the ceremony branch.
 
 ## Step 4: Hardware Key Signing
 

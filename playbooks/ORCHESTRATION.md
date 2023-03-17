@@ -131,7 +131,7 @@ Manually check for:
 
 This step will add a delegated role to the top-level targets that is
 controlled by an external GitHub repository. Coordinate with the
-delegation keyholder to run the `add-delegation` (see
+delegation keyholder to run the `add-delegation` command (see
 https://github.com/sigstore/root-signing/blob/main/cmd/tuf/app/add-delegation.go).
 When creating the delegation with the command, a `target-meta`
 file has to be provided that lists the targets, similar to adding

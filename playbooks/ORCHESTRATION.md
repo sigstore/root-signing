@@ -145,7 +145,8 @@ As part of running the `add-delegaton` command, a POP (proof of
 possession) has to be generated too. The computed POP should be stored
 in `${REPO}/staged/${FORK_POINT}.sig`, where the fork point is the
 fork point from `main` and the ceremony branch. This fork point is
-also used as the nonce when computing the POP.
+also used as the nonce when computing the POP (via `tuf key-pop-sign`,
+see below for an examle).
 
 The delegation keyholder would run these commands (on a branch based
 on the ceremony branch):
@@ -182,7 +183,7 @@ verification output.
 To manually verify the POP, run `./scripts/dpop-verify.sh ${PR_NUM}
 ${DELEGATION_NAME}`. Don't forget to ensure that `./scripts/verify.sh
 $PR` runs on the PR to validate the `targets.json` has a valid
-format and that the delegation metadata is properly signed. 
+format and that the delegation metadata is properly signed.
 Merge the PR against the ceremony branch.
 
 ## Step 4: Hardware Key Signing

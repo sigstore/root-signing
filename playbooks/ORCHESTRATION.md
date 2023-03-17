@@ -135,7 +135,9 @@ delegation keyholder to run the `add-delegation` command (see
 https://github.com/sigstore/root-signing/blob/main/cmd/tuf/app/add-delegation.go).
 When creating the delegation with the command, a `target-meta`
 file has to be provided that lists the targets, similar to adding
-the top level targets.
+the top level targets, see
+[here](ORCHESTRATION.md#targets-and-delegation-configuration) for an
+example.
 After the delegation metadata is added and signed, the delegation
 keyholder should open a PR against the ceremony branch.
 The name of the PR MUST be `feat/add-delegation for

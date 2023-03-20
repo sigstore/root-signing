@@ -55,7 +55,7 @@ echo "Enter the number for the option you would like to verify:"
 echo -e "\t 1: Verify the HSM keys and serial numbers in $REPO/keys"
 echo -e "\t 2: Verify the signatures on any staged metadata"
 echo -e "\t 3: Verify published data and targets in $REPO/repository"
-read input
+read -r input
 
 case $input in
     1)
@@ -76,7 +76,7 @@ case $input in
         ;;
     3)
         echo "Enter comma-separated target names to verify. If blank, all top-level targets will be verified:"
-        read targets
+        read -r targets
         echo "no " ${targets:+--targets $targets}
         echo "no col" ${targets+--targets $targets}
 

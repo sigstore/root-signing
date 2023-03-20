@@ -75,7 +75,7 @@ func verifyTuf(t *testing.T, repo string, root []byte) (data.TargetFiles, error)
 	if err := os.WriteFile(rootFile, root, 0600); err != nil {
 		t.Fatal(err)
 	}
-	if err := vapp.VerifyCmd(false, repo, rootFile, nil, nil); err != nil {
+	if err := vapp.VerifyCmd(false, repo, rootFile, nil, nil, nil); err != nil {
 		t.Fatal(err)
 	}
 

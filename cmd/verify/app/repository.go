@@ -275,6 +275,7 @@ var (
 	root       file
 	expiration string
 	roles      []string
+	targets    []string
 )
 
 var repositoryCmd = &cobra.Command{
@@ -303,7 +304,7 @@ var repositoryCmd = &cobra.Command{
 			validUntil = &parsedTime
 		}
 
-		return VerifyCmd(staged, repository, root.String(), validUntil, roles)
+		return VerifyCmd(staged, repository, root.String(), validUntil, roles, targets)
 	},
 }
 
@@ -325,13 +326,15 @@ func init() {
 	repositoryCmd.Flags().BoolVar(&staged, "staged", false, "indicates whether the repository is staged and should only be partially verified")
 	repositoryCmd.Flags().Var(&root, "root", "path to a trusted root, required unless verifying staged metadata")
 	repositoryCmd.Flags().StringVar(&expiration, "valid-until", "", "a time for metadata to be valid until e.g. 2022/02/22")
+	repositoryCmd.Flags().StringSliceVar(&targets, "targets", nil, "comma-separated targets to verify")
+
 	_ = repositoryCmd.MarkFlagRequired("repository")
 
 	rootCmd.AddCommand(repositoryCmd)
 }
 
 func VerifyCmd(staged bool, repository string, rootFile string,
-	validUntil *time.Time, rolesToCheck []string) error {
+	validUntil *time.Time, rolesToCheck []string, targets []string) error {
 	if staged {
 		// Assumes a local repository!
 		// This will include staged metadata and verify partial signatures
@@ -376,7 +379,6 @@ func VerifyCmd(staged bool, repository string, rootFile string,
 		return fmt.Errorf("error initializing client: %s", err)
 	}
 
-	// TODO: Update only returns top-level targets!
 	log.Printf("Client successfully initialized, updating and downloading targets...")
 	if _, err := c.Update(); err != nil {
 		return fmt.Errorf("error updating client: %s", err)
@@ -386,10 +388,26 @@ func VerifyCmd(staged bool, repository string, rootFile string,
 	if err != nil {
 		return fmt.Errorf("error getting client state: %s", err)
 	}
-	targetFiles, err := c.Targets()
+
+	// Always try to retrieve the top-level targets.
+	topLevelTargets, err := c.Targets()
 	if err != nil {
 		return fmt.Errorf("retrieving top-level targets: %s", err)
 	}
+
+	targetFiles := make(data.TargetFiles, 0)
+	if targets != nil {
+		for _, tt := range targets {
+			targetFile, err := c.Target(tt)
+			if err != nil {
+				return fmt.Errorf("could not retrieve target %s: %s", tt, err)
+			}
+			targetFiles[tt] = targetFile
+		}
+	} else {
+		targetFiles = topLevelTargets
+	}
+
 	for name := range targetFiles {
 		var dest bufferDestination
 		if err := c.Download(name, &dest); err != nil {

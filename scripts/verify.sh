@@ -16,7 +16,7 @@
 
 # Print all commands and stop on errors
 set -o errexit
-set -o xtrace
+# set -o xtrace
 
 # shellcheck source=./scripts/utils.sh
 source "./scripts/utils.sh"
@@ -50,16 +50,45 @@ if [[ -n "$1" ]]; then
     git checkout VERIFY
 fi
 
-# Verify keys if keys/ repository exists. It does not in the top-level published repository/
-if [ -d "$REPO"/keys ]; then
-    ./verify keys --root piv-attestation-ca.pem --key-directory "$REPO"/keys
-fi
-# If staged metadata exists, verify the staged repository
-if [ -f "$REPO"/staged/root.json ]; then
-    ./verify repository --repository "$REPO" --staged
-fi
-# If published data exists, verify against a root
-if [ -f "$REPO"/repository/1.root.json ]; then
-    ./verify repository --repository "$REPO" --root "$REPO"/repository/1.root.json
-fi
-# stay on the branch for manual verification
+echo
+echo "Enter the number for the option you would like to verify:"
+echo -e "\t 1: Verify the HSM keys and serial numbers in $REPO/keys"
+echo -e "\t 2: Verify the signatures on any staged metadata"
+echo -e "\t 3: Verify published data and targets in $REPO/repository"
+read input
+
+case $input in
+    1)
+      # Verify keys if keys/ repository exists.
+        if [ -d "$REPO"/keys ]; then
+            ./verify keys --root piv-attestation-ca.pem --key-directory "$REPO"/keys
+        else
+            echo "Error: Missing $REPO/keys sudirectory" && exit 1
+        fi
+        ;;
+    2)
+        # If staged metadata exists, verify the staged repository
+        if [ -f "$REPO"/staged/root.json ]; then
+            ./verify repository --repository "$REPO" --staged
+        else
+            echo "Error: Missing $REPO/staged subdirectory" && exit 1
+        fi
+        ;;
+    3)
+        echo "Enter comma-separated target names to verify. If blank, all top-level targets will be verified:"
+        read targets
+        echo "no " ${targets:+--targets $targets}
+        echo "no col" ${targets+--targets $targets}
+
+        # If published data exists, verify against a root
+        if [ -f "$REPO"/repository/1.root.json ]; then
+            ./verify repository --repository "$REPO" --root "$REPO"/repository/1.root.json ${targets:+--targets $targets}
+        else
+            echo "Error: Missing valid $REPO/repository TUF repository" && exit 1
+        fi
+        ;;
+    *)
+        echo "Error: Invalid user option" && exit 1;;
+esac
+
+# Stay on the branch for manual verification

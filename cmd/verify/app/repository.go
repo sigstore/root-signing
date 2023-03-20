@@ -389,13 +389,6 @@ func VerifyCmd(staged bool, repository string, rootFile string,
 		return fmt.Errorf("error getting client state: %s", err)
 	}
 
-	// Always fetch all top-level targets to validate the contents of targets.json
-	// even if the user is not verifying a top-level target.
-	topLevelTargets, err := c.Targets()
-	if err != nil {
-		return fmt.Errorf("retrieving top-level targets: %s", err)
-	}
-
 	targetFiles := make(data.TargetFiles, 0)
 	if targets != nil {
 		for _, tt := range targets {
@@ -406,7 +399,11 @@ func VerifyCmd(staged bool, repository string, rootFile string,
 			targetFiles[tt] = targetFile
 		}
 	} else {
-		targetFiles = topLevelTargets
+		targetFiles, err = c.Targets()
+		if err != nil {
+			return fmt.Errorf("retrieving top-level targets: %s", err)
+		}
+
 	}
 
 	for name := range targetFiles {

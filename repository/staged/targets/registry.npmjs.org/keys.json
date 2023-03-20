@@ -1,0 +1,20 @@
+{
+    "registry": [
+        {
+            "rawBytes": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEiPSlFi0CmFTfEjCUqF9HuCEcYXNKAaYalIJmBZ8yyezPjTqhxrKBpMnaocVtLJBI1eM3uXnQzQGAJdJ4gs9Fyw==",
+            "keyDetails": "PKIX_ECDSA_P256_SHA_256",
+            "validFor": {
+                "start": "2022-03-01T00:00:00.000Z"
+            }
+        }
+    ],
+    "publish": [
+        {
+            "rawBytes": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEiPSlFi0CmFTfEjCUqF9HuCEcYXNKAaYalIJmBZ8yyezPjTqhxrKBpMnaocVtLJBI1eM3uXnQzQGAJdJ4gs9Fyw==",
+            "keyDetails": "PKIX_ECDSA_P256_SHA_256",
+            "validFor": {
+                "start": "2022-12-01T00:00:00.000Z"
+            }
+        }
+    ]
+}

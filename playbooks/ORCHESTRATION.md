@@ -182,7 +182,7 @@ When the PR is created, it will trigger the POP verify
 successfull verification it will post a comment to the PR with the
 verification output.
 
-To manually verify the POP, run `./scripts/dpop-verify.sh ${PR_NUM}
+To manually verify the POP, run `./scripts/step-0.sh && ./scripts/dpop-verify.sh ${PR_NUM}
 ${DELEGATION_NAME}`. Don't forget to ensure that `./scripts/verify.sh
 $PR` runs on the PR to validate the `targets.json` has a valid
 format and that the delegation metadata is properly signed.

@@ -45,14 +45,14 @@ if [ $# -gt 1 ]; then
 
 else
   # params are: PR
-  # Intended for usage inside a GitHub workflow context where the 
+  # Intended for usage inside a GitHub workflow context where the
   # pull request has already been checked out.
     DELEGATION=$1
     REPO=./repository
 fi
 
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
-FORK_POINT=$(git merge-base --fork-point ${MERGE_BASE} "${BRANCH}")
+FORK_POINT=$(git merge-base ${MERGE_BASE} "${BRANCH}")
 SIG_FILE="${REPO}"/staged/"${FORK_POINT}".sig
 
 if [ ! -f "${SIG_FILE}" ]; then

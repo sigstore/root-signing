@@ -169,7 +169,7 @@ $ ./tuf sign \
 ```
 
 ```shell
-$ FORK_POINT=$(git merge-base --fork-point origin/main "${BRANCH}") \
+$ FORK_POINT=$(git merge-base origin/main "${BRANCH}") \
       ./tuf key-pop-sign \
       -key ${KEY_REF} \
       -challenge ${DELEGATION_NAME} \

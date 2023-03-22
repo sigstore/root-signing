@@ -17,6 +17,7 @@ package app
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -218,7 +219,11 @@ func InitCmd(ctx context.Context, directory string,
 			return err
 		}
 		fmt.Fprintln(os.Stderr, "Created target file at ", to.Name())
-		if err := repo.AddTargetWithExpiresToPreferredRole(tt, custom, GetExpiration("targets"), "targets"); err != nil {
+		var customMetadata json.RawMessage
+		if custom != nil {
+			customMetadata = *custom
+		}
+		if err := repo.AddTargetWithExpiresToPreferredRole(tt, customMetadata, GetExpiration("targets"), "targets"); err != nil {
 			return fmt.Errorf("error adding targets %w", err)
 		}
 		expectedTargets[tt] = true

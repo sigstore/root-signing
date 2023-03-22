@@ -17,6 +17,7 @@ package app
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -185,13 +186,6 @@ func DelegationCmd(ctx context.Context, opts *DelegationOptions) error {
 		}
 
 		for tt, custom := range meta.Add {
-			if string(custom) == "null" {
-				// As an artifact of using YAML to encode the config, empty values
-				// result in "null" string keywords. This does not occur in the top-level
-				// targets, because we marshal the payload to JSON in setMetaWithSigKeyIDs
-				// which converts the null value to empty.
-				custom = nil
-			}
 			from, err := os.Open(tt)
 			if err != nil {
 				return err
@@ -213,7 +207,11 @@ func DelegationCmd(ctx context.Context, opts *DelegationOptions) error {
 				return err
 			}
 			fmt.Fprintln(os.Stderr, "Created target file at ", to.Name())
-			if err := repo.AddTargetsWithExpiresToPreferredRole([]string{tt}, custom, GetExpiration("targets"), opts.Name); err != nil {
+			var customMetadata json.RawMessage
+			if custom != nil {
+				customMetadata = *custom
+			}
+			if err := repo.AddTargetsWithExpiresToPreferredRole([]string{tt}, customMetadata, GetExpiration("targets"), opts.Name); err != nil {
 				return fmt.Errorf("error adding targets %w", err)
 			}
 		}

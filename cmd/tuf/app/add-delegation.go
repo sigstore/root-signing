@@ -185,6 +185,13 @@ func DelegationCmd(ctx context.Context, opts *DelegationOptions) error {
 		}
 
 		for tt, custom := range meta.Add {
+			if string(custom) == "null" {
+				// As an artifact of using YAML to encode the config, empty values
+				// result in "null" string keywords. This does not occur in the top-level
+				// targets, because we marshal the payload to JSON in setMetaWithSigKeyIDs
+				// which converts the null value to empty.
+				custom = nil
+			}
 			from, err := os.Open(tt)
 			if err != nil {
 				return err

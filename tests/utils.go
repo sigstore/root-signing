@@ -75,8 +75,8 @@ func newRepoTestStack(ctx context.Context, t *testing.T) *repoTestStack {
 		hsmRootCA:     rootCA,
 		hsmRootSigner: rootSigner,
 		targetsConfig: &repo.TargetMetaConfig{
-			Add: map[string]json.RawMessage{},
-			Del: map[string]json.RawMessage{},
+			Add: map[string]*json.RawMessage{},
+			Del: map[string]*json.RawMessage{},
 		},
 		snapshotRef:  createTestSigner(t),
 		timestampRef: createTestSigner(t),
@@ -88,7 +88,7 @@ func (s *repoTestStack) addTarget(t *testing.T, name, content string, custom jso
 	if err := os.WriteFile(testTarget, []byte(content), 0600); err != nil {
 		t.Fatal(err)
 	}
-	s.targetsConfig.Add[name] = custom
+	s.targetsConfig.Add[name] = &custom
 }
 
 func (s *repoTestStack) removeTarget(t *testing.T, name string) {

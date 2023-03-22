@@ -777,10 +777,12 @@ func TestProdTargetsConfig(t *testing.T) {
 	// Validate presence of custom metadata per configuration.
 	for name, tFiles := range targetFiles {
 		var v1, v2 interface{}
-		json.Unmarshal([]byte(targetsConfig.Add[name]), &v1)
+		if targetsConfig.Add[name] != nil {
+			json.Unmarshal([]byte(*targetsConfig.Add[name]), &v1)
+		}
 		if tFiles.Custom == nil {
-			if v2 != nil {
-				t.Errorf("no custom metadata found, expected: %s", v2)
+			if v1 != nil {
+				t.Errorf("no custom metadata found, expected: %s", v1)
 			}
 			continue
 		}

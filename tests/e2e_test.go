@@ -1106,3 +1106,80 @@ func TestGetPublicKeyFromRepo(t *testing.T) {
 		t.Fatalf("Unexpected error '%s'", err)
 	}
 }
+
+// Tests that target metadata for delegations with null custom
+// metadata does not appear as "null".
+func TestDelegationNullCustomMetadata(t *testing.T) {
+	ctx := context.Background()
+	stack := newRepoTestStack(ctx, t)
+	stack.addTarget(t, "foo.txt", "abc", nil)
+	rootKeyRef := stack.genKey(t, true)
+
+	// Initialize succeeds.
+	if err := app.InitCmd(ctx, stack.repoDir, 1,
+		stack.targetsConfig, stack.repoDir, stack.snapshotRef, stack.timestampRef); err != nil {
+		t.Fatal(err)
+	}
+
+	// Add a delegation
+	td := t.TempDir()
+	targetMetadataFile := filepath.Join(td, "config.yml")
+	targetMeta := "\nadd:\n  path/foo.txt:\n"
+	if err := os.WriteFile(targetMetadataFile,
+		[]byte(targetMeta),
+		0600); err != nil {
+		t.Fatal(err)
+	}
+	delegationTarget := filepath.Join("path", "foo.txt")
+	if err := os.MkdirAll(filepath.Dir(delegationTarget), 0750); err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(filepath.Dir(delegationTarget))
+	if err := os.WriteFile(delegationTarget, []byte("bar"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	delegationKeyRef, delegationPubKeyRef := createTestSignVerifier(t)
+	if err := app.DelegationCmd(ctx,
+		&app.DelegationOptions{
+			Directory:   stack.repoDir,
+			Name:        "path",
+			Path:        "path/*",
+			Terminating: true,
+			KeyRefs:     []string{delegationPubKeyRef},
+			Threshold:   1,
+			Targets:     targetMetadataFile,
+		}); err != nil {
+		t.Fatal(err)
+	}
+
+	// Sign root & targets with key 1
+	rootSigner := stack.getSigner(t, rootKeyRef)
+	if err := app.SignCmd(ctx, stack.repoDir, []string{"root", "targets"},
+		rootSigner, false); err != nil {
+		t.Fatal(err)
+	}
+	// Sign delegation
+	dSigner := stack.getSigner(t, delegationKeyRef)
+	if err := app.SignCmd(ctx, stack.repoDir, []string{"path"},
+		dSigner, false); err != nil {
+		t.Fatal(err)
+	}
+
+	store := tuf.FileSystemStore(stack.repoDir, nil)
+	meta, err := store.GetMeta()
+	if err != nil {
+		t.Fatal(err)
+	}
+	md, ok := meta["path.json"]
+	if !ok {
+		t.Fatalf("missing path.json")
+	}
+	if strings.Contains(string(md), "null") {
+		t.Fatal("raw json string contains special null keyword")
+	}
+
+	// Sign snapshot and timestamp
+	stack.snapshot(t)
+	stack.timestamp(t)
+	stack.publish(t)
+}

@@ -19,7 +19,7 @@ set -o errexit
 set -o xtrace
 set -u
 
-MERGE_BASE=origin/main
+MERGE_BASE=main
 
 if [ $# -gt 1 ]; then
     # params are: PR DELEGATION_NAME

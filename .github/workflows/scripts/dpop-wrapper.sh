@@ -26,7 +26,3 @@ TITLE=$1
 DELEGATION=$(echo "${TITLE}" | sed -E 's/(.+) for (.+)/\2/')
 OUTPUT=$(mktemp)
 ./scripts/dpop-verify.sh "${DELEGATION}" 2>&1 | tee "${OUTPUT}"
-
-# If we made it here, signature verification was successful.
-# Add a comment with the output
-GH_TOKEN=${GITHUB_TOKEN} gh pr comment "${PR_NUMBER}" -F "${OUTPUT}"

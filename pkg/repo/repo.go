@@ -186,22 +186,9 @@ func GetMetaFromStore(msg []byte, name string) (interface{}, error) {
 	return meta, nil
 }
 
-// Target metadata helpers
-func SigstoreTargetMetaFromString222(b []byte) (map[string]json.RawMessage, error) {
-	jsonBytes, err := kyaml.YAMLToJSON(b)
-	if err != nil {
-		return nil, err
-	}
-	var targetsMetaJSON map[string]json.RawMessage
-	if err := json.Unmarshal(jsonBytes, &targetsMetaJSON); err != nil {
-		return nil, err
-	}
-	return targetsMetaJSON, nil
-}
-
 type TargetMetaConfig struct {
-	Add map[string]json.RawMessage `json:"add"`
-	Del map[string]json.RawMessage `json:"delete"`
+	Add map[string]*json.RawMessage `json:"add,omitempty"`
+	Del map[string]*json.RawMessage `json:"delete,omitempty"`
 }
 
 func SigstoreTargetMetaFromString(b []byte) (*TargetMetaConfig, error) {
@@ -213,6 +200,7 @@ func SigstoreTargetMetaFromString(b []byte) (*TargetMetaConfig, error) {
 	if err := json.Unmarshal(jsonBytes, &targetsMetaJSON); err != nil {
 		return nil, err
 	}
+
 	return &targetsMetaJSON, nil
 }
 

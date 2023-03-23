@@ -77,8 +77,6 @@ case $input in
     3)
         echo "Enter comma-separated target names to verify. If blank, all top-level targets will be verified:"
         read -r targets
-        echo "no " ${targets:+--targets $targets}
-        echo "no col" ${targets+--targets $targets}
 
         # If published data exists, verify against a root
         if [ -f "$REPO"/repository/1.root.json ]; then

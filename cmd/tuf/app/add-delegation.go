@@ -17,6 +17,7 @@ package app
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -206,7 +207,11 @@ func DelegationCmd(ctx context.Context, opts *DelegationOptions) error {
 				return err
 			}
 			fmt.Fprintln(os.Stderr, "Created target file at ", to.Name())
-			if err := repo.AddTargetsWithExpiresToPreferredRole([]string{tt}, custom, GetExpiration("targets"), opts.Name); err != nil {
+			var customMetadata json.RawMessage
+			if custom != nil {
+				customMetadata = *custom
+			}
+			if err := repo.AddTargetsWithExpiresToPreferredRole([]string{tt}, customMetadata, GetExpiration("targets"), opts.Name); err != nil {
 				return fmt.Errorf("error adding targets %w", err)
 			}
 		}

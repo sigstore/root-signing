@@ -19,13 +19,15 @@ set -o errexit
 set -o xtrace
 set -u
 
-MERGE_BASE=main
+MERGE_BASE=origin/main
 
 if [ $# -gt 1 ]; then
     # params are: PR DELEGATION_NAME
     # Intended for users locally verifying a PR that contains a POP
     PR=$1
     DELEGATION=$2
+    # Use local branch when running locally
+    MERGE_BASE=main
 
     REPO=${REPO:-./repository}
     LOCAL=${LOCAL:-}

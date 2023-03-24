@@ -178,9 +178,7 @@ $ FORK_POINT=$(git merge-base origin/main "${BRANCH}") \
 Here `BRANCH` is the ceremony branch, not the branch for the delegation.
 
 When the PR is created, it will trigger the POP verify
-[workflow](../.github/workflows/delegation-pop-verify.yml), and upon
-successfull verification it will post a comment to the PR with the
-verification output.
+[workflow](../.github/workflows/delegation-pop-verify.yml).
 
 To manually verify the POP, run `./scripts/step-0.sh && ./scripts/dpop-verify.sh ${PR_NUM}
 ${DELEGATION_NAME}`. Don't forget to ensure that `./scripts/verify.sh

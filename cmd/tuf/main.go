@@ -26,6 +26,7 @@ import (
 
 	"github.com/peterbourgon/ff/v3/ffcli"
 	"github.com/sigstore/root-signing/cmd/tuf/app"
+	_ "github.com/sigstore/sigstore/pkg/signature/kms/azure"
 )
 
 var (

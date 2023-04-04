@@ -14,5 +14,10 @@
 			}
 		}
 	},
-	"signatures": null
+	"signatures": [
+		{
+			"keyid": "a89d235ee2f298d757438c7473b11b0b7b42ff1a45f1dfaac4c014183d6f8c45",
+			"sig": "304402201acf213d8e3dea0a5f0c1757e4409a02661bcfab3278419307994ead07c36cb4022029986ed2241c630c4e45bf97e043c23220df7612e3718f921fe8a99c7515ad30"
+		}
+	]
 }

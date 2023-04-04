@@ -142,7 +142,7 @@
 	"signatures": [
 		{
 			"keyid": "2e61cd0cbf4a8f45809bda9f7f78c0d33ad11842ff94ae340873e2664dc843de",
-			"sig": ""
+			"sig": "3045022100eeb820ad0b0aabb0f6bf68159d7a9cbd24d1c4633f14317f9944fcb3bb2e1ff802207f92fb20b84df6bcf0c3c2f39fa089238bbee9ff12490c555b694421a45e8d5d"
 		},
 		{
 			"keyid": "ff51e17fcf253119b7033f6f57512631da4a0969442afcf9fc8b141c7f2be99c",

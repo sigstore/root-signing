@@ -118,11 +118,17 @@ jobs:
         if: ${{ inputs.publish }}
         run: |
           ./scripts/step-4.sh
+
+      - name: get patch
+        run: |
+          git commit -m "snapshot and timestamp"
+          git format-patch HEAD^ -o snapshot-timestamp
+
       - name: Upload snapshot and timestamp
         uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
         with:
-          name: snapshot-and-timestamp
-          path: ${{ inputs.repo }}
+          name: snapshot-timestamp
+          path: snapshot-timestamp
           retention-days: 5
 
   if-failed:
@@ -152,8 +158,11 @@ jobs:
           fetch-depth: 0
       - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v2.1.0
         with:
-          name: snapshot-and-timestamp
-          path: ${{ inputs.repo }}
+          name: snapshot-timestamp
+          path: snapshot-timestamp
+      - run: |
+          git apply --verbose snapshot-timestamp/*
+          rm -r snapshot-timestamp
       # Open pull request changes
       - name: create pull request
         uses: peter-evans/create-pull-request@5b4a9f6a9e2af26e5f02351490b90d01eb8ec1e5 # v5.0.0

@@ -86,7 +86,7 @@ jobs:
 
   run_snapshot_timestamp_publish:
     needs: check
-    if: (github.event_name == 'schedule' && github.repository == 'sigstore/root-signing' && needs.check.outputs.block_snapshot == 'false') || (github.event_name != 'schedule' && inputs.dry_run == 'false')  # Don't run workflow in forks on cron
+    if: (github.event_name == 'schedule' && github.repository == 'sigstore/root-signing' && needs.check.outputs.block_snapshot == 'false') || (github.event_name != 'schedule' && inputs.dry_run == false)  # Don't run workflow in forks on cron
     permissions:
       id-token: 'write'
       issues: 'write'

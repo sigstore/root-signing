@@ -31,8 +31,8 @@ jobs:
           fetch-depth: 2
       - run: |
           echo "REPO=$(pwd)/repository" >> $GITHUB_ENV
-          echo "GCS_REPO=https://storage.googleapis.com/sigstore-tuf-root" >> $GITHUB_ENV
-          echo "GCS_PREPROD_REPO=https://storage.googleapis.com/sigstore-preprod-tuf-root" >> $GITHUB_ENV
+          echo "CDN_REPO=https://tuf-repo-cdn.sigstore.dev" >> $GITHUB_ENV
+          echo "CDN_PREPROD_REPO=https://tuf-preprod-repo-cdn.sigstore.dev" >> $GITHUB_ENV
       - uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
         with:
           go-version: '1.20'
@@ -47,10 +47,10 @@ jobs:
         run: go build -o tuf -tags=pivkey ./cmd/tuf
       - name: verify local published repository
         run: ./verify repository --repository $REPO --root $(pwd)/ceremony/2021-06-18/repository/root.json
-      - name: verify GCS remote published repository
-        run: ./verify repository --repository $GCS_REPO --root $(pwd)/ceremony/2021-06-18/repository/root.json
-      - name: verify GCS preprod remote published repository
-        run: ./verify repository --repository $GCS_PREPROD_REPO --root $(pwd)/ceremony/2021-06-18/repository/root.json
+      - name: verify CDN remote published repository
+        run: ./verify repository --repository $CDN_REPO --root $(pwd)/ceremony/2021-06-18/repository/root.json
+      - name: verify CDN preprod remote published repository
+        run: ./verify repository --repository $CDN_PREPROD_REPO --root $(pwd)/ceremony/2021-06-18/repository/root.json
       - name: verify staged ceremony changes
         run: |
           set -euo pipefail

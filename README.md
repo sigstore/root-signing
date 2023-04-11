@@ -32,9 +32,9 @@ The current published repository metadata lives in the [repository](/repository/
 
 ### Root locations
 
-The current root is published on a GCS bucket located at `https://storage.googleapis.com/sigstore-tuf-root`.
+The current root is published on a GCS bucket located at `https://storage.googleapis.com/sigstore-tuf-root`, and is addressable via CDN at `https://tuf-repo-cdn.sigstore.dev`.
 
-The pre-production root is published on a GCS bucket located at `https://storage.googleapis.com/sigstore-preprod-tuf-root`.
+The pre-production root is published on a GCS bucket located at `https://storage.googleapis.com/sigstore-preprod-tuf-root`, and is addressable via CDN at `https://tuf-preprod-repo-cdn.sigstore.dev`.
 
 
 ## Sigstore Root Keyholders 

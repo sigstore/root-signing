@@ -35,6 +35,11 @@ on:
         type: boolean
         default: false
         description: Does not trigger job, but checks on whether the job should run.
+      force_snapshot:
+        description: 'Whether to force a snapshot. Useful if workflow is within 7 days of a ceremony'
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   check:
@@ -73,7 +78,7 @@ jobs:
 
   run_snapshot_timestamp_publish:
     needs: check
-    if: (github.event_name == 'schedule' && github.repository == 'sigstore/root-signing' && needs.check.outputs.ceremony_wip == 'false') || (github.event_name != 'schedule' && inputs.dry_run == 'false')  # Don't run workflow in forks on cron
+    if: (github.event_name == 'schedule' && github.repository == 'sigstore/root-signing' && needs.check.outputs.ceremony_wip == 'false') || (github.event_name != 'schedule' && inputs.dry_run == 'false') || (inputs.force_snapshot == 'true')  # Don't run workflow in forks on cron
     permissions:
       id-token: 'write'
       issues: 'write'

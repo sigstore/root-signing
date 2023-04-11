@@ -121,6 +121,11 @@ jobs:
 
       - name: get patch
         run: |
+          # Setting git config is only needed to create the patch to download in the next step.
+          git config user.name "GitHub Actions Bot"
+          git config user.email "<>"
+          # Commit and create patch
+          git add .
           git commit -m "snapshot and timestamp"
           git format-patch HEAD^ -o snapshot-timestamp
 

@@ -46,7 +46,9 @@ jobs:
     # This job checks whether snapshot/timestamp should run.
     runs-on: ubuntu-latest
     outputs:
-      ceremony_wip: ${{ steps.check.outputs.wip }}
+      block_snapshot: ${{ steps.check.outputs.block_snapshot }}
+    env:
+      FORCE_SNAPSHOT: ${{ inputs.force_snapshot }}
     steps:
       - uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v3.5.0
         with:
@@ -60,7 +62,13 @@ jobs:
           BRANCHES=$(git for-each-ref --format='%(refname:short)' | grep origin/ceremony/)
           echo "${BRANCHES}"
           # Check whether a ceremony was initiated within a week of the current date.
-          echo "wip=false" >> "${GITHUB_OUTPUT}"
+          echo "block_snapshot=false" >> "${GITHUB_OUTPUT}"
+
+          # If we force a snapshot, exit early.
+          if [[ "${FORCE_SNAPSHOT}" ]]; then
+            return
+          fi
+
           ceremonyRegex="origin/ceremony/[0-9]{4}-[0-9]{2}-[0-9]{2}$"
           for branch in ${BRANCHES}
           do
@@ -71,14 +79,14 @@ jobs:
               if [[ "$days_diff" -lt 7 ]]; then
                 # Detected ceremony within 7 days of current date
                 echo "detected ceremony branch $branch within 7 days, stopping automated cron"
-                echo "wip=true" >> "${GITHUB_OUTPUT}"
+                echo "block_snapshot=true" >> "${GITHUB_OUTPUT}"
               fi
             fi
           done
 
   run_snapshot_timestamp_publish:
     needs: check
-    if: (github.event_name == 'schedule' && github.repository == 'sigstore/root-signing' && needs.check.outputs.ceremony_wip == 'false') || (github.event_name != 'schedule' && inputs.dry_run == 'false') || (inputs.force_snapshot == 'true')  # Don't run workflow in forks on cron
+    if: (github.event_name == 'schedule' && github.repository == 'sigstore/root-signing' && needs.check.outputs.block_snapshot == 'false') || (github.event_name != 'schedule' && inputs.dry_run == 'false')  # Don't run workflow in forks on cron
     permissions:
       id-token: 'write'
       issues: 'write'

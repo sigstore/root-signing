@@ -1,0 +1,109 @@
+# Copyright 2023 The Sigstore Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: Sync Staging Repository with GCS Staging Bucket
+
+# Execute this on changes to staging/repository/
+on:
+  push:
+    branches:
+      - main
+    paths:
+      # When any staging repository metadata is changed.
+      - 'staging/repository/**'
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: 'write'
+    steps:
+      - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+        with:
+          go-version: '1.20'
+          check-latest: true
+      - uses: google-github-actions/setup-gcloud@62d4898025f6041e16b1068643bfc5a696863587 # v1.1.0
+        with:
+          project_id: project-rekor
+      # Setup OIDC->SA auth
+      - uses: google-github-actions/auth@ef5d53e30bbcd8d0836f4288f5e50ff3e086997d # v1.0.0
+        id: auth
+        with:
+          token_format: 'access_token'
+          workload_identity_provider: 'projects/306323169285/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions-provider'
+          service_account: 'github-actions@projectsigstore-staging.iam.gserviceaccount.com'
+          create_credentials_file: true
+      - name: Login
+        run: |
+          gcloud auth login --brief --cred-file="${{ steps.auth.outputs.credentials_file_path }}"
+          gcloud auth list
+      # Sync
+      - name: sync
+        run: |
+          check_expiration() {
+              expiry=$(jq -r '.signed.expires' $1)
+              expires=$(date -d $expiry +%s)
+              current=$(date +%s)
+              if (( expires < current )); then
+                  echo "Detected expired metadata file $1 at $expiry!"
+                  exit 1
+              fi;
+          }
+
+          # Upload all but TUF timestamp. Once timestamp is uploaded, all other files must have been uploaded.
+          for f in $(ls staging/repository/ -I *timestamp.json)
+          do
+            # Check for expiration if this is a non-versioned metadata file.
+            # Versioned metadata like 1.root.json may be expired.
+            # TODO(asraa): When consistent snapshots are enabled, this logic must be changed so that
+            # only old versioned metadata can be expired.
+            if [[ $f == [^0-9]*.json ]]; then
+                check_expiration staging/repository/$f
+            fi;
+
+            gcloud --quiet storage cp --cache-control=no-store -r staging/repository/$f gs://tuf-root-staging/
+          done
+
+          # Upload timestamp after checking latest timestamp expiration
+          check_expiration staging/repository/timestamp.json
+          gcloud --quiet storage cp --cache-control=no-store -r staging/repository/*timestamp.json gs://tuf-root-staging/
+
+          # delete any files present in tuf-root-staging not in staging/repository
+          gcloud --quiet storage cp -r gs://tuf-root-staging/ .
+
+          diff -qr staging/repository tuf-root-staging | while read l; do
+            if [[ $l =~ "Only in tuf-root-staging" ]]; then
+              path=$(python3 -c "import re; s='$l'; pattern=r'^Only in tuf-root-staging(\/?)(.*): (.*)$'; match=re.search(pattern, s); print('/'.join([match.group(2), match.group(3)]).lstrip('/'))")
+              gcloud --quiet storage rm gs://tuf-root-staging/$path
+            fi;
+          done
+
+  if-failed:
+    runs-on: ubuntu-latest
+    needs: [sync]
+    permissions:
+      issues: 'write'
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      ISSUE_REPOSITORY: sigstore/root-signing
+    if: always() && needs.sync.result == 'failure'
+    steps:
+      - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
+      - run: |
+          set -euo pipefail
+          ./.github/workflows/scripts/report-failure.sh

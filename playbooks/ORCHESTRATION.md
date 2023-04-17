@@ -88,7 +88,14 @@ Removing a root key occurs by removing a key material subfolder. This is done th
 
 ## Step 2: Initializing a root and targets
 
-This step initializes or stages a new root and targets file according to the pre-work and configuration. The GitHub workflow performing this step is [initialize.yml](../.github/workflows/initialize.yml). Invoke this workflow with the following parameters:
+This step initializes or stages a new root and targets file according
+to the pre-work and configuration. Note that _if_ a target should be
+updated or a new target to be added, those changes has to be in the
+`main` branch before the ceremony starts. The staging of a new root
+always happens from the `main` branch, **not** from the ceremony
+branch. The GitHub workflow performing this step is
+[initialize.yml](../.github/workflows/initialize.yml). Invoke this
+workflow with the following parameters:
 
 * `branch`: The branch you created for the ceremony, like `ceremony/YYYY-MM-DD`.
 * `revoke_key`: The serial number of a key that should be revoked.

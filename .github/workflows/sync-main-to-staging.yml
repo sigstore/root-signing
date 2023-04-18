@@ -39,7 +39,7 @@ jobs:
           check-latest: true
       - uses: google-github-actions/setup-gcloud@62d4898025f6041e16b1068643bfc5a696863587 # v1.1.0
         with:
-          project_id: project-rekor
+          project_id: projectsigstore-staging
       # Setup OIDC->SA auth
       - uses: google-github-actions/auth@ef5d53e30bbcd8d0836f4288f5e50ff3e086997d # v1.0.0
         id: auth

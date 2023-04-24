@@ -37,9 +37,6 @@ jobs:
         with:
           go-version: '1.20'
           check-latest: true
-      - uses: google-github-actions/setup-gcloud@62d4898025f6041e16b1068643bfc5a696863587 # v1.1.0
-        with:
-          project_id: projectsigstore-staging
       # Setup OIDC->SA auth
       - uses: google-github-actions/auth@e8df18b60c5dd38ba618c121b779307266153fbf # v1.1.0
         id: auth
@@ -48,6 +45,9 @@ jobs:
           workload_identity_provider: 'projects/306323169285/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions-provider'
           service_account: 'github-actions@projectsigstore-staging.iam.gserviceaccount.com'
           create_credentials_file: true
+      - uses: google-github-actions/setup-gcloud@62d4898025f6041e16b1068643bfc5a696863587 # v1.1.0
+        with:
+          project_id: projectsigstore-staging
       - name: Login
         run: |
           gcloud auth login --brief --cred-file="${{ steps.auth.outputs.credentials_file_path }}"

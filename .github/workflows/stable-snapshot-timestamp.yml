@@ -22,7 +22,7 @@ permissions: read-all
 on:
   # Enable cron for re-signing snapshot and timestamp every week
   schedule:
-    - cron: '0 0 */7 * *' # every 7 days
+    - cron: '0 16 * * 1' # every Monday at 9am PST
   # When a new root is staged
   push:
     branches:

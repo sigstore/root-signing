@@ -153,7 +153,7 @@ jobs:
 
       # Open pull request changes. Use the fine-grained PAT in order to trigger presubmits.
       - name: create pull request
-        uses: peter-evans/create-pull-request@5b4a9f6a9e2af26e5f02351490b90d01eb8ec1e5 # v5.0.0
+        uses: peter-evans/create-pull-request@284f54f989303d2699d373481a0cfa13ad5a6666 # v5.0.1
         with:
           commit-message: update root and targets
           title: Update Root and Targets to version ${{ env.VERSION }}

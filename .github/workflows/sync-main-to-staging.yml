@@ -45,7 +45,7 @@ jobs:
           workload_identity_provider: 'projects/306323169285/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions-provider'
           service_account: 'github-actions@projectsigstore-staging.iam.gserviceaccount.com'
           create_credentials_file: true
-      - uses: google-github-actions/setup-gcloud@62d4898025f6041e16b1068643bfc5a696863587 # v1.1.0
+      - uses: google-github-actions/setup-gcloud@e30db14379863a8c79331b04a9969f4c1e225e0b # v1.1.1
         with:
           project_id: projectsigstore-staging
       - name: Login

@@ -151,6 +151,21 @@ jobs:
           set -euo pipefail
           ./.github/workflows/scripts/report-failure.sh
 
+  if-pass:
+    runs-on: ubuntu-latest
+    needs: [snapshot_and_timestamp]
+    permissions:
+      issues: 'write'
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      ISSUE_REPOSITORY: sigstore/root-signing
+    if: always() && needs.snapshot_and_timestamp.result == 'success'
+    steps:
+      - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
+      - run: |
+          set -euo pipefail
+          ./.github/workflows/scripts/report-success.sh
+
   push:
     needs: snapshot_and_timestamp
     runs-on: ubuntu-20.04
@@ -195,3 +210,18 @@ jobs:
       - run: |
           set -euo pipefail
           ./.github/workflows/scripts/report-failure.sh
+
+  if-push-pass:
+    runs-on: ubuntu-latest
+    needs: [push]
+    permissions:
+      issues: 'write'
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      ISSUE_REPOSITORY: sigstore/root-signing
+    if: always() && needs.push.result == 'success'
+    steps:
+      - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
+      - run: |
+          set -euo pipefail
+          ./.github/workflows/scripts/report-success.sh

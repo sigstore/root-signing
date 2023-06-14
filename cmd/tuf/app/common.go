@@ -53,7 +53,7 @@ func GetSigner(ctx context.Context, sk bool, keyRef string) (signature.Signer, e
 	return signer, nil
 }
 
-func GetVerifier(ctx context.Context, keyRef string) (signature.Verifier, error) {
+func GetVerifier(_ context.Context, keyRef string) (signature.Verifier, error) {
 	verifier, err := signature.LoadVerifierFromPEMFile(keyRef, crypto.SHA256)
 
 	return verifier, err

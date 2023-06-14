@@ -149,7 +149,7 @@ func cmdInit(args *docopt.Args, client *tuf.Client) error {
 	return client.Init(bytes)
 }
 
-func cmdList(args *docopt.Args, client *tuf.Client) error {
+func cmdList(_ *docopt.Args, client *tuf.Client) error {
 	if _, err := client.Update(); err != nil {
 		return err
 	}

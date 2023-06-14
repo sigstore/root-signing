@@ -24,7 +24,7 @@ on:
 
 jobs:
   client:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       # Set up a repository server with python
       - uses: actions/setup-python@v4

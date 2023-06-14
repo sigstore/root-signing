@@ -28,7 +28,7 @@ on:
 
 jobs:
   review:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     permissions:
       pull-requests: 'write'
       contents: 'write'

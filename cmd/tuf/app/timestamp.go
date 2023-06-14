@@ -33,8 +33,8 @@ func Timestamp() *ffcli.Command {
 		ShortUsage: "tuf timestamp the top-level metadata in the given repository",
 		ShortHelp:  "tuf timestamp the top-level metadata in the given repository",
 		LongHelp: `tuf timestamp the top-level metadata in the given repository.
-		It adds them to all four top-level roles. 
-		
+		It adds them to all four top-level roles.
+
 	EXAMPLES
 	# timestamp staged repository at ceremony/YYYY-MM-DD
 	tuf timestamp -repository ceremony/YYYY-MM-DD`,
@@ -48,7 +48,7 @@ func Timestamp() *ffcli.Command {
 	}
 }
 
-func TimestampCmd(ctx context.Context, directory string) error {
+func TimestampCmd(_ context.Context, directory string) error {
 	store := tuf.FileSystemStore(directory, nil)
 
 	repo, err := tuf.NewRepoIndent(store, "", "\t", "sha512", "sha256")

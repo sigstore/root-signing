@@ -38,8 +38,8 @@ func Publish() *ffcli.Command {
 		ShortUsage: "tuf publish the top-level metadata in the given repository",
 		ShortHelp:  "tuf publish the top-level metadata in the given repository",
 		LongHelp: `tuf publish the top-level metadata in the given repository.
-		It adds them to all four top-level roles. 
-		
+		It adds them to all four top-level roles.
+
 	EXAMPLES
 	# publish staged repository at ceremony/YYYY-MM-DD
 	tuf publish -repository ceremony/YYYY-MM-DD`,
@@ -53,7 +53,7 @@ func Publish() *ffcli.Command {
 	}
 }
 
-func PublishCmd(ctx context.Context, directory string) error {
+func PublishCmd(_ context.Context, directory string) error {
 	store := tuf.FileSystemStore(directory, nil)
 
 	repo, err := tuf.NewRepoIndent(store, "", "\t", "sha512", "sha256")

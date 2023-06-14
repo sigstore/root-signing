@@ -26,7 +26,7 @@ jobs:
   validate:
     env:
       COSIGN_EXPERIMENTAL: "true"
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       # Install cosign
       - uses: sigstore/cosign-installer@dd6b2e2b610a11fd73dd187a43d57cc1394e35f9 # v3.0.5

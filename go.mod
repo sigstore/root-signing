@@ -9,7 +9,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/sigstore/cosign/v2 v2.0.3-0.20230602182343-f254dcdf16c0
 	github.com/sigstore/sigstore v1.7.0
-	github.com/sigstore/sigstore/pkg/signature/kms/azure v1.6.5
+	github.com/sigstore/sigstore/pkg/signature/kms/azure v1.7.0
 	github.com/sigstore/sigstore/pkg/signature/kms/gcp v1.7.0
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/viper v1.16.0
@@ -20,7 +20,7 @@ require (
 
 require (
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
-	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.6.0 // indirect
+	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.6.1 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.3.0 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/internal v1.3.0 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/keyvault/azkeys v0.10.0 // indirect

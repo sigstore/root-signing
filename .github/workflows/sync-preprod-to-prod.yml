@@ -17,21 +17,21 @@ name: Sync Preprod Repository with GCS Prod Bucket
 
 on:
   schedule:
-    - cron: '0 */12 * * *' # every 12 hours
+    - cron: "0 */12 * * *" # every 12 hours
   workflow_dispatch:
     inputs:
       trigger_sync:
-        description: 'Whether to manually trigger a sync, otherwise only syncs pre-prod to prod with a 2 day delay'
+        description: "Whether to manually trigger a sync, otherwise only syncs pre-prod to prod with a 2 day delay"
         required: false
         default: false
         type: boolean
 
 jobs:
   sync:
-    if: (github.event_name == 'schedule' && github.repository == 'sigstore/root-signing') || (github.event_name != 'schedule')  # Don't run workflow in forks on cron
+    if: (github.event_name == 'schedule' && github.repository == 'sigstore/root-signing') || (github.event_name != 'schedule') # Don't run workflow in forks on cron
     runs-on: ubuntu-latest
     permissions:
-      id-token: 'write'
+      id-token: "write"
     steps:
       - uses: google-github-actions/setup-gcloud@e30db14379863a8c79331b04a9969f4c1e225e0b # v1.1.1
         with:
@@ -40,9 +40,9 @@ jobs:
       - uses: google-github-actions/auth@35b0e87d162680511bf346c299f71c9c5c379033 # v1.1.1
         id: auth
         with:
-          token_format: 'access_token'
-          workload_identity_provider: 'projects/237800849078/locations/global/workloadIdentityPools/root-signing-pool/providers/sigstore-root'
-          service_account: 'sigstore-root-signing@project-rekor.iam.gserviceaccount.com'
+          token_format: "access_token"
+          workload_identity_provider: "projects/237800849078/locations/global/workloadIdentityPools/root-signing-pool/providers/sigstore-root"
+          service_account: "sigstore-root-signing@project-rekor.iam.gserviceaccount.com"
           create_credentials_file: true
       - name: login
         run: |
@@ -110,13 +110,15 @@ jobs:
     runs-on: ubuntu-latest
     needs: [sync]
     permissions:
-      issues: 'write'
+      issues: "write"
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       ISSUE_REPOSITORY: sigstore/root-signing
     if: always() && needs.sync.result == 'failure'
     steps:
       - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
-      - run: |
-          set -euo pipefail
-          ./.github/workflows/scripts/report-failure.sh
+      - name: Trigger create issue
+        uses: sigstore/sigstore-probers/.github/workflows/reusable-create-issue.yml@main
+        with:
+          issue_repository: sigstore/root-signing
+          issue_type: FAILURE

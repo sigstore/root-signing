@@ -21,29 +21,29 @@ on:
       - main
     paths:
       # When any staging repository metadata is changed.
-      - 'staging/repository/**'
+      - "staging/repository/**"
   workflow_dispatch:
 
 jobs:
   sync:
     runs-on: ubuntu-latest
     permissions:
-      id-token: 'write'
+      id-token: "write"
     steps:
       - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
         with:
           fetch-depth: 0
       - uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v4.0.1
         with:
-          go-version: '1.20'
+          go-version: "1.20"
           check-latest: true
       # Setup OIDC->SA auth
       - uses: google-github-actions/auth@35b0e87d162680511bf346c299f71c9c5c379033 # v1.1.1
         id: auth
         with:
-          token_format: 'access_token'
-          workload_identity_provider: 'projects/306323169285/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions-provider'
-          service_account: 'github-actions@projectsigstore-staging.iam.gserviceaccount.com'
+          token_format: "access_token"
+          workload_identity_provider: "projects/306323169285/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions-provider"
+          service_account: "github-actions@projectsigstore-staging.iam.gserviceaccount.com"
           create_credentials_file: true
       - uses: google-github-actions/setup-gcloud@e30db14379863a8c79331b04a9969f4c1e225e0b # v1.1.1
         with:
@@ -97,13 +97,16 @@ jobs:
     runs-on: ubuntu-latest
     needs: [sync]
     permissions:
-      issues: 'write'
+      issues: "write"
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       ISSUE_REPOSITORY: sigstore/root-signing
     if: always() && needs.sync.result == 'failure'
     steps:
       - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
-      - run: |
-          set -euo pipefail
-          ./.github/workflows/scripts/report-failure.sh
+
+      - name: Trigger create issue
+        uses: sigstore/sigstore-probers/.github/workflows/reusable-create-issue.yml@main
+        with:
+          issue_repository: sigstore/root-signing
+          issue_type: FAILURE

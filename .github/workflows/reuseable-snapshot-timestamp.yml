@@ -27,37 +27,37 @@ on:
         required: false
     inputs:
       snapshot_key:
-        description: "Sets the snapshotting key reference"
+        description: 'Sets the snapshotting key reference'
         required: true
         type: string
       timestamp_key:
-        description: "Sets the timestamping key reference"
+        description: 'Sets the timestamping key reference'
         required: true
         type: string
       branch:
-        description: "The branch where the staged repository is, e.g. ceremony/2022-10-18"
+        description: 'The branch where the staged repository is, e.g. ceremony/2022-10-18'
         required: true
         type: string
       repo:
-        description: "Sets the repository to perform the operation on: expects relative path to GitHub repository, for example: repository"
+        description: 'Sets the repository to perform the operation on: expects relative path to GitHub repository, for example: repository'
         required: false
         default: repository
         type: string
       provider:
-        description: "Sets the workflow identity provider"
+        description: 'Sets the workflow identity provider'
         required: true
         type: string
       service_account:
-        description: "Sets the GitHub service account authorized for keys"
+        description: 'Sets the GitHub service account authorized for keys'
         required: true
         type: string
       snapshot_timestamp:
-        description: "Enables snapshot/timestamp step. During ceremonies, you may flip this to false to allow for just a publish step."
+        description: 'Enables snapshot/timestamp step. During ceremonies, you may flip this to false to allow for just a publish step.'
         required: false
         default: true
         type: boolean
       publish:
-        description: "Enables publishing step. During ceremonies, you may flip this to false to allow for reviewing changes before publishing."
+        description: 'Enables publishing step. During ceremonies, you may flip this to false to allow for reviewing changes before publishing.'
         required: false
         default: true
         type: boolean
@@ -66,7 +66,7 @@ jobs:
   snapshot_and_timestamp:
     runs-on: ubuntu-latest
     permissions:
-      id-token: "write"
+      id-token: 'write'
     steps:
       - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
         with:
@@ -83,7 +83,7 @@ jobs:
           echo "LOCAL=1" >> $GITHUB_ENV
       - uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v4.0.1
         with:
-          go-version: "1.20"
+          go-version: '1.20'
           check-latest: true
       - uses: google-github-actions/setup-gcloud@e30db14379863a8c79331b04a9969f4c1e225e0b # v1.1.1
         with:
@@ -92,7 +92,7 @@ jobs:
       - uses: google-github-actions/auth@35b0e87d162680511bf346c299f71c9c5c379033 # v1.1.1
         id: auth
         with:
-          token_format: "access_token"
+          token_format: 'access_token'
           workload_identity_provider: ${{ inputs.provider }}
           service_account: ${{ inputs.service_account }}
           create_credentials_file: true
@@ -140,24 +140,22 @@ jobs:
     runs-on: ubuntu-latest
     needs: [snapshot_and_timestamp]
     permissions:
-      issues: "write"
+      issues: 'write'
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       ISSUE_REPOSITORY: sigstore/root-signing
     if: always() && needs.snapshot_and_timestamp.result == 'failure'
     steps:
       - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
-      - name: Trigger create issue
-        uses: sigstore/sigstore-probers/.github/workflows/reusable-create-issue.yml@main
-        with:
-          issue_repository: sigstore/root-signing
-          issue_type: FAILURE
+      - run: |
+          set -euo pipefail
+          ./.github/workflows/scripts/report-failure.sh
 
   if-pass:
     runs-on: ubuntu-latest
     needs: [snapshot_and_timestamp]
     permissions:
-      issues: "write"
+      issues: 'write'
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       ISSUE_REPOSITORY: sigstore/root-signing
@@ -172,8 +170,8 @@ jobs:
     needs: snapshot_and_timestamp
     runs-on: ubuntu-latest
     permissions:
-      pull-requests: "write"
-      contents: "write"
+      pull-requests: 'write'
+      contents: 'write'
     steps:
       - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
         with:
@@ -202,32 +200,28 @@ jobs:
     runs-on: ubuntu-latest
     needs: [push]
     permissions:
-      issues: "write"
+      issues: 'write'
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       ISSUE_REPOSITORY: sigstore/root-signing
     if: always() && needs.push.result == 'failure'
     steps:
       - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
-      - name: Trigger create issue
-        uses: sigstore/sigstore-probers/.github/workflows/reusable-create-issue.yml@main
-        with:
-          issue_repository: sigstore/root-signing
-          issue_type: FAILURE
+      - run: |
+          set -euo pipefail
+          ./.github/workflows/scripts/report-failure.sh
 
   if-push-pass:
     runs-on: ubuntu-latest
     needs: [push]
     permissions:
-      issues: "write"
+      issues: 'write'
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       ISSUE_REPOSITORY: sigstore/root-signing
     if: always() && needs.push.result == 'success'
     steps:
       - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
-      - name: Trigger create issue
-        uses: sigstore/sigstore-probers/.github/workflows/reusable-create-issue.yml@main
-        with:
-          issue_repository: sigstore/root-signing
-          issue_type: SUCCESS
+      - run: |
+          set -euo pipefail
+          ./.github/workflows/scripts/report-success.sh

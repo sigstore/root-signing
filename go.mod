@@ -7,7 +7,7 @@ require (
 	github.com/google/go-cmp v0.5.9
 	github.com/peterbourgon/ff/v3 v3.3.2
 	github.com/pkg/errors v0.9.1
-	github.com/sigstore/cosign/v2 v2.1.0
+	github.com/sigstore/cosign/v2 v2.1.1
 	github.com/sigstore/sigstore v1.7.1
 	github.com/sigstore/sigstore/pkg/signature/kms/azure v1.7.1
 	github.com/sigstore/sigstore/pkg/signature/kms/gcp v1.7.1

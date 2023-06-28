@@ -147,7 +147,7 @@ jobs:
     if: always() && needs.snapshot_and_timestamp.result == 'failure'
     steps:
       - name: Create issue on failure
-        uses: sigstore/sigstore-probers/.github/actions/create-issue.yml@main
+        uses: sigstore/sigstore-probers/.github/actions/create-issue@main
         with:
           issue_repository: sigstore/root-signing
           issue_type: FAILURE
@@ -163,7 +163,7 @@ jobs:
     if: always() && needs.snapshot_and_timestamp.result == 'success'
     steps:
       - name: Create issue on failure
-        uses: sigstore/sigstore-probers/.github/actions/create-issue.yml@main
+        uses: sigstore/sigstore-probers/.github/actions/create-issue@main
         with:
           issue_repository: sigstore/root-signing
           issue_type: SUCCESS
@@ -209,7 +209,7 @@ jobs:
     if: always() && needs.push.result == 'failure'
     steps:
       - name: Create issue on failure
-        uses: sigstore/sigstore-probers/.github/actions/create-issue.yml@main
+        uses: sigstore/sigstore-probers/.github/actions/create-issue@main
         with:
           issue_repository: sigstore/root-signing
           issue_type: FAILURE
@@ -225,7 +225,7 @@ jobs:
     if: always() && needs.push.result == 'success'
     steps:
       - name: Create issue on failure
-        uses: sigstore/sigstore-probers/.github/actions/create-issue.yml@main
+        uses: sigstore/sigstore-probers/.github/actions/create-issue@main
         with:
           issue_repository: sigstore/root-signing
           issue_type: SUCCESS

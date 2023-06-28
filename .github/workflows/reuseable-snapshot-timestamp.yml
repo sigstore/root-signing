@@ -146,10 +146,11 @@ jobs:
       ISSUE_REPOSITORY: sigstore/root-signing
     if: always() && needs.snapshot_and_timestamp.result == 'failure'
     steps:
-      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
-      - run: |
-          set -euo pipefail
-          ./.github/workflows/scripts/report-failure.sh
+      - name: Create issue on failure
+        uses: sigstore/sigstore-probers/.github/actions/create-issue@main
+        with:
+          issue_repository: sigstore/root-signing
+          issue_type: FAILURE
 
   if-pass:
     runs-on: ubuntu-latest
@@ -161,10 +162,11 @@ jobs:
       ISSUE_REPOSITORY: sigstore/root-signing
     if: always() && needs.snapshot_and_timestamp.result == 'success'
     steps:
-      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
-      - run: |
-          set -euo pipefail
-          ./.github/workflows/scripts/report-success.sh
+      - name: Create issue on failure
+        uses: sigstore/sigstore-probers/.github/actions/create-issue@main
+        with:
+          issue_repository: sigstore/root-signing
+          issue_type: SUCCESS
 
   push:
     needs: snapshot_and_timestamp
@@ -206,10 +208,11 @@ jobs:
       ISSUE_REPOSITORY: sigstore/root-signing
     if: always() && needs.push.result == 'failure'
     steps:
-      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
-      - run: |
-          set -euo pipefail
-          ./.github/workflows/scripts/report-failure.sh
+      - name: Create issue on failure
+        uses: sigstore/sigstore-probers/.github/actions/create-issue@main
+        with:
+          issue_repository: sigstore/root-signing
+          issue_type: FAILURE
 
   if-push-pass:
     runs-on: ubuntu-latest
@@ -221,7 +224,8 @@ jobs:
       ISSUE_REPOSITORY: sigstore/root-signing
     if: always() && needs.push.result == 'success'
     steps:
-      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
-      - run: |
-          set -euo pipefail
-          ./.github/workflows/scripts/report-success.sh
+      - name: Create issue on failure
+        uses: sigstore/sigstore-probers/.github/actions/create-issue@main
+        with:
+          issue_repository: sigstore/root-signing
+          issue_type: SUCCESS

@@ -103,7 +103,8 @@ jobs:
       ISSUE_REPOSITORY: sigstore/root-signing
     if: always() && needs.sync.result == 'failure'
     steps:
-      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
-      - run: |
-          set -euo pipefail
-          ./.github/workflows/scripts/report-failure.sh
+      - name: Create issue on failure
+        uses: sigstore/sigstore-probers/.github/actions/create-issue@main
+        with:
+          issue_repository: sigstore/root-signing
+          issue_type: FAILURE

@@ -51,8 +51,13 @@ on:
         description: 'Sets the GitHub service account authorized for keys'
         required: true
         type: string
-      snapshot_timestamp:
-        description: 'Enables snapshot/timestamp step. During ceremonies, you may flip this to false to allow for just a publish step.'
+      snapshot:
+        description: 'Enables snapshot step. During ceremonies, you may flip this to false to allow for just a publish step.'
+        required: false
+        default: true
+        type: boolean
+      timestamp:
+        description: 'Enables timestamp step. During ceremonies, you may flip this to false to allow for just a publish step.'
         required: false
         default: true
         type: boolean
@@ -107,10 +112,18 @@ jobs:
           sudo apt-get install libpcsclite-dev
           go build -o tuf -tags=pivkey ./cmd/tuf/
 
-      # Snapshot and timestamp
-      - name: snapshot and timestamp
-        if: ${{ inputs.snapshot_timestamp }}
+      # Snapshot
+      - name: snapshot
+        if: ${{ inputs.snapshot }}
         run: |
+          echo "SNAPSHOT=1" >> $GITHUB_ENV
+          ./scripts/step-3.sh
+
+      # Timestamp
+      - name: timestamp
+        if: ${{ inputs.timestamp }}
+        run: |
+          echo "TIMESTAMP=1" >> $GITHUB_ENV
           ./scripts/step-3.sh
 
       # Publish

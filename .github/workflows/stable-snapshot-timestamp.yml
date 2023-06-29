@@ -32,7 +32,7 @@ on:
         default: false
         description: Does not trigger job, but checks on whether the job should run.
       force_snapshot:
-        description: 'Whether to force a snapshot. Useful if workflow is within 7 days of a ceremony'
+        description: 'Whether to force a snapshot. Useful if workflow is within 5 days of a ceremony'
         required: false
         default: false
         type: boolean
@@ -72,9 +72,9 @@ jobs:
               echo "found ceremony branch $branch"
               branch_date=$(echo "${branch}" | cut -d '/' -f3)
               days_diff=$(( ($(date -d "00:00" +%s) - $(date -d "${branch_date}" +%s)) / (24*3600) ))
-              if [[ "$days_diff" -lt 7 ]]; then
-                # Detected ceremony within 7 days of current date
-                echo "detected ceremony branch $branch within 7 days, stopping automated cron"
+              if [[ "$days_diff" -lt 5 ]]; then
+                # Detected ceremony within 5 days of current date
+                echo "detected ceremony branch $branch within 5 days, stopping automated cron"
                 echo "block_snapshot=true" >> "${GITHUB_OUTPUT}"
               fi
             fi

@@ -44,15 +44,14 @@ clean_state
 checkout_branch
 
 # Snapshot and sign the snapshot with snapshot kms key
-if [ -n "$SNAPSHOT" ]; then
+# Skip if only timestamping
+if [ -z "$ONLY_TIMESTAMP" ]; then
     ./tuf snapshot -repository "$REPO"
     ./tuf sign -repository "$REPO" -roles snapshot -key "${SNAPSHOT_KEY}"
 fi
 
 # Timestamp and sign the timestamp with timestamp kms key
-if [ -n "$TIMESTAMP" ]; then
-    ./tuf timestamp -repository "$REPO"
-    ./tuf sign -repository "$REPO" -roles timestamp -key "${TIMESTAMP_KEY}"
-fi
+./tuf timestamp -repository "$REPO"
+./tuf sign -repository "$REPO" -roles timestamp -key "${TIMESTAMP_KEY}"
 
 commit_and_push_changes snapshot-timestamp

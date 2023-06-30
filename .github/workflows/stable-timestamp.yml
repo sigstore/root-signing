@@ -19,17 +19,18 @@ permissions: read-all
 
 # Execute this as a twice a week cron job.
 on:
-  # Enable cron for re-signing timestamp every week
+  # Enable cron for re-signing timestamp every week, mid week. Timestamp is also
+  # regenerated in stable-snapshot-timestamp.yml
   schedule:
-    - cron: '0 16 * * 1,4' # every Monday and Thursday at 9am PST
+    - cron: '0 16 * * 4' # every Thursday at 9am PST
   workflow_dispatch:
     inputs:
       dry_run:
         type: boolean
         default: false
         description: Does not trigger job, but checks on whether the job should run.
-      force_snapshot:
-        description: 'Whether to force a snapshot. Useful if workflow is within 5 days of a ceremony'
+      force_timestamp:
+        description: 'Whether to force a timestamp. Useful if workflow is within 5 days of a ceremony'
         required: false
         default: false
         type: boolean
@@ -39,9 +40,9 @@ jobs:
     # This job checks whether timestamp should run.
     runs-on: ubuntu-latest
     outputs:
-      block_snapshot: ${{ steps.check.outputs.block_snapshot }}
+      block_timestamp: ${{ steps.check.outputs.block_timestamp }}
     env:
-      FORCE_SNAPSHOT: ${{ inputs.force_snapshot }}
+      FORCE_TIMESTAMP: ${{ inputs.force_timestamp }}
     steps:
       - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
         with:
@@ -55,10 +56,10 @@ jobs:
           BRANCHES=$(git for-each-ref --format='%(refname:short)' | grep origin/ceremony/)
           echo "${BRANCHES}"
           # Check whether a ceremony was initiated within a week of the current date.
-          echo "block_snapshot=false" >> "${GITHUB_OUTPUT}"
+          echo "block_timestamp=false" >> "${GITHUB_OUTPUT}"
 
-          # If we force a snapshot, exit early.
-          if [[ "${FORCE_SNAPSHOT}" ]]; then
+          # If we force a timestamp, exit early.
+          if [[ "${FORCE_TIMESTAMP}" ]]; then
             exit
           fi
 
@@ -72,14 +73,14 @@ jobs:
               if [[ "$days_diff" -lt 5 ]]; then
                 # Detected ceremony within 5 days of current date
                 echo "detected ceremony branch $branch within 5 days, stopping automated cron"
-                echo "block_snapshot=true" >> "${GITHUB_OUTPUT}"
+                echo "block_timestamp=true" >> "${GITHUB_OUTPUT}"
               fi
             fi
           done
 
   run_timestamp_publish:
     needs: check
-    if: (github.event_name == 'schedule' && github.repository == 'sigstore/root-signing' && needs.check.outputs.block_snapshot == 'false') || (github.event_name != 'schedule' && inputs.dry_run == false)  # Don't run workflow in forks on cron
+    if: (github.event_name == 'schedule' && github.repository == 'sigstore/root-signing' && needs.check.outputs.block_timestamp == 'false') || (github.event_name != 'schedule' && inputs.dry_run == false)  # Don't run workflow in forks on cron
     permissions:
       id-token: 'write'
       issues: 'write'
@@ -92,6 +93,6 @@ jobs:
       branch: main
       provider: 'projects/163070369698/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions-provider'
       service_account: 'github-actions@sigstore-root-signing.iam.gserviceaccount.com'
-      snapshot: false
+      only_timestamp: true
     secrets:
       token: ${{ secrets.SIGSTORE_ROOT_SIGNING_FINE_GRAINED_PAT }}

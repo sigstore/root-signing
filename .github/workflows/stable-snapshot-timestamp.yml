@@ -17,8 +17,12 @@ name: Stable Snapshot and Timestamp
 
 permissions: read-all
 
-# Execute this on changes to repository/ when new published metadata is submitted.
+# Execute this as a weekly cron job and on changes to repository/
+# when new published metadata is submitted.
 on:
+  # Enable cron for re-signing snapshot and timestamp every week
+  schedule:
+    - cron: '0 16 * * 1' # every Monday at 9am PST
   # When a new root is staged
   push:
     branches:

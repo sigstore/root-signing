@@ -31,7 +31,7 @@ if [ -z "$TIMESTAMP_KEY" ]; then
     echo "Set TIMESTAMP_KEY"
     exit
 fi
-if [ -z "$SNAPSHOT_KEY" ]; then
+if [ -z "$DISABLE_SNAPSHOT" ] && [ -z "$SNAPSHOT_KEY" ]; then
     echo "Set SNAPSHOT_KEY"
     exit
 fi

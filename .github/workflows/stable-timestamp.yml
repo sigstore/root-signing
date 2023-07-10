@@ -17,7 +17,7 @@ name: Stable Timestamp
 
 permissions: read-all
 
-# Execute this as a twice a week cron job.
+# Execute this as a once a week cron job (in addition to stable-snapshot-timestamp)
 on:
   # Enable cron for re-signing timestamp every week, mid week. Timestamp is also
   # regenerated in stable-snapshot-timestamp.yml
@@ -93,6 +93,6 @@ jobs:
       branch: main
       provider: 'projects/163070369698/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions-provider'
       service_account: 'github-actions@sigstore-root-signing.iam.gserviceaccount.com'
-      only_timestamp: true
+      disable_snapshot: true
     secrets:
       token: ${{ secrets.SIGSTORE_ROOT_SIGNING_FINE_GRAINED_PAT }}

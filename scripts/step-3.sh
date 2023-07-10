@@ -44,8 +44,11 @@ clean_state
 checkout_branch
 
 # Snapshot and sign the snapshot with snapshot kms key
-./tuf snapshot -repository "$REPO"
-./tuf sign -repository "$REPO" -roles snapshot -key "${SNAPSHOT_KEY}"
+# Skip if only timestamping
+if [ -z "$DISABLE_SNAPSHOT" ]; then
+    ./tuf snapshot -repository "$REPO"
+    ./tuf sign -repository "$REPO" -roles snapshot -key "${SNAPSHOT_KEY}"
+fi
 
 # Timestamp and sign the timestamp with timestamp kms key
 ./tuf timestamp -repository "$REPO"

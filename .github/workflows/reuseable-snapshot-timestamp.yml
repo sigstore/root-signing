@@ -56,6 +56,11 @@ on:
         required: false
         default: true
         type: boolean
+      disable_snapshot:
+        description: 'Disables snapshot and only generates timestamp.'
+        required: false
+        default: false
+        type: boolean
       publish:
         description: 'Enables publishing step. During ceremonies, you may flip this to false to allow for reviewing changes before publishing.'
         required: false
@@ -106,6 +111,11 @@ jobs:
         run: |
           sudo apt-get install libpcsclite-dev
           go build -o tuf -tags=pivkey ./cmd/tuf/
+
+      - name: setup timestamping
+        if: ${{ inputs.disable_snapshot }}
+        run: |
+          echo "DISABLE_SNAPSHOT=1" >> $GITHUB_ENV
 
       # Snapshot and timestamp
       - name: snapshot and timestamp

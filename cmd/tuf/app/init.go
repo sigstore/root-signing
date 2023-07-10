@@ -48,7 +48,7 @@ var RoleExpiration = map[string][]int{
 	"root":      {0, 6, 0},
 	"targets":   {0, 6, 0},
 	"snapshot":  {0, 0, 21},
-	"timestamp": {0, 0, 14},
+	"timestamp": {0, 0, 7},
 }
 
 func GetExpiration(role string) time.Time {

@@ -13,47 +13,41 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: Stable Snapshot and Timestamp
+name: Stable Timestamp
 
 permissions: read-all
 
-# Execute this as a weekly cron job and on changes to repository/
-# when new published metadata is submitted.
+# Execute this as a once a week cron job (in addition to stable-snapshot-timestamp)
 on:
-  # Enable cron for re-signing snapshot and timestamp every week
+  # Enable cron for re-signing timestamp every week, mid week. Timestamp is also
+  # regenerated in stable-snapshot-timestamp.yml
   schedule:
-    - cron: '0 16 * * 1' # every Monday at 9am PST
-  # When a new root is staged
-  push:
-    branches:
-      - main
-    paths:
-      - 'repository/staged/root.json'
+    - cron: '0 16 * * 4' # every Thursday at 9am PST
   workflow_dispatch:
     inputs:
       dry_run:
         type: boolean
         default: false
         description: Does not trigger job, but checks on whether the job should run.
-      force_snapshot:
-        description: 'Whether to force a snapshot. Useful if workflow is within 5 days of a ceremony'
+      force_timestamp:
+        description: 'Whether to force a timestamp. Useful if workflow is within 5 days of a ceremony'
         required: false
         default: false
         type: boolean
 
 jobs:
   check:
-    # This job checks whether snapshot/timestamp should run.
+    # This job checks whether timestamp should run.
     runs-on: ubuntu-latest
     outputs:
-      block_snapshot: ${{ steps.check.outputs.block_snapshot }}
+      block_timestamp: ${{ steps.check.outputs.block_timestamp }}
     env:
-      FORCE_SNAPSHOT: ${{ inputs.force_snapshot }}
+      FORCE_TIMESTAMP: ${{ inputs.force_timestamp }}
     steps:
       - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
         with:
           fetch-depth: 0
-      - name: Determine whether to run a snapshot/timestamp
+      - name: Determine whether to create a timestamp
         id: check
         shell: bash
         run: |
@@ -62,10 +56,10 @@ jobs:
           BRANCHES=$(git for-each-ref --format='%(refname:short)' | grep origin/ceremony/)
           echo "${BRANCHES}"
           # Check whether a ceremony was initiated within a week of the current date.
-          echo "block_snapshot=false" >> "${GITHUB_OUTPUT}"
+          echo "block_timestamp=false" >> "${GITHUB_OUTPUT}"
 
-          # If we force a snapshot, exit early.
-          if [[ "${FORCE_SNAPSHOT}" ]]; then
+          # If we force a timestamp, exit early.
+          if [[ "${FORCE_TIMESTAMP}" ]]; then
             exit
           fi
 
@@ -79,14 +73,14 @@ jobs:
               if [[ "$days_diff" -lt 5 ]]; then
                 # Detected ceremony within 5 days of current date
                 echo "detected ceremony branch $branch within 5 days, stopping automated cron"
-                echo "block_snapshot=true" >> "${GITHUB_OUTPUT}"
+                echo "block_timestamp=true" >> "${GITHUB_OUTPUT}"
               fi
             fi
           done
 
-  run_snapshot_timestamp_publish:
+  run_timestamp_publish:
     needs: check
-    if: (github.event_name == 'schedule' && github.repository == 'sigstore/root-signing' && needs.check.outputs.block_snapshot == 'false') || (github.event_name != 'schedule' && inputs.dry_run == false)  # Don't run workflow in forks on cron
+    if: (github.event_name == 'schedule' && github.repository == 'sigstore/root-signing' && needs.check.outputs.block_timestamp == 'false') || (github.event_name != 'schedule' && inputs.dry_run == false)  # Don't run workflow in forks on cron
     permissions:
       id-token: 'write'
       issues: 'write'
@@ -94,11 +88,11 @@ jobs:
       contents: 'write'
     uses: sigstore/root-signing/.github/workflows/reuseable-snapshot-timestamp.yml@main
     with:
-      snapshot_key: 'gcpkms://projects/sigstore-root-signing/locations/global/keyRings/root/cryptoKeys/snapshot'
       timestamp_key: 'gcpkms://projects/sigstore-root-signing/locations/global/keyRings/root/cryptoKeys/timestamp'
       repo: 'repository/'
       branch: main
       provider: 'projects/163070369698/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions-provider'
       service_account: 'github-actions@sigstore-root-signing.iam.gserviceaccount.com'
+      disable_snapshot: true
     secrets:
       token: ${{ secrets.SIGSTORE_ROOT_SIGNING_FINE_GRAINED_PAT }}

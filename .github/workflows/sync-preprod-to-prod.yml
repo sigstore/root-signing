@@ -17,7 +17,7 @@ name: Sync Preprod Repository with GCS Prod Bucket
 
 on:
   schedule:
-    - cron: '0 */12 * * *' # every 12 hours
+    - cron: '0 */6 * * *' # every 6 hours
   workflow_dispatch:
     inputs:
       trigger_sync:
@@ -72,9 +72,9 @@ jobs:
           tsMetaProd=$(gcloud storage ls --json gs://sigstore-tuf-root/timestamp.json | jq .[0].metadata)
           md5HashProd=$(echo $tsMetaProd | jq -r .md5Hash)
 
-          # if less than 2 days since updates were published to preprod, do not update
+          # if less than 1 day since updates were published to preprod, do not update
           daysDiff=$(difference $timeCreatedPreprod)
-          if (($daysDiff < 2)); then
+          if (($daysDiff < 1)); then
             exit 0
           fi
           # exit early if already updated

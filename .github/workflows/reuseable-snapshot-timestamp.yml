@@ -28,7 +28,7 @@ on:
     inputs:
       snapshot_key:
         description: 'Sets the snapshotting key reference'
-        required: true
+        required: false
         type: string
       timestamp_key:
         description: 'Sets the timestamping key reference'

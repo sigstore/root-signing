@@ -17,13 +17,11 @@ name: Review Snapshot and Timestamp
 
 permissions: read-all
 
-# Execute this as a biweekly cron job and on changes to repository/
-# when new published metadata is submitted.
 on:
   # Enable cron for checking if a snapshot/timestamp PR needs review
-  # every 6 hours and attempts to merge.
+  # every 2 hours and attempts to merge.
   schedule:
-    - cron: '0 */6 * * *' # every 6 hours
+    - cron: '0 */2 * * *' # every 2 hours
   workflow_dispatch:
 
 jobs:

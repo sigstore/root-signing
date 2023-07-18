@@ -3,7 +3,7 @@ project_name: root-signing
 env:
   - GO111MODULE=on
   - CGO_ENABLED=0
-  - COSIGN_EXPERIMENTAL=true
+  - COSIGN_YES=true
 
 # Prevents parallel builds from stepping on eachothers toes downloading modules
 before:

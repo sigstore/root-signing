@@ -25,6 +25,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -299,7 +300,12 @@ var repositoryCmd = &cobra.Command{
 		if expiration != "" {
 			parsedTime, err := time.Parse("2006/01/02", expiration)
 			if err != nil {
-				return fmt.Errorf("must specify a valid time, got %s", expiration)
+				// try as Unix timestamp
+				ts, err := strconv.ParseInt(expiration, 10, 64)
+				if err != nil {
+					return fmt.Errorf("must specify a valid time, got %s", expiration)
+				}
+				parsedTime = time.Unix(ts, 0)
 			}
 			validUntil = &parsedTime
 		}
@@ -325,7 +331,7 @@ func init() {
 	repositoryCmd.Flags().StringVar(&repository, "repository", "repository/", "path to repository, may be HTTP or local file")
 	repositoryCmd.Flags().BoolVar(&staged, "staged", false, "indicates whether the repository is staged and should only be partially verified")
 	repositoryCmd.Flags().Var(&root, "root", "path to a trusted root, required unless verifying staged metadata")
-	repositoryCmd.Flags().StringVar(&expiration, "valid-until", "", "a time for metadata to be valid until e.g. 2022/02/22")
+	repositoryCmd.Flags().StringVar(&expiration, "valid-until", "", "a time for metadata to be valid until e.g. 2022/02/22 or Unix timestamp")
 	repositoryCmd.Flags().StringSliceVar(&targets, "targets", nil, "comma-separated targets to verify")
 
 	_ = repositoryCmd.MarkFlagRequired("repository")
@@ -422,7 +428,7 @@ func VerifyCmd(staged bool, repository string, rootFile string,
 				continue
 			}
 			if sm.Expires.Before(*validUntil) {
-				return fmt.Errorf("error: %s will expire on %s", role, sm.Expires.Format("2006/01/02"))
+				return fmt.Errorf("error: %s will expire on %s", role, sm.Expires.Format(time.DateTime))
 			}
 		}
 	}

@@ -17,11 +17,11 @@ name: Sync Preprod Repository with GCS Prod Bucket
 
 on:
   schedule:
-    - cron: '0 */6 * * *' # every 6 hours
+    - cron: '0 */1 * * *' # every 1 hour
   workflow_dispatch:
     inputs:
       trigger_sync:
-        description: 'Whether to manually trigger a sync, otherwise only syncs pre-prod to prod with a 2 day delay'
+        description: 'Whether to manually trigger a sync, otherwise pre-prod to prod syncs with a 1 day delay'
         required: false
         default: false
         type: boolean

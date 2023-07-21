@@ -5,7 +5,7 @@ go 1.20
 require (
 	github.com/go-piv/piv-go v1.11.0
 	github.com/google/go-cmp v0.5.9
-	github.com/peterbourgon/ff/v3 v3.3.2
+	github.com/peterbourgon/ff/v3 v3.4.0
 	github.com/pkg/errors v0.9.1
 	github.com/sigstore/cosign/v2 v2.1.1
 	github.com/sigstore/sigstore v1.7.1

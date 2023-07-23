@@ -11,10 +11,10 @@ with the metadata, using a Cloud KMS key to sign the metadata. There is also a w
 timestamp metadata midweek.
 
 After being approved and merged, the metadata is [synced](../.github/workflows/sync-main-to-preprod.yml)
-to a preproduction GCS bucket. Probers run against the bucket to (Repo only visible to Sigstore infrastructure developers):
+to a preproduction GCS bucket. Probers run against the bucket to:
 
-* Verify an artifact using the production TUF repository [here](https://github.com/sigstore/public-good-instance/blob/main/.github/workflows/reusable-prober.yml#L220-L249)
-* Verify the repository and the expiration of the metadata [here](https://github.com/sigstore/public-good-instance/blob/main/.github/workflows/reusable-prober.yml#L134-L156)
+* Verify an artifact using the production TUF repository [here](https://github.com/sigstore/sigstore-probers/blob/main/.github/workflows/reusable-prober.yml#L245-L304)
+* Verify the repository and the expiration of the metadata [here](https://github.com/sigstore/sigstore-probers/blob/main/.github/workflows/reusable-prober.yml#L106-L170)
 
 Note the staging environment refers to the `sigstage.dev` environment, not the preproduction environment.
 
@@ -42,10 +42,10 @@ Note: You will need maintainer permissions to run the workflow.
 After manually creating new metadata, if the timestamp is nearing expiration (<= 3 days), then you will need to manually sync preproduction and production.
 Otherwise, the timestamp in the production bucket will expire before preproduction is synced.
 
-After merging the PR, check that the [sync](https://github.com/sigstore/root-signing/actions/workflows/sync.yml) to preproduction has finished.
+After merging the PR, check that the [sync of the main branch to preprod](https://github.com/sigstore/root-signing/actions/workflows/sync-main-to-preprod.yml) has finished.
 Wait until the preproduction probers are healthy.
 
-After that is done, manually run the [sync preprod to prod](https://github.com/sigstore/root-signing/actions/workflows/sync_to_prod.yml)
+After that is done, manually run the [sync preprod to prod](https://github.com/sigstore/root-signing/actions/workflows/sync-preprod-to-prod.yml)
 GHA:
 
 * Select "Run workflow"

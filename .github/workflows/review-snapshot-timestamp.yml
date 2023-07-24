@@ -21,7 +21,7 @@ on:
   # Enable cron for checking if a snapshot/timestamp PR needs review
   # every 2 hours and attempts to merge.
   schedule:
-    - cron: '0 */2 * * *' # every 2 hours
+    - cron: '30 */2 * * *' # every 2 hours
   workflow_dispatch:
 
 jobs:

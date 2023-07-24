@@ -19,10 +19,10 @@ permissions: read-all
 
 # Execute this as a once a week cron job (in addition to stable-snapshot-timestamp)
 on:
-  # Enable cron for re-signing timestamp every week, mid week. Timestamp is also
+  # Enable cron for re-signing timestamp every week. Timestamp is also
   # regenerated in stable-snapshot-timestamp.yml
   schedule:
-    - cron: '0 16 * * 4' # every Thursday at 9am PST
+    - cron: '0 16 * * 5' # every Friday at 9am PST
   workflow_dispatch:
     inputs:
       dry_run:

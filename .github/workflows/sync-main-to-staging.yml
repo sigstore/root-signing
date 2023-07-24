@@ -64,7 +64,7 @@ jobs:
                   exit 1
               fi;
           }
-          
+
           # TODO: Remove, testing action
           exit 1
 

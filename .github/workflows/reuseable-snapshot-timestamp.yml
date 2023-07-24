@@ -196,7 +196,20 @@ jobs:
           git apply --verbose snapshot-timestamp/*
           rm -r snapshot-timestamp
       # Open pull request changes
-      - name: create pull request
+      - name: create pull request for no snapshot
+        if: ${{ inputs.disable_snapshot }}
+        uses: peter-evans/create-pull-request@153407881ec5c347639a548ade7d8ad1d6740e38 # v5.0.2
+        with:
+          commit-message: update timestamp
+          title: Update Timestamp
+          body: Sign timestamp file
+          branch: update-snapshot-timestamp
+          signoff: true
+          reviewers: asraa,bcallaway,haydentherapper,joshuagl
+          token: ${{ secrets.token || secrets.GITHUB_TOKEN }}
+          base: ${{ inputs.branch }}
+      - name: create pull request for timestamp/snapshot
+        if: ${{ !inputs.disable_snapshot }}
         uses: peter-evans/create-pull-request@153407881ec5c347639a548ade7d8ad1d6740e38 # v5.0.2
         with:
           commit-message: update snapshot and timestamp
@@ -204,7 +217,7 @@ jobs:
           body: Sign snapshot and timestamp files
           branch: update-snapshot-timestamp
           signoff: true
-          reviewers: asraa,dlorenc,haydentherapper,joshuagl
+          reviewers: asraa,bcallaway,haydentherapper,joshuagl
           token: ${{ secrets.token || secrets.GITHUB_TOKEN }}
           base: ${{ inputs.branch }}
 

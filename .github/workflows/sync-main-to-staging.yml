@@ -64,6 +64,9 @@ jobs:
                   exit 1
               fi;
           }
+          
+          # TODO: Remove, testing action
+          exit 1
 
           # Upload all but TUF timestamp. Once timestamp is uploaded, all other files must have been uploaded.
           for f in $(ls staging/repository/ -I *timestamp.json)

@@ -26,8 +26,10 @@ timestamp_update() {
 UPDATE_PR=$(timestamp_update)
 if [[ -n "${UPDATE_PR}" ]]; then
     PULL_NUMBER=$(echo "${UPDATE_PR}" | jq -r '.number')
+    TITLE=$(echo "${UPDATE_PR}" | jq -r '.title')
     echo "pull request found: "
     echo "${PULL_NUMBER}"
+    echo "${TITLE}"
 
     # Approve PR
     curl \
@@ -59,7 +61,7 @@ if [[ -n "${UPDATE_PR}" ]]; then
     --method PUT \
     -H "Accept: application/vnd.github+json" \
     /repos/"${GITHUB_REPOSITORY}"/pulls/"${PULL_NUMBER}"/merge \
-    -f commit_title="Update Snapshot and Timestamp (#${PULL_NUMBER})" \
+    -f commit_title="${TITLE} (#${PULL_NUMBER})" \
     -f commit_message="Signed-off-by: ${LOGIN} <${LOGIN}@users.noreply.github.com>" \
     -f merge_method='squash'
 

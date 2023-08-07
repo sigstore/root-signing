@@ -16,8 +16,6 @@
 name: Sync Preprod Repository with GCS Prod Bucket
 
 on:
-  schedule:
-    - cron: '0 */1 * * *' # every 1 hour
   workflow_dispatch:
     inputs:
       trigger_sync:

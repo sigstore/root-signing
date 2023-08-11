@@ -102,7 +102,8 @@ func EcdsaTufKey(pub *ecdsa.PublicKey) (*data.PublicKey, error) {
 		return nil, err
 	}
 	return &data.PublicKey{
-		Type:       data.KeyTypeECDSA_SHA2_P256,
+		// TODO: Update to new format for next key signing
+		Type:       data.KeyTypeECDSA_SHA2_P256_OLD_FMT,
 		Scheme:     data.KeySchemeECDSA_SHA2_P256,
 		Algorithms: data.HashAlgorithms,
 		Value:      keyValBytes,

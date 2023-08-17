@@ -54,7 +54,7 @@ fi
 
 # Setup the root and targets
 ./tuf init -repository "$REPO" \
-    -targets "$(pwd)"/targets -target-meta config/"${TARGET_META:-targets-metadata.yml}" \
+    -targets "${TARGET_DIR:-$(pwd)/targets}" -target-meta config/"${TARGET_META:-targets-metadata.yml}" \
     -snapshot "${SNAPSHOT_KEY}" -timestamp "${TIMESTAMP_KEY}"
 
 commit_and_push_changes setup-root

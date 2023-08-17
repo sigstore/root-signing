@@ -242,13 +242,15 @@ Submitting this PR will trigger a push to the preproduction GCS bucket, so ensur
 
 ## Post-ceremony Steps
 
-1. If any root keyholders have changed, update the [current root keyholders](https://github.com/sigstore/root-signing#current-sigstore-root-keyholders) with their name, key ID, and location of their key material.
+1. The preproduction GCS bucket will need to be manually synced to the GCS production bucket as of [916](https://github.com/sigstore/root-signing/pull/916).
 
-2. If any targets have changed, update them and their usage in the table containing the [repository structure](https://github.com/sigstore/root-signing#tuf-repository-structure).
+2. If any root keyholders have changed, update the [current root keyholders](https://github.com/sigstore/root-signing#current-sigstore-root-keyholders) with their name, key ID, and location of their key material.
 
-3. Announce the root rotation on twitter and the community meeting, and thank the keyholders!
+3. If any targets have changed, update them and their usage in the table containing the [repository structure](https://github.com/sigstore/root-signing#tuf-repository-structure).
 
-4. Schedule the next root signing event one month before expiration on the calendar. Check [here](https://github.com/sigstore/root-signing/blob/e3f1fe5e487984f525afc81ac77fa5ce39737d0f/cmd/tuf/app/init.go#L29) for root expiration. Schedule a testing event for the week before.
+4. Announce the root rotation on twitter and the community meeting, and thank the keyholders!
+
+5. Schedule the next root signing event one month before expiration on the calendar. Check [here](https://github.com/sigstore/root-signing/blob/e3f1fe5e487984f525afc81ac77fa5ce39737d0f/cmd/tuf/app/init.go#L29) for root expiration. Schedule a testing event for the week before.
 
 ### Other
 

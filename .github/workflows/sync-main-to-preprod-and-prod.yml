@@ -13,16 +13,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: Sync Repository with GCS Preprod Bucket
+# This sync will execute when any combination of the following files,
+# and no other files, are changed on the main branch:
+# - timestamp.json
+# - snapshot.json
+# - [0-9]+.snapshot.json
+# Under this condition, all files from the repository/repository directory
+# on the main branch will sync to both preprod and prod.
 
-# Execute this on changes to repository/repository/
+name: Sync Repository Main Branch with both GCS Preprod and Prod Buckets
+
 on:
   push:
     branches:
       - main
     paths:
-      # When any repository metadata is changed.
-      - 'repository/repository/**'
+      # When timestamp or snapshot files are changed.
+      # Note: the sync job below uses a diff to ensure ONLY these files are changed
+      # prior to syncing.
+      - 'repository/repository/timestamp.json'
+      - 'repository/repository/snapshot.json'
+      - 'repository/repository/[0-9]+.snapshot.json'
   workflow_dispatch:
 
 jobs:
@@ -66,6 +77,32 @@ jobs:
               fi;
           }
 
+          # Checks whether a filename matches timestamp.json, snapshot.json, or [0-9]+.snapshot.json. If not,
+          # this workflow will exit as we only want to run it when ONLY these files are changed.
+          # TODO it may be good to check whether the [0-9]+.snapshot.json is the next one chronologically
+          check_filename() {
+              if [[ $1 != "timestamp.json" && $1 != "snapshot.json" && !($1 =~ ^[0-9]+\.snapshot.json$) ]]; then
+                  echo "Sync main to preprod and prod workflow: Files other than timestamp and snapshot were updated in main branch, including file: $1. Not syncing, exiting."
+                  exit 0
+              fi;
+          }
+
+          # Download bucket metadata
+          gcloud --quiet storage cp -r gs://sigstore-tuf-root/ .
+
+          # Diff main and prod to determine whether ONLY the timestamp and snapshot files have changed in main.
+          # If other files have also changed, exit - in this case, the sync should be to preprod only.
+          # NOTE other non-timestamp/snapshot changes should only occur during a ceremony, and
+          # will go through the sync-ceremony-* flow that hits main and preprod. This means there should never
+          # be changed files in prod that have not also hit the main branch.
+          # NOTE We deliberately diff only with prod to avoid a scenario in which the ceremony branch's sync to
+          # main and preprod kicks off this workflow, in which case the lack of diff between main and preprod
+          # could trigger this workflow to auto sync to prod.
+          #
+          # TODO this does not check whether the updates are in main or in prod, only that files differ. We could
+          # make this more exact later to check that the updates are in main (anything else is unexpected).
+          diff -qr repository/repository sigstore-tuf-root | grep -Po '([0-9\.]*\w+[\.\w+]*(?= differ))|((Only in \w+\: )\K(.*))' | while read l; do check_filename $l; done
+
           # Upload all but TUF timestamp. Once timestamp is uploaded, all other files must have been uploaded.
           for f in $(ls repository/repository/ -I *timestamp.json)
           do
@@ -78,21 +115,16 @@ jobs:
             fi;
 
             gcloud --quiet storage cp --cache-control=no-store -r repository/repository/$f gs://sigstore-preprod-tuf-root/
+            gcloud --quiet storage cp --cache-control=no-store -r repository/repository/$f gs://sigstore-tuf-root/
           done
 
           # Upload timestamp after checking latest timestamp expiration
           check_expiration repository/repository/timestamp.json
           gcloud --quiet storage cp --cache-control=no-store -r repository/repository/*timestamp.json gs://sigstore-preprod-tuf-root/
+          gcloud --quiet storage cp --cache-control=no-store -r repository/repository/*timestamp.json gs://sigstore-tuf-root/
 
-          # delete any files present in sigstore-preprod-tuf-root not in repository/repository
-          gcloud --quiet storage cp -r gs://sigstore-preprod-tuf-root/ .
-
-          diff -qr repository/repository sigstore-preprod-tuf-root | while read l; do
-            if [[ $l =~ "Only in sigstore-preprod-tuf-root" ]]; then
-              path=$(python3 -c "import re; s='$l'; pattern=r'^Only in sigstore-preprod-tuf-root(\/?)(.*): (.*)$'; match=re.search(pattern, s); print('/'.join([match.group(2), match.group(3)]).lstrip('/'))")
-              gcloud --quiet storage rm gs://sigstore-preprod-tuf-root/$path
-            fi;
-          done
+          # NOTE as this workflow runs only when timestamp or snapshot files are added or updated, there should not
+          # be a scenario where files that are removed from main must be synced to (removed from) preprod/prod.
 
   if-failed:
     runs-on: ubuntu-latest

@@ -17,12 +17,6 @@ name: Sync Preprod Repository with GCS Prod Bucket
 
 on:
   workflow_dispatch:
-    inputs:
-      trigger_sync:
-        description: 'Whether to manually trigger a sync, otherwise pre-prod to prod syncs with a 1 day delay'
-        required: false
-        default: false
-        type: boolean
 
 jobs:
   sync:
@@ -47,41 +41,7 @@ jobs:
           gcloud auth login --brief --cred-file="${{ steps.auth.outputs.credentials_file_path }}"
           gcloud auth list
 
-      - name: Install tools
-        run: |
-          sudo apt-get install -y jq
-      - name: check sync conditions
-        run: |
-          # Determine whether a sync is necessary
-          difference() {
-            input_date=$(date -d $1 +%s)
-            now=$(date +%s)
-            echo $(( ($now - $input_date) / 86400 ))
-          }
-
-          # fetch creation time and hash for timestamp in preprod
-          # timestamp is always updated on a sync, either from the weekly updates or the signing ceremony
-          tsMetaPreprod=$(gcloud storage ls --json gs://sigstore-preprod-tuf-root/timestamp.json | jq .[0].metadata)
-          timeCreatedPreprod=$(echo $tsMetaPreprod | jq -r .timeCreated)
-          md5HashPreprod=$(echo $tsMetaPreprod | jq -r .md5Hash)
-
-          # fetch hash for timestamp in prod
-          tsMetaProd=$(gcloud storage ls --json gs://sigstore-tuf-root/timestamp.json | jq .[0].metadata)
-          md5HashProd=$(echo $tsMetaProd | jq -r .md5Hash)
-
-          # if less than 1 day since updates were published to preprod, do not update
-          daysDiff=$(difference $timeCreatedPreprod)
-          if (($daysDiff < 1)); then
-            exit 0
-          fi
-          # exit early if already updated
-          if [[ "$md5HashPreprod" == "$md5HashProd" ]]; then
-            exit 0
-          fi
-          # otherwise, indicate that a sync is needed
-          echo "trigger_sync=true" >> ${GITHUB_ENV}
       - name: sync
-        if: ${{ github.event.inputs.trigger_sync || env.trigger_sync == 'true' }}
         run: |
           # download preprod bucket and copy over to production bucket
           gcloud --quiet storage cp -r gs://sigstore-preprod-tuf-root/ .

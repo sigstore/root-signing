@@ -55,11 +55,10 @@ jobs:
           go run ./tests/client-tests list http://localhost:8001
       # Test with rust client
       - name: Install tuftool
-        uses: actions-rs/install@9da1d2adcfe5e7c16992e8242ca33a56b6d9b101 # v0.1.2
+        uses: baptiste0928/cargo-install@30f432979e99f3ea66a8fa2eede53c07063995d8 # v2.1.0
         with:
           crate: tuftool
-          version: "0.8.1"
-          use-tool-cache: true
+          version: "0.10.0"
       - run: |
           tuftool download out \
             --root repository/repository/2.root.json \

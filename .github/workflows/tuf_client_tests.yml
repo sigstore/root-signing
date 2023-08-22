@@ -59,6 +59,7 @@ jobs:
         with:
           crate: tuftool
           version: "0.8.1"
+          use-tool-cache: true
       - run: |
           tuftool download out \
             --root repository/repository/2.root.json \

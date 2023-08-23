@@ -54,11 +54,18 @@ jobs:
           go run ./tests/client-tests init http://localhost:8001 repository/repository/1.root.json
           go run ./tests/client-tests list http://localhost:8001
       # Test with rust client
-      - name: Install tuftool
-        uses: baptiste0928/cargo-install@30f432979e99f3ea66a8fa2eede53c07063995d8 # v2.1.0
+      - name: Configure cargo cache
+        uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8
         with:
-          crate: tuftool
-          version: "0.10.0"
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+          key: ${{ runner.os }}-cargo-tuftool
+      - name: Install tuftool
+        run: |
+          cargo install tuftool --version "0.10.0"
       - run: |
           tuftool download out \
             --root repository/repository/2.root.json \

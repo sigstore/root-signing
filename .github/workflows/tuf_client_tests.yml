@@ -57,16 +57,16 @@ jobs:
       - name: Configure cargo cache
         uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8
         with:
+          # NOTE: ~/.cargo/bin intentionally not cached here;
+          # we always rebuild the top-level binary.
           path: |
-            ~/.cargo/bin/
             ~/.cargo/registry/index/
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
           key: ${{ runner.os }}-cargo-tuftool
       - name: Install tuftool
         run: |
-          # On cache hit above we'll already have tuftool installed.
-          type -p tuftool || cargo install tuftool --version "0.10.0"
+          cargo install tuftool --version "0.10.0"
       - run: |
           tuftool download out \
             --root repository/repository/2.root.json \

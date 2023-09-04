@@ -10,7 +10,7 @@ require (
 	github.com/sigstore/cosign/v2 v2.2.0
 	github.com/sigstore/sigstore v1.7.2
 	github.com/sigstore/sigstore/pkg/signature/kms/azure v1.7.3
-	github.com/sigstore/sigstore/pkg/signature/kms/gcp v1.7.2
+	github.com/sigstore/sigstore/pkg/signature/kms/gcp v1.7.3
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/viper v1.16.0
 	github.com/tent/canonical-json-go v0.0.0-20130607151641-96e4ba3a7613

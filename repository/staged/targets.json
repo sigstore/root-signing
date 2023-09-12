@@ -3,7 +3,7 @@
 		"_type": "targets",
 		"spec_version": "1.0",
 		"version": 8,
-		"expires": "2024-03-12T13:22:55Z",
+		"expires": "2024-03-12T15:34:35Z",
 		"targets": {
 			"artifact.pub": {
 				"length": 177,
@@ -109,6 +109,34 @@
 					"sha512": "fdebade075c4840d40f1806a14d0660ae1d22f47c0516abc4141e09f4ddf6ee6f4dbfbf08a7025bea10a4b8794658a4cd8ebb1024b963f239a9bfe02c2057fc6"
 				}
 			}
+		},
+		"delegations": {
+			"keys": {
+				"a89d235ee2f298d757438c7473b11b0b7b42ff1a45f1dfaac4c014183d6f8c45": {
+					"keytype": "ecdsa-sha2-nistp256",
+					"scheme": "ecdsa-sha2-nistp256",
+					"keyid_hash_algorithms": [
+						"sha256",
+						"sha512"
+					],
+					"keyval": {
+						"public": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEoLrh0jmOfHWLwsyo/4oGbldF91WV\nfXvxVlDhW8fZwP/3vTnliBkDp5sH8/Dpm1SBOHkqENVt1+4Un/sFtl2zAQ==\n-----END PUBLIC KEY-----\n"
+					}
+				}
+			},
+			"roles": [
+				{
+					"name": "registry.npmjs.org",
+					"keyids": [
+						"a89d235ee2f298d757438c7473b11b0b7b42ff1a45f1dfaac4c014183d6f8c45"
+					],
+					"threshold": 1,
+					"terminating": true,
+					"paths": [
+						"registry.npmjs.org/*"
+					]
+				}
+			]
 		}
 	},
 	"signatures": [

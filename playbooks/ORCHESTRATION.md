@@ -293,7 +293,7 @@ This will modify `root.json` and `targets.json` with an added signature.
 Verify their PRs with the PR number as the argument to the script:
 
 ```bash
-./scripts/verify.sh $PR
+$ GITHUB_USER=<your GitHub handle> ./scripts/verify.sh $PR
 ```
 
 You should expect 1 signature added to root and targets on each PR.
@@ -301,7 +301,7 @@ You should expect 1 signature added to root and targets on each PR.
 After each of the root keyholder PRs are merged, run verification at the head of the ceremony branch:
 
 ```bash
-./scripts/verify.sh
+$ GITHUB_USER=<your GitHub handle> ./scripts/verify.sh
 ```
 
 and verify that the root and targets are fully signed.
@@ -318,7 +318,7 @@ This will create a PR signing the snapshot and timestamp files and committed the
 Verify the expirations and the signatures:
 
 ```bash
-./scripts/verify.sh $PR
+$ GITHUB_USER=<your GitHub handle> ./scripts/verify.sh $PR
 ```
 
 Note: You cannot test this step locally against the current staged repository, since the snapshot and timestamp keys are only given permissions to the GitHub Workflows. However, under the hood, the workflow is running `./scripts/step-3.sh` and `./scripts/step-4.sh`. If you initialize a ceremony with local testing keys, this action will work.

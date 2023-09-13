@@ -38,7 +38,7 @@ setup_forks
 checkout_branch
 
 # build the verification binary
-go build -o verify ./cmd/verify
+make verify
 [ -f piv-attestation-ca.pem ] || curl -fsO https://developers.yubico.com/PIV/Introduction/piv-attestation-ca.pem
 
 # Fetch the pull request if specified and verify

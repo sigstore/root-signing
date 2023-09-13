@@ -195,18 +195,18 @@ Assuming verification passes, merge the PR against the ceremony branch.
 
 ## Step 4: Update delegation(s) (Optional)
 
-After the new (updated) repository is staged, the delegations are
-_not_ carried over, they must be added back manually. This operation
-should be coordinate with a key owner of the delegatee.
+After the new (updated) repository is staged, delegations are _not_
+carried over, they must be added back manually. This operation should
+be coordinated with a key owner of the delegatee.
 
 The recommended flow is that a key owner of the delegatee performs the
-follwoing steps in another branch then the ceremony branch, and
-prepares a PR, this [this
+follwoing steps in another branch than the ceremony branch, and
+prepares a PR, see this [this
 PR](https://github.com/sigstore/root-signing/pull/955) for an
 example.
 
-:information_source: Identify the key id for the public key for the
-delegation,
+:information_source: Identify the delegation's key id before
+proceeding
 e.g. `a89d235ee2f298d757438c7473b11b0b7b42ff1a45f1dfaac4c014183d6f8c45`.
 
 Use this key id to extract the public key for the delegate, as it's
@@ -222,10 +222,10 @@ $ cat repository/repository/targets.json | \
 :warning: Updating a delegation **must not** change the key, only the
 metadata, hence it's important to use the known key.
 
-Now add the previous delegation file and update it:
+Now add back the previous delegation file and update it:
 
 ```shell
-$ cp repository/repository/registry.npmjs.org.json repository/staged
+$ cp repository/${DELEGATION_NAME}.json repository/staged
 $ cp -r /path/to/delegated/targets .
 $ cp /path/to/delegate-meta.yaml .
 $ tuf add-delegation \

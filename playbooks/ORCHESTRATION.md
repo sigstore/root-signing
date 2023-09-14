@@ -168,6 +168,20 @@ $ ./tuf add-delegation -name ${DELEGATION_NAME} \
       -repository repository
 ```
 
+:information_source: The `delegate-meta.yaml` file has the same format
+as [config/targets-metadata.yml](../config/targets-metadata.yml). The
+`delegated/targets` directory should contain the targets for the
+delegate. As an example, this is how it looks for the
+`registry.npmjs.org` delegate:
+
+```shell
+$ ls registry.npmjs.org
+keys.json
+$ cat delegate-meta.yaml
+add:
+  registry.npmjs.org/keys.json:
+```
+
 ```shell
 $ ./tuf sign \
       -roles ${DELEGATION_NAME} \
@@ -233,6 +247,20 @@ $ tuf add-delegation \
       -name ${DELEGATION_NAME} \
       -target-meta delegate-meta.yaml \
       -public-key delegate.pem
+```
+
+:information_source: The `delegate-meta.yaml` file has the same format
+as [config/targets-metadata.yml](../config/targets-metadata.yml). The
+`delegated/targets` directory should contain the targets for the
+delegate. As an example, this is how it looks for the
+`registry.npmjs.org` delegate:
+
+```shell
+$ ls registry.npmjs.org
+keys.json
+$ cat delegate-meta.yaml
+add:
+  registry.npmjs.org/keys.json:
 ```
 
 This stages the updated version of the delegation, but the version is
@@ -346,20 +374,3 @@ Submitting this PR will trigger a push to the preproduction GCS bucket, so ensur
 #### Encountering a configuration mistake
 
 In case there is a configuration mistake or a breakage that renders a ceremony ineffective, move the half-completed ceremony directory into `ceremony/defunct`. This may help avoid keyholders from pointing to an invalid ceremony directory when signing.
-
-#### Adding a Delegation
-
-1. Add an environment variable for the delegation key named `$DELEGATION_KEY` in [./scripts/step-1.5.sh].
-
-2. Create a `./config/$DELEGATION-metadata`.yml file, see [Target and Delegation configuration](#targets-and-delegation-configuration).
-
-3. Edit [./scripts/step-1.5.sh] to add the delegation after the root and targets are setup via `tuf init`, with a command like:
-
-```bash
-# Add $DELEGATION delegation
-./tuf add-delegation -repository $REPO -name "$DELEGATION" -key $DELEGATION_KEY -target-meta config/$DELEGATION-metadata.yml -path $PATH
-```
-
-The optional `-path $PATH` specifies any [paths](https://theupdateframework.github.io/specification/latest/#delegation-role-paths) that describes paths the delegated role is trusted to provide.
-
-4. Update the [../README.md] with the delegation information in [Repository Structure](../README.md#tuf-repository-structure).

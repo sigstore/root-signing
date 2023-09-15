@@ -47,10 +47,10 @@ All ceremony orchestration actions use GitHub workflows in this repository. Befo
 
 You will need the following variables for the online signer references described [here](#key-configuration).
 
-| Variable      | Description | Example |
-| ----------- | ----------- | ----------- |
-| SNAPSHOT_KEY   | The GCP KMS online key for snapshotting.    |     `projects/sigstore-root-signing/locations/global/keyRings/root/cryptoKeys/snapshot`    |
-| TIMESTAMP_KEY   | The GCP KMS online key for timestamping.    |  `projects/sigstore-root-signing/locations/global/keyRings/root/cryptoKeys/timestamp`  |
+| Variable      | Description                              | Example                                                                              |
+|---------------|------------------------------------------|--------------------------------------------------------------------------------------|
+| SNAPSHOT_KEY  | The GCP KMS online key for snapshotting. | `projects/sigstore-root-signing/locations/global/keyRings/root/cryptoKeys/snapshot`  |
+| TIMESTAMP_KEY | The GCP KMS online key for timestamping. | `projects/sigstore-root-signing/locations/global/keyRings/root/cryptoKeys/timestamp` |
 
 Ensure that these are the values reflected in the staging snapshot and timestamp [workflow](../.github/workflows/staging-snapshot-timestamp.yml).
 
@@ -168,6 +168,20 @@ $ ./tuf add-delegation -name ${DELEGATION_NAME} \
       -repository repository
 ```
 
+:information_source: The `delegate-meta.yaml` file has the same format
+as [config/targets-metadata.yml](../config/targets-metadata.yml). The
+`delegated/targets` directory should contain the targets for the
+delegate. As an example, this is how it looks for the
+`registry.npmjs.org` delegate:
+
+```shell
+$ ls registry.npmjs.org
+keys.json
+$ cat delegate-meta.yaml
+add:
+  registry.npmjs.org/keys.json:
+```
+
 ```shell
 $ ./tuf sign \
       -roles ${DELEGATION_NAME} \
@@ -193,7 +207,110 @@ $PR` runs on the PR to validate the `targets.json` has a valid
 format and that the delegation metadata is properly signed.
 Assuming verification passes, merge the PR against the ceremony branch.
 
-## Step 4: Hardware Key Signing
+## Step 4: Update delegation(s) (Optional)
+
+After the new (updated) repository is staged, delegations are _not_
+carried over, they must be added back manually. This operation should
+be coordinated with a key owner of the delegatee.
+
+The recommended flow is that a key owner of the delegatee performs the
+follwoing steps in another branch than the ceremony branch, and
+prepares a PR, see this [this
+PR](https://github.com/sigstore/root-signing/pull/955) for an
+example.
+
+:information_source: Identify the delegation's key id before
+proceeding
+e.g. `a89d235ee2f298d757438c7473b11b0b7b42ff1a45f1dfaac4c014183d6f8c45`.
+
+Use this key id to extract the public key for the delegate, as it's
+needed when the delegation is added back:
+
+```shell
+$ cat repository/repository/targets.json | \
+      jq -r \
+      '.signed.delegations.keys["a89d235ee2f298d757438c7473b11b0b7b42ff1a45f1dfaac4c014183d6f8c45"].keyval.public' \
+      > delegate.pem
+```
+
+:warning: Updating a delegation **must not** change the key, only the
+metadata, hence it's important to use the known key.
+
+Now add back the previous delegation file and update it:
+
+```shell
+$ cp repository/${DELEGATION_NAME}.json repository/staged
+$ cp -r /path/to/delegated/targets .
+$ cp /path/to/delegate-meta.yaml .
+$ tuf add-delegation \
+      -repository repository \
+      -name ${DELEGATION_NAME} \
+      -target-meta delegate-meta.yaml \
+      -public-key delegate.pem
+```
+
+:information_source: The `delegate-meta.yaml` file has the same format
+as [config/targets-metadata.yml](../config/targets-metadata.yml). The
+`delegated/targets` directory should contain the targets for the
+delegate. As an example, this is how it looks for the
+`registry.npmjs.org` delegate:
+
+```shell
+$ ls registry.npmjs.org
+keys.json
+$ cat delegate-meta.yaml
+add:
+  registry.npmjs.org/keys.json:
+```
+
+This stages the updated version of the delegation, but the version is
+**not** yet incremented, and it's not signed.
+
+Sign the delegation and increment the version:
+
+```shell
+$ tuf sign \
+      -roles ${DELEGATION_NAME} \
+      -key ${KEY_REF}
+      -repository ./repository \
+      -bump-version
+```
+
+Create a new branch, add and commit the updated metadata files and
+targets, then create a PR:
+
+```
+$ git checkout -b update-delegate-${DELEGATION_NAME}
+$ git add repository/staged/targets.json
+$ git add repository/staged/${DELEGATION_NAME}.json
+$ git add repository/staged/targets/${DELEGATION_NAME}
+$ git commit --signoff -m "Updated delegation ${DELEGATION_NAME}"
+$ git push origin update-delegate-${DELEGATION_NAME}
+```
+
+Now a PR can be created agianst the ceremony branch. Review and
+approve if all looks good.
+
+When reviewing this PR, it's important for reviewers to verify the
+following (against the currently published TUF root):
+* Public key has not changed
+* Delegation name is the same
+* Version has been incremented
+* Expiration date is the expected
+
+As part of the review, the signature should be verified too, like
+this:
+```shell
+$ make verify
+$ ./verify repository --repository ./repository --staged
+...
+Verifying <DELEGATION NAME>...
+	Success! Signatures valid and threshold achieved
+	<DELEGATION NAME> version 9, expires 2024/03/12
+...
+```
+
+## Step 5: Hardware Key Signing
 
 Next, the root and targets file must be signed. Ask each root
 keyholder to follow [Signing root and
@@ -204,7 +321,7 @@ This will modify `root.json` and `targets.json` with an added signature.
 Verify their PRs with the PR number as the argument to the script:
 
 ```bash
-./scripts/verify.sh $PR
+$ GITHUB_USER=<your GitHub handle> ./scripts/verify.sh $PR
 ```
 
 You should expect 1 signature added to root and targets on each PR.
@@ -212,12 +329,12 @@ You should expect 1 signature added to root and targets on each PR.
 After each of the root keyholder PRs are merged, run verification at the head of the ceremony branch:
 
 ```bash
-./scripts/verify.sh
+$ GITHUB_USER=<your GitHub handle> ./scripts/verify.sh
 ```
 
 and verify that the root and targets are fully signed.
 
-## Step 5: Snapshotting and Timestamping
+## Step 6: Snapshotting and Timestamping
 
 Next, the metadata will need to be snapshotted and timestamped. Invoke the staging snapshot and timestamp GitHub workflow [staging-snapshot-timestamp.yml](../.github/workflows/staging-snapshot-timestamp.yml) with the following parameters:
 
@@ -229,12 +346,12 @@ This will create a PR signing the snapshot and timestamp files and committed the
 Verify the expirations and the signatures:
 
 ```bash
-./scripts/verify.sh $PR
+$ GITHUB_USER=<your GitHub handle> ./scripts/verify.sh $PR
 ```
 
 Note: You cannot test this step locally against the current staged repository, since the snapshot and timestamp keys are only given permissions to the GitHub Workflows. However, under the hood, the workflow is running `./scripts/step-3.sh` and `./scripts/step-4.sh`. If you initialize a ceremony with local testing keys, this action will work.
 
-## Step 6: Publication
+## Step 7: Publication
 
 Once the PR from [Step 3](#step-3-snapshotting-and-timestamping) is merged, a [workflow](../.github/workflows/sync-ceremony-to-main.yml) will automatically create a PR merging the changes on the completed ceremony branch to main.
 
@@ -257,20 +374,3 @@ Submitting this PR will trigger a push to the preproduction GCS bucket, so ensur
 #### Encountering a configuration mistake
 
 In case there is a configuration mistake or a breakage that renders a ceremony ineffective, move the half-completed ceremony directory into `ceremony/defunct`. This may help avoid keyholders from pointing to an invalid ceremony directory when signing.
-
-#### Adding a Delegation
-
-1. Add an environment variable for the delegation key named `$DELEGATION_KEY` in [./scripts/step-1.5.sh].
-
-2. Create a `./config/$DELEGATION-metadata`.yml file, see [Target and Delegation configuration](#targets-and-delegation-configuration).
-
-3. Edit [./scripts/step-1.5.sh] to add the delegation after the root and targets are setup via `tuf init`, with a command like:
-
-```bash
-# Add $DELEGATION delegation
-./tuf add-delegation -repository $REPO -name "$DELEGATION" -key $DELEGATION_KEY -target-meta config/$DELEGATION-metadata.yml -path $PATH
-```
-
-The optional `-path $PATH` specifies any [paths](https://theupdateframework.github.io/specification/latest/#delegation-role-paths) that describes paths the delegated role is trusted to provide.
-
-4. Update the [../README.md] with the delegation information in [Repository Structure](../README.md#tuf-repository-structure).

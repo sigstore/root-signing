@@ -48,6 +48,10 @@ keygen:
 tuf:
 	@go build -tags=pivkey -o $@ ./cmd/tuf
 
+.PHONY: verify
+verify:
+	@go build -o verify ./cmd/verify
+
 .PHONY: test
 test:
 	@go test -tags=pivkey ./...

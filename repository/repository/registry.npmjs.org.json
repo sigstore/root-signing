@@ -2,8 +2,8 @@
 	"signed": {
 		"_type": "targets",
 		"spec_version": "1.0",
-		"version": 1,
-		"expires": "2023-10-04T13:26:23Z",
+		"version": 2,
+		"expires": "2024-03-19T12:46:19Z",
 		"targets": {
 			"registry.npmjs.org/keys.json": {
 				"length": 1017,
@@ -17,7 +17,7 @@
 	"signatures": [
 		{
 			"keyid": "a89d235ee2f298d757438c7473b11b0b7b42ff1a45f1dfaac4c014183d6f8c45",
-			"sig": "304402201acf213d8e3dea0a5f0c1757e4409a02661bcfab3278419307994ead07c36cb4022029986ed2241c630c4e45bf97e043c23220df7612e3718f921fe8a99c7515ad30"
+			"sig": "3045022100a4757c589b21d6efcf2a258489a8c0eccfa89c536284e9367e091bfaf03c8ae9022075cb450b269ef522c03ccb92bdbc68a9069588f6fe608aca07918c5a51e918ef"
 		}
 	]
 }

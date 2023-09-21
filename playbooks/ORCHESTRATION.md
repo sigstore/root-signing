@@ -77,7 +77,7 @@ ${REPO}/keys
 Verify the PRs with the PR number as the argument to the script:
 
 ```bash
-./scripts/verify.sh $PR
+$ ./scripts/verify.sh $PR
 ```
 
 You should expect to see their serial number key verified, which should match the committed subfolder.
@@ -107,8 +107,8 @@ Any new key additions from [Step 1](#step-1-root-key-updates-optional) will be p
 If you want to test this action locally first, use:
 
 ```bash
-GITHUB_USER=${GITHUB_USER} ./scripts/step-0.sh
-LOCAL=1 ./scripts/step-1.5.sh $revoke_key
+$ GITHUB_USER=${GITHUB_USER} ./scripts/step-0.sh
+$ LOCAL=1 ./scripts/step-1.5.sh $revoke_key
 ```
 
 This copies over old repository metadata and keys from the `${PREV_REPO}`, revokes key `123456`, and then updates a new root and targets according to the configuration. The new PR will create a new `root.json`, `targets.json`, and `targets` subfolder with the desired targets. You should see the following directory structure created:
@@ -350,6 +350,42 @@ $ GITHUB_USER=<your GitHub handle> ./scripts/verify.sh $PR
 ```
 
 Note: You cannot test this step locally against the current staged repository, since the snapshot and timestamp keys are only given permissions to the GitHub Workflows. However, under the hood, the workflow is running `./scripts/step-3.sh` and `./scripts/step-4.sh`. If you initialize a ceremony with local testing keys, this action will work.
+
+The PR with the signed snapshot and timestamp metadata will be
+automatically merged by the Sigstore bot, but can be manually merged
+before the job is executed (runs every 2 hours). Further tests can be
+performed, either against the ceremony branch, or the
+`update-snapshot-timestamp` branch that is about to be merged.
+
+Check out either of the branch locally then run
+```bash
+$ ./verify repository \
+           --repository `pwd`/repository \
+           --root `pwd`/repository/repository/root.json \
+           --targets registry.npmjs.org/keys.json,trusted_root.json
+```
+
+the above command veriries two targets, the `trusted_root.json` and
+the `keys.json` fromt he npm delegation.
+
+To verify that a client can bootstrap itself to the latest version,
+first start a HTTP server in one terminal
+
+```bash
+$ cd repository/repository
+$ python3 -m http.server 8081
+```
+
+then in another terminal, run `cosign initialize`
+
+```bash
+$ cosign initialize \
+         --mirror http://localhost:8081 \
+         --root /path/to/root-signing/repository/repository/5.root.json
+```
+Note that earlier root files uses hex encoded public key values,
+current `cosign` expectes PEM encoded, starting with `5.root.json` is
+required.
 
 ## Step 7: Publication
 

@@ -358,7 +358,7 @@ performed, either against the ceremony branch, or the
 `update-snapshot-timestamp` branch that is about to be merged.
 
 Check out either of the branch locally then run
-```
+```bash
 $ ./verify repository \
            --repository `pwd`/repository \
            --root `pwd`/repository/repository/root.json \
@@ -371,14 +371,14 @@ the `keys.json` fromt he npm delegation.
 To verify that a client can bootstrap itself to the latest version,
 first start a HTTP server in one terminal
 
-```
+```bash
 $ cd repository/repository
 $ python3 -m http.server 8081
 ```
 
 then in another terminal, run `cosign initialize`
 
-```
+```bash
 $ cosign initialize \
          --mirror http://localhost:8081 \
          --root /path/to/root-signing/repository/repository/5.root.json

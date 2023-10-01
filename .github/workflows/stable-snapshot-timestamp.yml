@@ -76,9 +76,9 @@ jobs:
               echo "found ceremony branch $branch"
               branch_date=$(echo "${branch}" | cut -d '/' -f3)
               days_diff=$(( ($(date -d "00:00" +%s) - $(date -d "${branch_date}" +%s)) / (24*3600) ))
-              if [[ "$days_diff" -lt 5 ]]; then
-                # Detected ceremony within 5 days of current date
-                echo "detected ceremony branch $branch within 5 days, stopping automated cron"
+              if [[ "$days_diff" -lt 2 ]]; then
+                # Detected ceremony within 2 days of current date
+                echo "detected ceremony branch $branch within 2 days, stopping automated cron"
                 echo "block_snapshot=true" >> "${GITHUB_OUTPUT}"
               fi
             fi

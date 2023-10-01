@@ -125,6 +125,8 @@ jobs:
 
           # NOTE as this workflow runs only when timestamp or snapshot files are added or updated, there should not
           # be a scenario where files that are removed from main must be synced to (removed from) preprod/prod.
+          gcloud compute url-maps invalidate-cdn-cache tuf-preprod-repo-cdn-lb --path "/*" --async
+          gcloud compute url-maps invalidate-cdn-cache tuf-repo-cdn-lb --path "/*" --async
 
   if-failed:
     runs-on: ubuntu-latest

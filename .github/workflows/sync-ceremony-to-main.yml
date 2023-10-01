@@ -61,7 +61,7 @@ jobs:
           destination_branch: ${{ github.event.repository.default_branch }}
           pr_title: "Merge ceremony branch ${{ inputs.branch || github.ref_name }} into ${{ github.event.repository.default_branch }}"
           pr_body: "Merge ceremony branch to main"
-          pr_reviewer: asraa,dlorenc,haydentherapper,joshuagl,kommendorkapten
+          pr_reviewer: asraa,bobcallaway,haydentherapper,joshuagl,kommendorkapten
 
   sync:
     permissions:
@@ -125,6 +125,7 @@ jobs:
               gcloud --quiet storage rm gs://sigstore-preprod-tuf-root/$path
             fi;
           done
+          gcloud compute url-maps invalidate-cdn-cache tuf-preprod-repo-cdn-lb --path "/*" --async
 
   if-failed:
     runs-on: ubuntu-latest

@@ -63,6 +63,7 @@ jobs:
               gcloud --quiet storage rm gs://sigstore-tuf-root/$path
             fi;
           done
+          gcloud compute url-maps invalidate-cdn-cache tuf-repo-cdn-lb --path "/*" --async
 
   if-failed:
     runs-on: ubuntu-latest

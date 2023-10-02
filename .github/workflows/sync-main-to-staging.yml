@@ -92,6 +92,8 @@ jobs:
               gcloud --quiet storage rm gs://tuf-root-staging/$path
             fi;
           done
+          # note this is in project projectsigstore-staging
+          gcloud compute url-maps invalidate-cdn-cache tuf-repo-cdn-lb --path "/*" --async
 
   if-failed:
     runs-on: ubuntu-latest

@@ -90,9 +90,6 @@ jobs:
         with:
           go-version: '1.20'
           check-latest: true
-      - uses: google-github-actions/setup-gcloud@e30db14379863a8c79331b04a9969f4c1e225e0b # v1.1.1
-        with:
-          project_id: sigstore-root-signing
       # Setup OIDC->SA auth
       - uses: google-github-actions/auth@35b0e87d162680511bf346c299f71c9c5c379033 # v1.1.1
         id: auth
@@ -101,6 +98,9 @@ jobs:
           workload_identity_provider: ${{ inputs.provider }}
           service_account: ${{ inputs.service_account }}
           create_credentials_file: true
+      - uses: google-github-actions/setup-gcloud@e30db14379863a8c79331b04a9969f4c1e225e0b # v1.1.1
+        with:
+          project_id: sigstore-root-signing
       - name: Login
         run: |
           gcloud auth login --brief --cred-file="${{ steps.auth.outputs.credentials_file_path }}"

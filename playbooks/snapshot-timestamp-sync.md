@@ -10,8 +10,8 @@ with the metadata, using a Cloud KMS key to sign the metadata. There is also a w
 [GitHub Actions cron job](https://github.com/sigstore/root-signing/blob/main/.github/workflows/stable-timestamp.yml) to regenerate
 timestamp metadata midweek.
 
-After being approved and merged, the metadata is [synced](../.github/workflows/sync-main-to-preprod.yml)
-to a preproduction GCS bucket. Probers run against the bucket to:
+After being approved and merged, the metadata is [synced](../.github/workflows/sync-main-to-preprod-and-prod.yml)
+to the preproduction and prod GCS buckets. Probers run against the buckets to:
 
 * Verify an artifact using the production TUF repository [here](https://github.com/sigstore/sigstore-probers/blob/main/.github/workflows/reusable-prober.yml#L245-L304)
 * Verify the repository and the expiration of the metadata [here](https://github.com/sigstore/sigstore-probers/blob/main/.github/workflows/reusable-prober.yml#L106-L170)
@@ -42,14 +42,13 @@ Note: You will need maintainer permissions to run the workflow.
 After manually creating new metadata, if the timestamp is nearing expiration (<= 3 days), then you will need to manually sync preproduction and production.
 Otherwise, the timestamp in the production bucket will expire before preproduction is synced.
 
-After merging the PR, check that the [sync of the main branch to preprod](https://github.com/sigstore/root-signing/actions/workflows/sync-main-to-preprod.yml) has finished.
+After merging the PR, check that the [sync of the main branch to the preprod and prod buckets](https://github.com/sigstore/root-signing/actions/workflows/sync-main-to-preprod-and-prod.yml) has finished.
 Wait until the preproduction probers are healthy.
 
 After that is done, manually run the [sync preprod to prod](https://github.com/sigstore/root-signing/actions/workflows/sync-preprod-to-prod.yml)
 GHA:
 
 * Select "Run workflow"
-* Check the box for "Whether to manually trigger a sync, otherwise only syncs pre-prod to prod with a 2 day delay"
 * Click "Run workflow" 
 
 Note: You will need maintainer permissions to run the workflow.

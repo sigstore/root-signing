@@ -9,7 +9,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/sigstore/cosign/v2 v2.2.2
 	github.com/sigstore/sigstore v1.8.0
-	github.com/sigstore/sigstore/pkg/signature/kms/azure v1.7.6
+	github.com/sigstore/sigstore/pkg/signature/kms/azure v1.8.0
 	github.com/sigstore/sigstore/pkg/signature/kms/gcp v1.7.6
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/viper v1.18.2
@@ -20,9 +20,9 @@ require (
 
 require (
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
-	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.9.0 // indirect
+	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.9.1 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.4.0 // indirect
-	github.com/Azure/azure-sdk-for-go/sdk/internal v1.5.0 // indirect
+	github.com/Azure/azure-sdk-for-go/sdk/internal v1.5.1 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys v1.0.1 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/internal v1.0.0 // indirect
 	github.com/AzureAD/microsoft-authentication-library-for-go v1.2.0 // indirect
@@ -38,7 +38,7 @@ require (
 	github.com/google/go-github/v55 v55.0.0 // indirect
 	github.com/google/s2a-go v0.1.7 // indirect
 	github.com/google/uuid v1.4.0 // indirect
-	github.com/jellydator/ttlcache/v3 v3.1.0 // indirect
+	github.com/jellydator/ttlcache/v3 v3.1.1 // indirect
 	github.com/kylelemons/godebug v1.1.0 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/nozzle/throttler v0.0.0-20180817012639-2ea982251481 // indirect

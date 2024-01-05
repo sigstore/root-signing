@@ -206,7 +206,7 @@ jobs:
           body: Sign timestamp file
           branch: update-snapshot-timestamp
           signoff: true
-          reviewers: asraa,bobcallaway,haydentherapper,kommendorkapten
+          reviewers: bobcallaway,haydentherapper,kommendorkapten
           token: ${{ secrets.token || secrets.GITHUB_TOKEN }}
           base: ${{ inputs.branch }}
       - name: create pull request for timestamp/snapshot
@@ -218,7 +218,7 @@ jobs:
           body: Sign snapshot and timestamp files
           branch: update-snapshot-timestamp
           signoff: true
-          reviewers: asraa,bobcallaway,haydentherapper,kommendorkapten
+          reviewers: bobcallaway,haydentherapper,kommendorkapten
           token: ${{ secrets.token || secrets.GITHUB_TOKEN }}
           base: ${{ inputs.branch }}
 

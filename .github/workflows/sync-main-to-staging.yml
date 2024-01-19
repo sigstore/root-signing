@@ -100,13 +100,10 @@ jobs:
     needs: [sync]
     permissions:
       issues: 'write'
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      ISSUE_REPOSITORY: sigstore/root-signing
+      actions: 'read'
     if: always() && needs.sync.result == 'failure'
     steps:
-      - name: Create issue on failure
-        uses: sigstore/sigstore-probers/.github/actions/create-issue@main
+      - name: Open issue or add comment on failure
+        uses: sigstore/sigstore-probers/.github/actions/open-workflow-issue@main
         with:
-          issue_repository: sigstore/root-signing
-          issue_type: FAILURE
+          comment_for_each_failure: true

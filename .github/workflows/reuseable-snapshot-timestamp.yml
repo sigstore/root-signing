@@ -151,32 +151,24 @@ jobs:
     needs: [snapshot_and_timestamp]
     permissions:
       issues: 'write'
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      ISSUE_REPOSITORY: sigstore/root-signing
+      actions: 'read'
     if: always() && needs.snapshot_and_timestamp.result == 'failure'
     steps:
-      - name: Create issue on failure
-        uses: sigstore/sigstore-probers/.github/actions/create-issue@main
+      - name: Open issue or add comment on failure
+        uses: sigstore/sigstore-probers/.github/actions/open-workflow-issue@main
         with:
-          issue_repository: sigstore/root-signing
-          issue_type: FAILURE
+          comment_for_each_failure: true
 
   if-pass:
     runs-on: ubuntu-latest
     needs: [snapshot_and_timestamp]
     permissions:
       issues: 'write'
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      ISSUE_REPOSITORY: sigstore/root-signing
+      actions: 'read'
     if: always() && needs.snapshot_and_timestamp.result == 'success'
     steps:
-      - name: Create issue on failure
-        uses: sigstore/sigstore-probers/.github/actions/create-issue@main
-        with:
-          issue_repository: sigstore/root-signing
-          issue_type: SUCCESS
+      - name: Close issue if one is open
+        uses: sigstore/sigstore-probers/.github/actions/close-workflow-issue@main
 
   push:
     needs: snapshot_and_timestamp
@@ -227,29 +219,21 @@ jobs:
     needs: [push]
     permissions:
       issues: 'write'
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      ISSUE_REPOSITORY: sigstore/root-signing
+      actions: 'read'
     if: always() && needs.push.result == 'failure'
     steps:
-      - name: Create issue on failure
-        uses: sigstore/sigstore-probers/.github/actions/create-issue@main
+      - name: Open issue or add comment on failure
+        uses: sigstore/sigstore-probers/.github/actions/open-workflow-issue@main
         with:
-          issue_repository: sigstore/root-signing
-          issue_type: FAILURE
+          comment_for_each_failure: true
 
   if-push-pass:
     runs-on: ubuntu-latest
     needs: [push]
     permissions:
       issues: 'write'
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      ISSUE_REPOSITORY: sigstore/root-signing
+      actions: 'read'
     if: always() && needs.push.result == 'success'
     steps:
-      - name: Create issue on failure
-        uses: sigstore/sigstore-probers/.github/actions/create-issue@main
-        with:
-          issue_repository: sigstore/root-signing
-          issue_type: SUCCESS
+      - name: Close issue if one is open
+        uses: sigstore/sigstore-probers/.github/actions/close-workflow-issue@main

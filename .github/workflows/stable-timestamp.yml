@@ -86,6 +86,7 @@ jobs:
       issues: 'write'
       pull-requests: 'write'
       contents: 'write'
+      actions: 'read'
     uses: sigstore/root-signing/.github/workflows/reuseable-snapshot-timestamp.yml@main
     with:
       timestamp_key: 'gcpkms://projects/sigstore-root-signing/locations/global/keyRings/root/cryptoKeys/timestamp'

@@ -192,7 +192,7 @@ jobs:
       - name: create pull request for no snapshot
         if: ${{ inputs.disable_snapshot }}
         run:
-          git commit -s --allow-empty -m "Upddate timestamp"
+          git commit -s --allow-empty -m "Update timestamp"
           git push origin update-snapshot-timestamp
           GH_TOKEN=${{ secrets.token || secrets.GITHUB_TOKEN }} gh pr create -B ${{ inputs.branch }} -H update-snapshot-timestamp -t "Update Timestamp" -b "Sign timestamp file" -r bobcallaway -r haydentherapper -r kommendorkapten
 

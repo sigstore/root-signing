@@ -191,7 +191,7 @@ jobs:
       # Open pull request changes
       - name: create pull request for no snapshot
         if: ${{ inputs.disable_snapshot }}
-        uses: peter-evans/create-pull-request@153407881ec5c347639a548ade7d8ad1d6740e38 # v5.0.2
+        uses: peter-evans/create-pull-request@b1ddad2c994a25fbc81a28b3ec0e368bb2021c50 # v6.0.0
         with:
           commit-message: update timestamp
           title: Update Timestamp
@@ -203,7 +203,7 @@ jobs:
           base: ${{ inputs.branch }}
       - name: create pull request for timestamp/snapshot
         if: ${{ !inputs.disable_snapshot }}
-        uses: peter-evans/create-pull-request@153407881ec5c347639a548ade7d8ad1d6740e38 # v5.0.2
+        uses: peter-evans/create-pull-request@b1ddad2c994a25fbc81a28b3ec0e368bb2021c50 # v6.0.0
         with:
           commit-message: update snapshot and timestamp
           title: Update Snapshot and Timestamp

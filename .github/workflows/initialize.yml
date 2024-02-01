@@ -158,4 +158,4 @@ jobs:
         env:
           DRAFT: ${{ inputs.draft && '-d' || '' }}
         run:
-          GH_TOKEN=${{ secrets.SIGSTORE_ROOT_SIGNING_FINE_GRAINED_PAT }} gh pr create -B ${{ inputs.branch }} -H init-root-targets -t "Update Root and Targets to version ${{ env.VERSION }}" -b "Initializes a new root and targets to version ${{ env.VERSION }}" ${DRAFT} -r kommendorkapten -r dlorenc -r haydentherapper -r joshuagl
+          GH_TOKEN=${{ secrets.SIGSTORE_ROOT_SIGNING_FINE_GRAINED_PAT }} gh pr create -B ${{ inputs.branch }} -H init-root-targets -t "Update Root and Targets to version ${{ env.VERSION }}" -b "Initializes a new root and targets to version ${{ env.VERSION }}" ${DRAFT} -r bobcallaway -r haydentherapper -r kommendorkapten

@@ -147,20 +147,15 @@ jobs:
           git config --global user.email "noreply@github.com"
           git config --global user.name "GitHub"
 
+          git checkout -b init-root-targets
           # Commit the REPO changes
           git add ${REPO}
           git commit -s -m "Add staged repository metadata"
+          git push origin HEAD
 
       # Open pull request changes. Use the fine-grained PAT in order to trigger presubmits.
       - name: create pull request
-        uses: peter-evans/create-pull-request@153407881ec5c347639a548ade7d8ad1d6740e38 # v5.0.2
-        with:
-          commit-message: update root and targets
-          title: Update Root and Targets to version ${{ env.VERSION }}
-          body: Initializes a new root and targets to version ${{ env.VERSION }}
-          branch: init-root-targets
-          base: ${{ inputs.branch }}
-          signoff: true
-          draft: ${{ inputs.draft }}
-          reviewers: asraa,dlorenc,haydentherapper,joshuagl
-          token: ${{ secrets.SIGSTORE_ROOT_SIGNING_FINE_GRAINED_PAT }}
+        env:
+          DRAFT: ${{ inputs.draft && '-d' || '' }}
+        run:
+          GH_TOKEN=${{ secrets.SIGSTORE_ROOT_SIGNING_FINE_GRAINED_PAT }} gh pr create -B ${{ inputs.branch }} -H init-root-targets -t "Update Root and Targets to version ${{ env.VERSION }}" -b "Initializes a new root and targets to version ${{ env.VERSION }}" ${DRAFT} -r bobcallaway -r haydentherapper -r kommendorkapten

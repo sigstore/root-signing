@@ -191,28 +191,17 @@ jobs:
       # Open pull request changes
       - name: create pull request for no snapshot
         if: ${{ inputs.disable_snapshot }}
-        uses: peter-evans/create-pull-request@153407881ec5c347639a548ade7d8ad1d6740e38 # v5.0.2
-        with:
-          commit-message: update timestamp
-          title: Update Timestamp
-          body: Sign timestamp file
-          branch: update-snapshot-timestamp
-          signoff: true
-          reviewers: bobcallaway,haydentherapper,kommendorkapten
-          token: ${{ secrets.token || secrets.GITHUB_TOKEN }}
-          base: ${{ inputs.branch }}
+        run:
+          git commit -s --allow-empty -m "Update timestamp"
+          git push origin update-snapshot-timestamp
+          GH_TOKEN=${{ secrets.token || secrets.GITHUB_TOKEN }} gh pr create -B ${{ inputs.branch }} -H update-snapshot-timestamp -t "Update Timestamp" -b "Sign timestamp file" -r bobcallaway -r haydentherapper -r kommendorkapten
+
       - name: create pull request for timestamp/snapshot
         if: ${{ !inputs.disable_snapshot }}
-        uses: peter-evans/create-pull-request@153407881ec5c347639a548ade7d8ad1d6740e38 # v5.0.2
-        with:
-          commit-message: update snapshot and timestamp
-          title: Update Snapshot and Timestamp
-          body: Sign snapshot and timestamp files
-          branch: update-snapshot-timestamp
-          signoff: true
-          reviewers: bobcallaway,haydentherapper,kommendorkapten
-          token: ${{ secrets.token || secrets.GITHUB_TOKEN }}
-          base: ${{ inputs.branch }}
+        run:
+          git commit -s --allow-empty -m "Update snapshot and timestamp"
+          git push origin update-snapshot-timestamp
+          GH_TOKEN=${{ secrets.token || secrets.GITHUB_TOKEN }} gh pr create -B ${{ inputs.branch }} -H update-snapshot-timestamp -t "Update Snapshot and Timestamp" -b "Sign snapshot and timestamp files" -r bobcallaway -r haydentherapper -r kommendorkapten
 
   if-push-failed:
     runs-on: ubuntu-latest

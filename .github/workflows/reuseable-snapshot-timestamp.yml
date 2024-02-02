@@ -195,7 +195,7 @@ jobs:
           git config --global user.email "noreply@github.com"
           git config --global user.name "GitHub"
           git checkout -b update-snapshot-timestamp
-          git commit -s --allow-empty -m "Update timestamp"
+          git commit -s -a -m "Update timestamp"
           git push origin update-snapshot-timestamp
           GH_TOKEN=${{ secrets.token || secrets.GITHUB_TOKEN }} gh pr create -B ${{ inputs.branch }} -H update-snapshot-timestamp -t "Update Timestamp" -b "Sign timestamp file" -r bobcallaway -r haydentherapper -r kommendorkapten
 
@@ -205,7 +205,7 @@ jobs:
           git config --global user.email "noreply@github.com"
           git config --global user.name "GitHub"
           git checkout -b update-snapshot-timestamp
-          git commit -s --allow-empty -m "Update snapshot and timestamp"
+          git commit -s -a -m "Update snapshot and timestamp"
           git push origin update-snapshot-timestamp
           GH_TOKEN=${{ secrets.token || secrets.GITHUB_TOKEN }} gh pr create -B ${{ inputs.branch }} -H update-snapshot-timestamp -t "Update Snapshot and Timestamp" -b "Sign snapshot and timestamp files" -r bobcallaway -r haydentherapper -r kommendorkapten
 

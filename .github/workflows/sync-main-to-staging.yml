@@ -37,7 +37,8 @@ jobs:
         with:
           go-version-file: './go.mod'
           check-latest: true
-      # Setup OIDC->SA auth
+      # Setup OIDC->SA auth for managing GCS bucket
+      # Will be replaced with sigstore/root-signing-staging in the near future
       - uses: google-github-actions/auth@5a50e581162a13f4baa8916d01180d2acbc04363 # v2.1.0
         id: auth
         with:

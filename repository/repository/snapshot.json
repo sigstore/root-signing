@@ -2,8 +2,8 @@
 	"signed": {
 		"_type": "snapshot",
 		"spec_version": "1.0",
-		"version": 124,
-		"expires": "2024-02-20T16:07:07Z",
+		"version": 125,
+		"expires": "2024-02-27T16:07:21Z",
 		"meta": {
 			"registry.npmjs.org.json": {
 				"length": 717,
@@ -58,7 +58,7 @@
 	"signatures": [
 		{
 			"keyid": "45b283825eb184cabd582eb17b74fc8ed404f68cf452acabdad2ed6f90ce216b",
-			"sig": "304402206e51dbc4a54900c4f9679667a63065de1648d332c56a31104640055c36358a0c02205057e42ede6a7a4de4dc5c12d54211e550222da6ab3a99179eca3de8971babe9"
+			"sig": "304402201e945ee06a6df29deff355456fe55edb356c106c7cbb19f21bcf38bc9b30d36202200e92e62cb7305fca2cb4a9f0fe49a0262ec4c012a2fc2a2844cd53d207a22877"
 		}
 	]
 }

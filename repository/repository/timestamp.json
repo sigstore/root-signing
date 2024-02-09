@@ -2,8 +2,8 @@
 	"signed": {
 		"_type": "timestamp",
 		"spec_version": "1.0",
-		"version": 156,
-		"expires": "2024-02-13T18:22:50Z",
+		"version": 157,
+		"expires": "2024-02-16T16:05:16Z",
 		"meta": {
 			"snapshot.json": {
 				"length": 2300,
@@ -18,7 +18,7 @@
 	"signatures": [
 		{
 			"keyid": "e1863ba02070322ebc626dcecf9d881a3a38c35c3b41a83765b6ad6c37eaec2a",
-			"sig": "30440220200a82a9b4aa5bd6e6dbedb935bcbc12cf1d6d88dd186b9c3e2dc6f4b5b63f5f022016825ad01693ed37c4120d7ed315e6c5020ea0810aed51bece0f94f562e3eda5"
+			"sig": "30450221008cadd5d65a79778dee3c8cd93c538de702adc2118c279e482991027ecbc0c215022029a5b5a0d94b896fe3cd0d8673a7df05cb875f70b83cf3c7938e5e4b359a22a9"
 		}
 	]
 }

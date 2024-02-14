@@ -68,6 +68,10 @@ jobs:
           checksum_file=$(echo "$ARTIFACTS" | jq -r '.[] | select (.type=="Checksum") | .path')
           echo "hashes=$(cat $checksum_file | base64 -w0)" >> "$GITHUB_OUTPUT"
 
+      - name: Set tag output
+        id: tag
+        run: echo "tag_name=${GITHUB_REF#refs/*/}" >> "$GITHUB_OUTPUT"
+
   provenance:
     needs: [release]
     permissions:
@@ -78,3 +82,5 @@ jobs:
     with:
       base64-subjects: "${{ needs.release.outputs.hashes }}"
       upload-assets: true # upload to a new release
+      upload-tag-name: "${{ needs.release.outputs.tag_name }}" # Upload to tag rather than generate a new release
+      draft-release: true

@@ -180,7 +180,8 @@ func InitCmd(ctx context.Context, directory string,
 		}
 
 		// Construct TUF key.
-		tufKey, err := pkeys.ConstructTufKey(ctx, signer)
+		// Only create keys using the current key type
+		tufKey, err := pkeys.ConstructTufKey(ctx, signer, false)
 		if err != nil {
 			return err
 		}
@@ -341,7 +342,8 @@ func getKeysFromDir(dir string) ([]*data.PublicKey, error) {
 			if err != nil {
 				return nil, err
 			}
-			tufKey, err := pkeys.EcdsaTufKey(key.PublicKey)
+			// Only add keys with the new format
+			tufKey, err := pkeys.EcdsaTufKey(key.PublicKey, false)
 			if err != nil {
 				return nil, err
 			}

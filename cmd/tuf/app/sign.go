@@ -54,6 +54,7 @@ func Sign() *ffcli.Command {
 		sk          = flagset.Bool("sk", false, "indicates use of a hardware key for signing")
 		key         = flagset.String("key", "", "reference to a signer for signing")
 		bumpVersion = flagset.Bool("bump-version", false, "bumps the version; useful for re-signing without changes")
+		addOldType  = flagset.Bool("add-old-type", false, "Add a signature using the old key type")
 	)
 	flagset.Var(&roles, "roles", "role(s) to sign")
 	return &ffcli.Command{
@@ -80,7 +81,7 @@ func Sign() *ffcli.Command {
 			if err != nil {
 				return err
 			}
-			return SignCmd(ctx, *repository, roles, signer, *bumpVersion)
+			return SignCmd(ctx, *repository, roles, signer, *bumpVersion, *addOldType)
 		},
 	}
 }
@@ -121,8 +122,8 @@ func checkMetaForRole(store tuf.LocalStore, role []string) error {
 	return nil
 }
 
-func SignCmd(ctx context.Context, directory string, roles []string, signer signature.Signer,
-	bumpVersion bool) error {
+func SignCmd(ctx context.Context, directory string, roles []string,
+	signer signature.Signer, bumpVersion, addOldType bool) error {
 	store := tuf.FileSystemStore(directory, nil)
 
 	if err := checkMetaForRole(store, roles); err != nil {
@@ -135,7 +136,7 @@ func SignCmd(ctx context.Context, directory string, roles []string, signer signa
 				return err
 			}
 		}
-		if err := SignMeta(ctx, store, name+".json", signer); err != nil {
+		if err := SignMeta(ctx, store, name+".json", signer, addOldType); err != nil {
 			return err
 		}
 	}
@@ -148,7 +149,8 @@ func SignCmd(ctx context.Context, directory string, roles []string, signer signa
 // Note that if you were using old format exclusively (for testing), then this will
 // have no impact on repository validity: extraneous key IDs for the role that are
 // not attested to in the trusted root or parent delegation will be ignored.
-func SignMeta(ctx context.Context, store tuf.LocalStore, name string, signer signature.Signer) error {
+func SignMeta(ctx context.Context, store tuf.LocalStore, name string,
+	signer signature.Signer, addOldType bool) error {
 	fmt.Printf("Signing metadata for %s... \n", name)
 	s, err := repo.GetSignedMeta(store, name)
 	if err != nil {
@@ -176,9 +178,19 @@ func SignMeta(ctx context.Context, store tuf.LocalStore, name string, signer sig
 	}
 
 	// Get TUF public IDs associated to the signer.
-	pubKey, err := keys.ConstructTufKey(ctx, signer)
+	pubKey, err := keys.ConstructTufKey(ctx, signer, false)
+	var candidateKeyIDs []string
 	if err != nil {
 		return err
+	}
+	candidateKeyIDs = append(candidateKeyIDs, pubKey.IDs()...)
+
+	if addOldType {
+		oldKey, err := keys.ConstructTufKey(ctx, signer, true)
+		if err != nil {
+			return err
+		}
+		candidateKeyIDs = append(candidateKeyIDs, oldKey.IDs()...)
 	}
 
 	role := strings.TrimSuffix(name, ".json")
@@ -189,7 +201,7 @@ func SignMeta(ctx context.Context, store tuf.LocalStore, name string, signer sig
 
 	// Filter key IDs with the role signing key map.
 	var keyIDs []string
-	for _, id := range pubKey.IDs() {
+	for _, id := range candidateKeyIDs {
 		// We check to make sure that the key ID is associated with the role's keys.
 		if _, ok := roleSigningKeys[id]; !ok {
 			continue

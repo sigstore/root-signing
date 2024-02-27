@@ -188,11 +188,11 @@ func TestSignRootTargets(t *testing.T) {
 	// Sign root and targets.
 	rootSigner := stack.getSigner(t, rootKeyRef)
 	if err := app.SignCmd(ctx, stack.repoDir, []string{"root", "targets"},
-		rootSigner, false); err != nil {
+		rootSigner, false, false); err != nil {
 		t.Fatal(err)
 	}
 
-	pubKey, err := keys.ConstructTufKey(ctx, rootSigner)
+	pubKey, err := keys.ConstructTufKey(ctx, rootSigner, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -252,7 +252,7 @@ func TestSnapshotUnvalidatedFails(t *testing.T) {
 	// Now sign root and targets with 1/1 threshold key.
 	rootSigner := stack.getSigner(t, rootKeyRef)
 	if err := app.SignCmd(ctx, stack.repoDir, []string{"root", "targets"},
-		rootSigner, false); err != nil {
+		rootSigner, false, false); err != nil {
 		t.Fatal(err)
 	}
 
@@ -301,7 +301,7 @@ func TestPublishSuccess(t *testing.T) {
 	// Sign root & targets
 	rootSigner := stack.getSigner(t, rootKeyRef)
 	if err := app.SignCmd(ctx, stack.repoDir, []string{"root", "targets"},
-		rootSigner, false); err != nil {
+		rootSigner, false, false); err != nil {
 		t.Fatal(err)
 	}
 
@@ -359,10 +359,10 @@ func TestRotateRootKey(t *testing.T) {
 	// Sign root & targets with key 1
 	rootSigner1 := stack.getSigner(t, rootKeyRef1)
 	if err := app.SignCmd(ctx, stack.repoDir, []string{"root", "targets"},
-		rootSigner1, false); err != nil {
+		rootSigner1, false, false); err != nil {
 		t.Fatal(err)
 	}
-	rootTufKey1, err := keys.ConstructTufKey(ctx, rootSigner1)
+	rootTufKey1, err := keys.ConstructTufKey(ctx, rootSigner1, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -383,7 +383,7 @@ func TestRotateRootKey(t *testing.T) {
 		t.Fatalf("expected root role")
 	}
 	rootSigner2 := stack.getSigner(t, rootKeyRef2)
-	rootTufKey2, err := keys.ConstructTufKey(ctx, rootSigner2)
+	rootTufKey2, err := keys.ConstructTufKey(ctx, rootSigner2, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -415,7 +415,7 @@ func TestRotateRootKey(t *testing.T) {
 		t.Fatalf("expected root role")
 	}
 	rootSigner3 := stack.getSigner(t, rootKeyRef3)
-	rootTufKey3, err := keys.ConstructTufKey(ctx, rootSigner3)
+	rootTufKey3, err := keys.ConstructTufKey(ctx, rootSigner3, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -434,7 +434,7 @@ func TestRotateRootKey(t *testing.T) {
 
 	// Sign root & targets
 	if err := app.SignCmd(ctx, stack.repoDir, []string{"root", "targets"}, rootSigner1,
-		false); err != nil {
+		false, false); err != nil {
 		t.Fatal(err)
 	}
 
@@ -465,7 +465,7 @@ func TestRotateTarget(t *testing.T) {
 	// Sign root & targets
 	rootSigner := stack.getSigner(t, rootKeyRef)
 	if err := app.SignCmd(ctx, stack.repoDir, []string{"root", "targets"},
-		rootSigner, false); err != nil {
+		rootSigner, false, false); err != nil {
 		t.Fatal(err)
 	}
 
@@ -505,7 +505,7 @@ func TestRotateTarget(t *testing.T) {
 
 	// Sign root & targets
 	if err := app.SignCmd(ctx, stack.repoDir, []string{"root", "targets"},
-		rootSigner, false); err != nil {
+		rootSigner, false, false); err != nil {
 		t.Fatal(err)
 	}
 
@@ -552,7 +552,7 @@ func TestConsistentSnapshotFlip(t *testing.T) {
 	// Sign root & targets
 	rootSigner := stack.getSigner(t, rootKeyRef)
 	if err := app.SignCmd(ctx, stack.repoDir, []string{"root", "targets"},
-		rootSigner, false); err != nil {
+		rootSigner, false, false); err != nil {
 		t.Fatal(err)
 	}
 
@@ -590,7 +590,7 @@ func TestConsistentSnapshotFlip(t *testing.T) {
 
 	// Sign root & targets
 	if err := app.SignCmd(ctx, stack.repoDir, []string{"root", "targets"},
-		rootSigner, false); err != nil {
+		rootSigner, false, false); err != nil {
 		t.Fatal(err)
 	}
 	// Sign snapshot and timestamp
@@ -651,7 +651,7 @@ func TestSnapshotKeyRotate(t *testing.T) {
 	// Sign root & targets with key 1
 	rootSigner := stack.getSigner(t, rootKeyRef)
 	if err := app.SignCmd(ctx, stack.repoDir, []string{"root", "targets"},
-		rootSigner, false); err != nil {
+		rootSigner, false, false); err != nil {
 		t.Fatal(err)
 	}
 
@@ -671,7 +671,7 @@ func TestSnapshotKeyRotate(t *testing.T) {
 		t.Fatalf("expected snapshot role")
 	}
 	snapshotSigner1 := stack.getSigner(t, stack.snapshotRef)
-	snapshotTufKey1, err := keys.ConstructTufKey(ctx, snapshotSigner1)
+	snapshotTufKey1, err := keys.ConstructTufKey(ctx, snapshotSigner1, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -693,7 +693,7 @@ func TestSnapshotKeyRotate(t *testing.T) {
 
 	// Sign root & targets with key 1
 	if err := app.SignCmd(ctx, stack.repoDir, []string{"root", "targets"},
-		rootSigner, false); err != nil {
+		rootSigner, false, false); err != nil {
 		t.Fatal(err)
 	}
 
@@ -712,7 +712,7 @@ func TestSnapshotKeyRotate(t *testing.T) {
 		t.Fatalf("expected snapshot role")
 	}
 	snapshotSigner2 := stack.getSigner(t, stack.snapshotRef)
-	snapshotTufKey2, err := keys.ConstructTufKey(ctx, snapshotSigner2)
+	snapshotTufKey2, err := keys.ConstructTufKey(ctx, snapshotSigner2, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -752,7 +752,7 @@ func TestProdTargetsConfig(t *testing.T) {
 	// Sign root & targets
 	rootSigner := stack.getSigner(t, rootKeyRef)
 	if err := app.SignCmd(ctx, stack.repoDir, []string{"root", "targets"},
-		rootSigner, false); err != nil {
+		rootSigner, false, false); err != nil {
 		t.Fatal(err)
 	}
 
@@ -820,7 +820,7 @@ func TestDelegationsClearedOnInit(t *testing.T) {
 	// Sign root & targets with key 1
 	rootSigner := stack.getSigner(t, rootKeyRef)
 	if err := app.SignCmd(ctx, stack.repoDir, []string{"root", "targets"},
-		rootSigner, false); err != nil {
+		rootSigner, false, false); err != nil {
 		t.Fatal(err)
 	}
 
@@ -870,13 +870,13 @@ func TestSignWithVersionBump(t *testing.T) {
 	// Sign root & targets with key 1
 	rootSigner := stack.getSigner(t, rootKeyRef)
 	if err := app.SignCmd(ctx, stack.repoDir, []string{"root", "targets"},
-		rootSigner, false); err != nil {
+		rootSigner, false, false); err != nil {
 		t.Fatal(err)
 	}
 	// Sign delegation
 	dSigner := stack.getSigner(t, delegationKeyRef)
 	if err := app.SignCmd(ctx, stack.repoDir, []string{"delegation"},
-		dSigner, false); err != nil {
+		dSigner, false, false); err != nil {
 		t.Fatal(err)
 	}
 
@@ -892,7 +892,7 @@ func TestSignWithVersionBump(t *testing.T) {
 
 	// Increment the delegation metadata
 	if err := app.SignCmd(ctx, stack.repoDir, []string{"delegation"},
-		dSigner, true); err != nil {
+		dSigner, true, false); err != nil {
 		t.Fatal(err)
 	}
 
@@ -975,10 +975,10 @@ func TestRotateRootKeyTwiceAfter(t *testing.T) {
 	// Sign root & targets with key 1
 	rootSigner1 := stack.getSigner(t, rootKeyRef1)
 	if err := app.SignCmd(ctx, stack.repoDir, []string{"root", "targets"},
-		rootSigner1, false); err != nil {
+		rootSigner1, false, false); err != nil {
 		t.Fatal(err)
 	}
-	pubKey1, err := keys.ConstructTufKey(ctx, rootSigner1)
+	pubKey1, err := keys.ConstructTufKey(ctx, rootSigner1, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1007,7 +1007,7 @@ func TestRotateRootKeyTwiceAfter(t *testing.T) {
 	}
 	// Sign root & targets
 	if err := app.SignCmd(ctx, stack.repoDir, []string{"root", "targets"}, rootSigner1,
-		false); err != nil {
+		false, false); err != nil {
 		t.Fatal(err)
 	}
 
@@ -1066,11 +1066,11 @@ func TestGetPublicKeyFromRepo(t *testing.T) {
 	// Sign root & targets with key
 	rootSigner := stack.getSigner(t, rootKeyRef)
 	if err := app.SignCmd(ctx, stack.repoDir, []string{"root", "targets"},
-		rootSigner, false); err != nil {
+		rootSigner, false, false); err != nil {
 		t.Fatal(err)
 	}
 
-	cosignKeyID := "314ae73abd3012fc73bfcc3783e31d03852716597642b891d6a33155c4baf600"
+	cosignKeyID := "8679120321f0dda9e41c5de3c68e913d383bc51266691007b7b4b7f99868ee6f"
 	keyID, err := app.GetKeyIDForRole(stack.repoDir, "delegation")
 	if err != nil {
 		t.Fatal(err)
@@ -1155,13 +1155,13 @@ func TestDelegationNullCustomMetadata(t *testing.T) {
 	// Sign root & targets with key 1
 	rootSigner := stack.getSigner(t, rootKeyRef)
 	if err := app.SignCmd(ctx, stack.repoDir, []string{"root", "targets"},
-		rootSigner, false); err != nil {
+		rootSigner, false, false); err != nil {
 		t.Fatal(err)
 	}
 	// Sign delegation
 	dSigner := stack.getSigner(t, delegationKeyRef)
 	if err := app.SignCmd(ctx, stack.repoDir, []string{"path"},
-		dSigner, false); err != nil {
+		dSigner, false, false); err != nil {
 		t.Fatal(err)
 	}
 

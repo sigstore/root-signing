@@ -85,7 +85,7 @@ func verifySigningKeys(dirname string, rootCA *x509.Certificate) (*KeyMap, error
 
 			log.Printf("\nVERIFIED KEY WITH SERIAL NUMBER %d\n", key.SerialNumber)
 			log.Printf("TUF key ids: \n")
-			for kid, _ := range keyMap {
+			for kid := range keyMap {
 				log.Printf("\t%s ", kid)
 			}
 		}

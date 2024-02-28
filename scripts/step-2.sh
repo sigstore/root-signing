@@ -38,7 +38,7 @@ checkout_branch
 read -n1 -r -s -p "Insert your Yubikey, then press any key to continue...\n"
 
 # Sign the root and targets with hardware key
-./tuf sign -repository "$REPO" -roles root -roles targets -sk
+./tuf sign -repository "$REPO" -roles root -roles targets -sk -add-old-type true
 
 # Ask user to remove key (and replace with SSH security key)
 read -n1 -r -s -p "Remove your Yubikey, then press any key to continue...\n"

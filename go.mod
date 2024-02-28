@@ -9,7 +9,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/sigstore/cosign/v2 v2.2.3
 	github.com/sigstore/sigstore v1.8.1
-	github.com/sigstore/sigstore/pkg/signature/kms/azure v1.8.1
+	github.com/sigstore/sigstore/pkg/signature/kms/azure v1.8.2
 	github.com/sigstore/sigstore/pkg/signature/kms/gcp v1.8.1
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/viper v1.18.2
@@ -20,10 +20,10 @@ require (
 
 require (
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
-	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.9.1 // indirect
+	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.9.2 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.5.1 // indirect
-	github.com/Azure/azure-sdk-for-go/sdk/internal v1.5.1 // indirect
-	github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys v1.0.1 // indirect
+	github.com/Azure/azure-sdk-for-go/sdk/internal v1.5.2 // indirect
+	github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys v1.1.0 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/internal v1.0.0 // indirect
 	github.com/AzureAD/microsoft-authentication-library-for-go v1.2.1 // indirect
 	github.com/ProtonMail/go-crypto v0.0.0-20230923063757-afb1ddc0824c // indirect
@@ -33,13 +33,13 @@ require (
 	github.com/digitorus/timestamp v0.0.0-20231217203849-220c5c2851b7 // indirect
 	github.com/emicklei/go-restful/v3 v3.11.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
-	github.com/go-jose/go-jose/v3 v3.0.1 // indirect
+	github.com/go-jose/go-jose/v3 v3.0.2 // indirect
 	github.com/golang-jwt/jwt/v5 v5.2.0 // indirect
 	github.com/google/gnostic-models v0.6.9-0.20230804172637-c7be7c783f49 // indirect
 	github.com/google/go-github/v55 v55.0.0 // indirect
 	github.com/google/s2a-go v0.1.7 // indirect
 	github.com/google/uuid v1.6.0 // indirect
-	github.com/jellydator/ttlcache/v3 v3.1.1 // indirect
+	github.com/jellydator/ttlcache/v3 v3.2.0 // indirect
 	github.com/kylelemons/godebug v1.1.0 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/nozzle/throttler v0.0.0-20180817012639-2ea982251481 // indirect
@@ -97,7 +97,7 @@ require (
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/certificate-transparency-go v1.1.7 // indirect
-	github.com/google/go-containerregistry v0.18.0 // indirect
+	github.com/google/go-containerregistry v0.19.0 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.2 // indirect
@@ -145,9 +145,9 @@ require (
 	go.opentelemetry.io/otel/trace v1.22.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.26.0 // indirect
-	golang.org/x/crypto v0.18.0 // indirect
+	golang.org/x/crypto v0.20.0 // indirect
 	golang.org/x/exp v0.0.0-20231108232855-2478ac86f678
-	golang.org/x/net v0.20.0 // indirect
+	golang.org/x/net v0.21.0 // indirect
 	golang.org/x/oauth2 v0.16.0 // indirect
 	golang.org/x/sync v0.6.0 // indirect
 	golang.org/x/sys v0.17.0 // indirect

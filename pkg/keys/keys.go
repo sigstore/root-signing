@@ -95,23 +95,15 @@ func ToSigningKey(serialNumber int, pubKey []byte, deviceCert []byte, keyCert []
 }
 
 // EcdsaTufKey returns a PEM-encoded TUF public key for an ecdsa key.
-func EcdsaTufKey(pub *ecdsa.PublicKey, deprecatedType bool) (*data.PublicKey, error) {
+func EcdsaTufKey(pub *ecdsa.PublicKey) (*data.PublicKey, error) {
 	keyValBytes, err := json.Marshal(keys.EcdsaVerifier{
 		PublicKey: &keys.PKIXPublicKey{PublicKey: pub}})
 	if err != nil {
 		return nil, err
 	}
-
-	var keyType data.KeyType
-	if deprecatedType {
-		keyType = data.KeyTypeECDSA_SHA2_P256_OLD_FMT
-	} else {
-		keyType = data.KeyTypeECDSA_SHA2_P256
-	}
-
 	return &data.PublicKey{
 		// TODO: Update to new format for next key signing
-		Type:       keyType,
+		Type:       data.KeyTypeECDSA_SHA2_P256_OLD_FMT,
 		Scheme:     data.KeySchemeECDSA_SHA2_P256,
 		Algorithms: data.HashAlgorithms,
 		Value:      keyValBytes,
@@ -206,19 +198,19 @@ func (key SigningKey) Verify(root *x509.Certificate) error {
 }
 
 // ConstructTufKey constructs a TUF public key from a given signer.
-func ConstructTufKey(ctx context.Context, signer signature.Signer, deprecated bool) (*data.PublicKey, error) {
+func ConstructTufKey(ctx context.Context, signer signature.Signer) (*data.PublicKey, error) {
 	pub, err := signer.PublicKey(options.WithContext(ctx))
 	if err != nil {
 		return nil, err
 	}
-	return ConstructTufKeyFromPublic(ctx, pub, deprecated)
+	return ConstructTufKeyFromPublic(ctx, pub)
 }
 
 // ConstructTufKey constructs a TUF public key from a public key
-func ConstructTufKeyFromPublic(_ context.Context, pubKey crypto.PublicKey, deprecated bool) (*data.PublicKey, error) {
+func ConstructTufKeyFromPublic(_ context.Context, pubKey crypto.PublicKey) (*data.PublicKey, error) {
 	switch kt := pubKey.(type) {
 	case *ecdsa.PublicKey:
-		return EcdsaTufKey(kt, deprecated)
+		return EcdsaTufKey(kt)
 	default:
 		return nil, fmt.Errorf("ConstructTufKeyFromPublic: key type %s not supported", kt)
 	}

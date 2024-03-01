@@ -160,7 +160,7 @@ func TestToSigningKey(t *testing.T) {
 				t.Errorf("unexpected error generating signing key (%s): %s", tt.name, err)
 			}
 			if tt.expectSuccess {
-				pemPubKey, err := EcdsaTufKey(key.PublicKey, true)
+				pemPubKey, err := EcdsaTufKey(key.PublicKey)
 				if err != nil {
 					t.Errorf("unexpected error generating PEM TUF public key: %s", err)
 				}
@@ -184,7 +184,7 @@ func TestGetSigningKey(t *testing.T) {
 	}
 
 	t.Run("valid signing key with PEM", func(t *testing.T) {
-		signingKeyPem, err := ConstructTufKey(ctx, signingKey, true)
+		signingKeyPem, err := ConstructTufKey(ctx, signingKey)
 		if err != nil {
 			t.Fatal(err)
 		}

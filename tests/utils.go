@@ -145,7 +145,7 @@ func (s *repoTestStack) snapshot(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := app.SignCmd(s.ctx, s.repoDir, []string{"snapshot"}, snapshotSigner, false, true); err != nil {
+	if err := app.SignCmd(s.ctx, s.repoDir, []string{"snapshot"}, snapshotSigner, false); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -158,7 +158,7 @@ func (s *repoTestStack) timestamp(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := app.SignCmd(s.ctx, s.repoDir, []string{"timestamp"}, timestampSigner, false, true); err != nil {
+	if err := app.SignCmd(s.ctx, s.repoDir, []string{"timestamp"}, timestampSigner, false); err != nil {
 		t.Fatal(err)
 	}
 }

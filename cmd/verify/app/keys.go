@@ -71,23 +71,18 @@ func verifySigningKeys(dirname string, rootCA *x509.Certificate) (*KeyMap, error
 				log.Printf("error verifying key %d: %s", key.SerialNumber, err)
 				return nil, err
 			}
-
-			for _, bv := range []bool{true, false} {
-				tufKey, err := keys.EcdsaTufKey(key.PublicKey, bv)
-				if err != nil {
-					return nil, err
-				}
-				if len(tufKey.IDs()) == 0 {
-					return nil, errors.New("error getting key ID")
-				}
-				keyMap[tufKey.IDs()[0]] = key
+			tufKey, err := keys.EcdsaTufKey(key.PublicKey)
+			if err != nil {
+				return nil, err
 			}
+			if len(tufKey.IDs()) == 0 {
+				return nil, errors.New("error getting key ID")
+			}
+			keyMap[tufKey.IDs()[0]] = key
 
 			log.Printf("\nVERIFIED KEY WITH SERIAL NUMBER %d\n", key.SerialNumber)
 			log.Printf("TUF key ids: \n")
-			for kid := range keyMap {
-				log.Printf("\t%s ", kid)
-			}
+			log.Printf("\t%s ", tufKey.IDs()[0])
 		}
 	}
 	// Note we use relative path here to simplify things.

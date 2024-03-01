@@ -140,9 +140,7 @@ func DelegationCmd(ctx context.Context, opts *DelegationOptions) error {
 		if err != nil {
 			return err
 		}
-		// When adding the delegation we don't need to carry over the
-		// older deprecated format.
-		tufKey, err := pkeys.ConstructTufKeyFromPublic(ctx, publicKey, false)
+		tufKey, err := pkeys.ConstructTufKeyFromPublic(ctx, publicKey)
 		if err != nil {
 			return err
 		}

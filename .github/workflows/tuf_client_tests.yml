@@ -55,7 +55,7 @@ jobs:
           go run ./tests/client-tests list http://localhost:8001
       # Test with rust client
       - name: Configure cargo cache
-        uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2
+        uses: actions/cache@ab5e6d0c87105b4c9c2047343972218f562e4319
         with:
           path: |
             /tmp/tuftool-target

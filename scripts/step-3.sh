@@ -47,11 +47,11 @@ checkout_branch
 # Skip if only timestamping
 if [ -z "$DISABLE_SNAPSHOT" ]; then
     ./tuf snapshot -repository "$REPO"
-    ./tuf sign -repository "$REPO" -roles snapshot -key "${SNAPSHOT_KEY}" --add-old-type
+    ./tuf sign -repository "$REPO" -roles snapshot -key "${SNAPSHOT_KEY}" --add-old-type true
 fi
 
 # Timestamp and sign the timestamp with timestamp kms key
 ./tuf timestamp -repository "$REPO"
-./tuf sign -repository "$REPO" -roles timestamp -key "${TIMESTAMP_KEY}" --add-old-type
+./tuf sign -repository "$REPO" -roles timestamp -key "${TIMESTAMP_KEY}" --add-old-type true
 
 commit_and_push_changes snapshot-timestamp

@@ -1,4 +1,3 @@
-# These directories contain TUF and other assets that are either digested
-# or sized-checked so CRLF normalization breaks them.
-ceremony/** binary
-repository/** binary
+# Line endings for TUF metadata and targets should be normalised and consistent
+ceremony/**     text eol=lf
+repository/**   text eol=lf

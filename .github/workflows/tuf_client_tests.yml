@@ -66,7 +66,7 @@ jobs:
       - name: Install tuftool
         run: |
           cargo install tuftool \
-            --version "0.10.0" --target-dir /tmp/tuftool-target
+            --version "0.10.2" --target-dir /tmp/tuftool-target
       - run: |
           tuftool download out \
             --root repository/repository/2.root.json \

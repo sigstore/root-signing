@@ -43,7 +43,7 @@ jobs:
           go-version-file: './go.mod'
           check-latest: true
       - run: |
-          go install github.com/theupdateframework/go-tuf/cmd/tuf-client@v0.5.1
+          go install github.com/theupdateframework/go-tuf/cmd/tuf-client@v0.7.0
       - run: |
           # Only 5.root.json is compatible with new versions of go-tuf
           if [ -f repository/repository/5.root.json ]; then

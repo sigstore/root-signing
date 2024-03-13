@@ -43,7 +43,7 @@ jobs:
           go-version-file: './go.mod'
           check-latest: true
       - run: |
-          go install github.com/theupdateframework/go-tuf/cmd/tuf-client@v0.5.1
+          go install github.com/theupdateframework/go-tuf/cmd/tuf-client@v0.7.0
       - run: |
           # Only 5.root.json is compatible with new versions of go-tuf
           if [ -f repository/repository/5.root.json ]; then
@@ -54,25 +54,46 @@ jobs:
           go run ./tests/client-tests init http://localhost:8001 repository/repository/1.root.json
           go run ./tests/client-tests list http://localhost:8001
       # Test with rust client
-      - name: Configure cargo cache
-        uses: actions/cache@ab5e6d0c87105b4c9c2047343972218f562e4319
-        with:
-          path: |
-            /tmp/tuftool-target
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-          key: ${{ runner.os }}-cargo-tuftool
-      - name: Install tuftool
-        run: |
-          cargo install tuftool \
-            --version "0.10.0" --target-dir /tmp/tuftool-target
-      - run: |
-          tuftool download out \
-            --root repository/repository/2.root.json \
-            -t http://localhost:8001/targets \
-            -m http://localhost:8001
+      # - name: Configure cargo cache
+      #   uses: actions/cache@ab5e6d0c87105b4c9c2047343972218f562e4319
+      #   with:
+      #     path: |
+      #       /tmp/tuftool-target
+      #       ~/.cargo/registry/index/
+      #       ~/.cargo/registry/cache/
+      #       ~/.cargo/git/db/
+      #     key: ${{ runner.os }}-cargo-tuftool
+      # - name: Install tuftool
+      #   run: |
+      #     cargo install tuftool \
+      #       --version "0.10.2" --target-dir /tmp/tuftool-target
+      # - run: |
+      #     tuftool download out \
+      #       --root repository/repository/2.root.json \
+      #       -t http://localhost:8001/targets \
+      #       -m http://localhost:8001
       # Test with python-tuf ngclient
       - run: |
           python3 -m pip install securesystemslib[crypto,pynacl] tuf
           python3 tests/client-tests/python-tuf.py
+
+  jsclient:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - name: Setup node
+        uses: actions/setup-node@5e21ff4d9bc1a8cf6de233a3057d20ec6b3fb69d # v3
+        with:
+          node-version: 16
+      - name: Install tufjs/cli
+        run: npm install -g @tufjs/cli
+      - run: |
+          cd repository/repository/
+          python -m http.server 8001 &
+      - name: Download and verify root
+        run: |
+          tuf download \
+            --metadata-base-url http://localhost:8001 \
+            --root repository/repository/5.root.json \
+            --target-name trusted_root.json

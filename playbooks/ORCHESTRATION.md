@@ -389,21 +389,23 @@ required.
 
 ## Step 7: Publication
 
-Once the PR from [Step 3](#step-3-snapshotting-and-timestamping) is merged, a [workflow](../.github/workflows/sync-ceremony-to-main.yml) will automatically create a PR merging the changes on the completed ceremony branch to main.
+Once the PR from [Step 6](#step-6-snapshotting-and-timestamping) is merged, a [workflow](../.github/workflows/sync-ceremony-to-main.yml) will automatically create a PR merging the changes on the completed ceremony branch to main.
 
-Submitting this PR will trigger a push to the preproduction GCS bucket, so ensure that this PR is verified and ready to be pushed!
+Submitting this PR will trigger [a workflow](../.github/workflows/sync-main-to-preprod.yml) to push to the preproduction GCS bucket for further testing, so ensure that this PR is verified and ready to be pushed!
 
 ## Post-ceremony Steps
 
-1. The preproduction GCS bucket will need to be manually synced to the GCS production bucket as of [916](https://github.com/sigstore/root-signing/pull/916).
+1. Perform manual testing against the preproduction environment. Assuming no issues, continue with the following steps.
 
-2. If any root keyholders have changed, update the [current root keyholders](https://github.com/sigstore/root-signing#current-sigstore-root-keyholders) with their name, key ID, and location of their key material.
+1. To push to the production environment, run [this workflow](../.github/workflows/sync-preprod-to-prod.yml), which syncs the preproduction and production GCS buckets.
 
-3. If any targets have changed, update them and their usage in the table containing the [repository structure](https://github.com/sigstore/root-signing#tuf-repository-structure).
+1. If any root keyholders have changed, update the [current root keyholders](https://github.com/sigstore/root-signing#current-sigstore-root-keyholders) with their name, key ID, and location of their key material.
 
-4. Announce the root rotation on twitter and the community meeting, and thank the keyholders!
+1. If any targets have changed, update them and their usage in the table containing the [repository structure](https://github.com/sigstore/root-signing#tuf-repository-structure).
 
-5. Schedule the next root signing event one month before expiration on the calendar. Check [here](https://github.com/sigstore/root-signing/blob/e3f1fe5e487984f525afc81ac77fa5ce39737d0f/cmd/tuf/app/init.go#L29) for root expiration. Schedule a testing event for the week before.
+1. Announce the root rotation on twitter and the community meeting, and thank the keyholders!
+
+1. Schedule the next root signing event one month before expiration on the calendar. Check [here](https://github.com/sigstore/root-signing/blob/e3f1fe5e487984f525afc81ac77fa5ce39737d0f/cmd/tuf/app/init.go#L29) for root expiration. Schedule a testing event for the week before.
 
 ### Other
 

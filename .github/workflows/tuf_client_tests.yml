@@ -54,6 +54,8 @@ jobs:
           go run ./tests/client-tests init http://localhost:8001 repository/repository/1.root.json
           go run ./tests/client-tests list http://localhost:8001
       # Test with rust client
+      # Re-enable this job once Tough supports updated ecdsa keytypes
+      # https://github.com/awslabs/tough/issues/754
       # - name: Configure cargo cache
       #   uses: actions/cache@ab5e6d0c87105b4c9c2047343972218f562e4319
       #   with:

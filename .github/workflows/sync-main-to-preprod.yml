@@ -1,0 +1,109 @@
+#
+# Copyright 2024 The Sigstore Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# This workflow is triggered a root signing completes and is merged
+# into main, syncing the repository to the GCS preprod bucket
+
+name: Sync Published Root Signing to Preprod
+
+# Declare default permissions as none.
+permissions: {}
+
+on:
+  workflow_dispatch:
+  push:
+    # When a root signing ceremony completes
+    branches:
+      - main
+    paths:
+      - 'repository/repository/root.json'
+
+jobs:
+  sync:
+    permissions:
+      id-token: 'write'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
+        with:
+          go-version-file: './go.mod'
+          check-latest: true
+      # Setup OIDC->SA auth
+      - uses: google-github-actions/auth@55bd3a7c6e2ae7cf1877fd1ccb9d54c0503c457c # v2.1.2
+        id: auth
+        with:
+          token_format: 'access_token'
+          workload_identity_provider: 'projects/306323169285/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions-provider'
+          service_account: 'tuf-gha@project-rekor.iam.gserviceaccount.com'
+          create_credentials_file: true
+      - uses: google-github-actions/setup-gcloud@98ddc00a17442e89a24bbf282954a3b65ce6d200 # v2.1.0
+        with:
+          project_id: project-rekor
+      - name: Login
+        run: |
+          gcloud auth login --brief --cred-file="${{ steps.auth.outputs.credentials_file_path }}"
+          gcloud auth list
+      # sync
+      - name: sync
+        run: |
+          check_expiration() {
+              expiry=$(jq -r '.signed.expires' $1)
+              expires=$(date -d $expiry +%s)
+              current=$(date +%s)
+              if (( expires < current )); then
+                  echo "Detected expired metadata file $1 at $expiry!"
+                  exit 1
+              fi;
+          }
+          # Upload all but TUF timestamp. Once timestamp is uploaded, all other files must have been uploaded.
+          for f in $(ls repository/repository/ -I *timestamp.json)
+          do
+            # Check for expiration if this is a non-versioned metadata file.
+            # Versioned metadata like 1.root.json may be expired.
+            # TODO(asraa): When consistent snapshots are enabled, this logic must be changed so that
+            # only old versioned metadata can be expired.
+            if [[ $f == [^0-9]*.json ]]; then
+                check_expiration repository/repository/$f
+            fi;
+            gcloud --quiet storage cp --cache-control=no-store -r repository/repository/$f gs://sigstore-preprod-tuf-root/
+          done
+          # Upload timestamp after checking latest timestamp expiration
+          check_expiration repository/repository/timestamp.json
+          gcloud --quiet storage cp --cache-control=no-store -r repository/repository/*timestamp.json gs://sigstore-preprod-tuf-root/
+          # delete any files present in sigstore-preprod-tuf-root not in repository/repository
+          gcloud --quiet storage cp -r gs://sigstore-preprod-tuf-root/ .
+          diff -qr repository/repository sigstore-preprod-tuf-root | while read l; do
+            if [[ $l =~ "Only in sigstore-preprod-tuf-root" ]]; then
+              path=$(python3 -c "import re; s='$l'; pattern=r'^Only in sigstore-preprod-tuf-root(\/?)(.*): (.*)$'; match=re.search(pattern, s); print('/'.join([match.group(2), match.group(3)]).lstrip('/'))")
+              gcloud --quiet storage rm gs://sigstore-preprod-tuf-root/$path
+            fi;
+          done
+          gcloud compute url-maps invalidate-cdn-cache tuf-preprod-repo-cdn-lb --path "/*" --async
+
+  if-failed:
+    runs-on: ubuntu-latest
+    needs: [sync]
+    permissions:
+      issues: 'write'
+      actions: 'read'
+    if: always() && needs.sync.result == 'failure'
+    steps:
+      - name: Open issue or add comment on failure
+        uses: sigstore/sigstore-probers/.github/actions/open-workflow-issue@main
+        with:
+          comment_for_each_failure: true

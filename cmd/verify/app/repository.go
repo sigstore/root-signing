@@ -17,6 +17,8 @@ package app
 
 import (
 	"bytes"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -25,6 +27,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -271,12 +274,13 @@ func getClientState(local client.LocalStore) (map[string]SignedMeta, error) {
 }
 
 var (
-	repository string
-	staged     bool
-	root       file
-	expiration string
-	roles      []string
-	targets    []string
+	repository   string
+	staged       bool
+	root         file
+	expiration   string
+	dedupKeyFile string
+	roles        []string
+	targets      []string
 )
 
 var repositoryCmd = &cobra.Command{
@@ -333,6 +337,7 @@ func init() {
 	repositoryCmd.Flags().Var(&root, "root", "path to a trusted root, required unless verifying staged metadata")
 	repositoryCmd.Flags().StringVar(&expiration, "valid-until", "", "a time for metadata to be valid until e.g. 2022/02/22 or Unix timestamp")
 	repositoryCmd.Flags().StringSliceVar(&targets, "targets", nil, "comma-separated targets to verify")
+	repositoryCmd.Flags().StringVar(&dedupKeyFile, "dedup-key-file", "", "path to a file to store deduplication key if verification fails")
 
 	_ = repositoryCmd.MarkFlagRequired("repository")
 
@@ -423,12 +428,29 @@ func VerifyCmd(staged bool, repository string, rootFile string,
 
 	// If verified, check expiration
 	if validUntil != nil {
-		for role, sm := range clientState {
+		// this is needed to iterate in a consistent order
+		var roles []string
+		for role := range clientState {
+			roles = append(roles, role)
+		}
+		slices.Sort(roles)
+		for _, role := range roles {
 			if !checkRoleExpiry(role, rolesToCheck) {
 				continue
 			}
-			if sm.Expires.Before(*validUntil) {
-				return fmt.Errorf("error: %s will expire on %s", role, sm.Expires.Format(time.DateTime))
+			if clientState[role].Expires.Before(*validUntil) {
+				// this computes a digest over both the role and timestamp in an effort to only dedup alerts from the
+				// upcoming expiration of a specific role
+				if dedupKeyFile != "" {
+					hasher := sha256.New()
+					_, _ = hasher.Write([]byte(role))
+					_, _ = hasher.Write([]byte(clientState[role].Expires.Format(time.DateTime)))
+					result := hasher.Sum(nil)
+					if err := os.WriteFile(dedupKeyFile, []byte(hex.EncodeToString(result)), 0600); err != nil {
+						log.Printf("error writing dedup_key to %s: %v", dedupKeyFile, err)
+					}
+				}
+				return fmt.Errorf("error: %s will expire on %s", role, clientState[role].Expires.Format(time.DateTime))
 			}
 		}
 	}

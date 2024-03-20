@@ -64,32 +64,18 @@ jobs:
         run: |
           gcloud auth login --brief --cred-file="${{ steps.auth.outputs.credentials_file_path }}"
           gcloud auth list
-      # Sync
-      - name: sync
+      - name: check-updated-files
+        id: check-updated-files
         run: |
-          check_expiration() {
-              expiry=$(jq -r '.signed.expires' $1)
-              expires=$(date -d $expiry +%s)
-              current=$(date +%s)
-              if (( expires < current )); then
-                  echo "Detected expired metadata file $1 at $expiry!"
-                  exit 1
-              fi;
-          }
-
           # Checks whether a filename matches timestamp.json, snapshot.json, or [0-9]+.snapshot.json. If not,
           # this workflow will exit as we only want to run it when ONLY these files are changed.
           # TODO it may be good to check whether the [0-9]+.snapshot.json is the next one chronologically
           check_filename() {
               if [[ $1 != "timestamp.json" && $1 != "snapshot.json" && !($1 =~ ^[0-9]+\.snapshot.json$) ]]; then
                   echo "Sync main to preprod and prod workflow: Files other than timestamp and snapshot were updated in main branch, including file: $1. Not syncing, exiting."
-                  exit 0
+                  echo "abort=true"  >> $GITHUB_OUTPUT
               fi;
           }
-
-          # Download bucket metadata
-          gcloud --quiet storage cp -r gs://sigstore-tuf-root/ .
-
           # Diff main and prod to determine whether ONLY the timestamp and snapshot files have changed in main.
           # If other files have also changed, exit - in this case, the sync should be to preprod only.
           # NOTE other non-timestamp/snapshot changes should only occur during a ceremony, and
@@ -102,6 +88,22 @@ jobs:
           # TODO this does not check whether the updates are in main or in prod, only that files differ. We could
           # make this more exact later to check that the updates are in main (anything else is unexpected).
           diff -qr repository/repository sigstore-tuf-root | grep -Po '([0-9\.]*\w+[\.\w+]*(?= differ))|((Only in \w+\: )\K(.*))' | while read l; do check_filename $l; done
+      - name: sync
+        id: sync
+        if: ${{ steps.check-updated-files.outputs.abort != 'true' }}
+        run: |
+          check_expiration() {
+              expiry=$(jq -r '.signed.expires' $1)
+              expires=$(date -d $expiry +%s)
+              current=$(date +%s)
+              if (( expires < current )); then
+                  echo "Detected expired metadata file $1 at $expiry!"
+                  exit 1
+              fi;
+          }
+
+          # Download bucket metadata
+          gcloud --quiet storage cp -r gs://sigstore-tuf-root/ .
 
           # Upload all but TUF timestamp. Once timestamp is uploaded, all other files must have been uploaded.
           for f in $(ls repository/repository/ -I *timestamp.json)

@@ -54,26 +54,24 @@ jobs:
           go run ./tests/client-tests init http://localhost:8001 repository/repository/1.root.json
           go run ./tests/client-tests list http://localhost:8001
       # Test with rust client
-      # Re-enable this job once Tough supports updated ecdsa keytypes
-      # https://github.com/awslabs/tough/issues/754
-      # - name: Configure cargo cache
-      #   uses: actions/cache@ab5e6d0c87105b4c9c2047343972218f562e4319
-      #   with:
-      #     path: |
-      #       /tmp/tuftool-target
-      #       ~/.cargo/registry/index/
-      #       ~/.cargo/registry/cache/
-      #       ~/.cargo/git/db/
-      #     key: ${{ runner.os }}-cargo-tuftool
-      # - name: Install tuftool
-      #   run: |
-      #     cargo install tuftool \
-      #       --version "0.10.2" --target-dir /tmp/tuftool-target
-      # - run: |
-      #     tuftool download out \
-      #       --root repository/repository/2.root.json \
-      #       -t http://localhost:8001/targets \
-      #       -m http://localhost:8001
+      - name: Configure cargo cache
+        uses: actions/cache@ab5e6d0c87105b4c9c2047343972218f562e4319
+        with:
+          path: |
+            /tmp/tuftool-target
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+          key: ${{ runner.os }}-cargo-tuftool
+      - name: Install tuftool
+        run: |
+          cargo install tuftool \
+            --version "0.17.1" --target-dir /tmp/tuftool-target
+      - run: |
+          tuftool download out \
+            --root repository/repository/2.root.json \
+            -t http://localhost:8001/targets \
+            -m http://localhost:8001
       # Test with python-tuf ngclient
       - run: |
           python3 -m pip install securesystemslib[crypto,pynacl] tuf

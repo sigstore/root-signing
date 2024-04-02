@@ -65,8 +65,9 @@ jobs:
           key: ${{ runner.os }}-cargo-tuftool
       - name: Install tuftool
         run: |
+          # use the latest version
           cargo install tuftool \
-            --version "0.17.1" --target-dir /tmp/tuftool-target
+            --target-dir /tmp/tuftool-target
       - run: |
           tuftool download out \
             --root repository/repository/2.root.json \

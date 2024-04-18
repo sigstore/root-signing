@@ -29,6 +29,10 @@ The current published repository metadata lives in the [repository](/repository/
 * [timestamp.json](repository/repository/timestamp.json): The timestamp indicates the freshness of the metadata files. It has a lifetime of 1 week and is re-signed by two GitHub workflows [1](.github/workflows/stable-snapshot-timestamp.yml),
 [2](.github/workflows/stable-timestamp.yml).
 
+### Staging
+
+There is a separate [root-signing-staging](https://github.com/sigstore/root-signing-staging) repository: any non-trivial changes should be tested in root-signing-staging before introducing them in root-signing.
+
 ### Root locations
 The current root is published on a GCS bucket located at `https://storage.googleapis.com/sigstore-tuf-root`, and is addressable via CDN at `https://tuf-repo-cdn.sigstore.dev`.
 

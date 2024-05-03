@@ -75,7 +75,7 @@ jobs:
             -m http://localhost:8001
       # Test with python-tuf ngclient
       - run: |
-          python3 -m pip install securesystemslib[crypto,pynacl] tuf
+          python3 -m pip install securesystemslib[crypto,pynacl] "tuf>=4.0.0"
           python3 tests/client-tests/python-tuf.py
 
   jsclient:

@@ -38,7 +38,7 @@ jobs:
           python -m http.server 8001 &
           echo "REPO=http://localhost:8001" >> $GITHUB_ENV
       # Test with go-tuf client
-      - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
+      - uses: actions/setup-go@cdcb36043654635271a94b9a6d1392de5bb323a7 # v5.0.1
         with:
           go-version-file: './go.mod'
           check-latest: true

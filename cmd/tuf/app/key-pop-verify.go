@@ -54,7 +54,7 @@ func KeyPOPVerify() *ffcli.Command {
 		ShortHelp:  "Verify a proof of possession of a key",
 		LongHelp:   "Verify a proof of possession of a key",
 		FlagSet:    flagset,
-		Exec: func(ctx context.Context, args []string) error {
+		Exec: func(ctx context.Context, _ []string) error {
 			if *challenge == "" {
 				return flag.ErrHelp
 			}

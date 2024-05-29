@@ -287,13 +287,13 @@ var repositoryCmd = &cobra.Command{
 	Use:   "repository",
 	Short: "Root verify repository command",
 	Long:  `Verifies repository metadata and prints targets retrieved`,
-	PreRunE: func(cmd *cobra.Command, args []string) error {
+	PreRunE: func(cmd *cobra.Command, _ []string) error {
 		if err := viper.BindPFlags(cmd.Flags()); err != nil {
 			return fmt.Errorf("error initializing cmd line args: %s", err)
 		}
 		return nil
 	},
-	RunE: func(cmd *cobra.Command, args []string) error {
+	RunE: func(_ *cobra.Command, _ []string) error {
 		log.SetFlags(0)
 
 		if !staged && root.String() == "" {

@@ -42,7 +42,7 @@ func KeyPOPSign() *ffcli.Command {
 		ShortHelp:  "Sign a proof of possession of a key",
 		LongHelp:   "Sign a proof of possession of a key. The base64 encoded signature is printed to stdout",
 		FlagSet:    flagset,
-		Exec: func(ctx context.Context, args []string) error {
+		Exec: func(ctx context.Context, _ []string) error {
 			if *challenge == "" {
 				return flag.ErrHelp
 			}

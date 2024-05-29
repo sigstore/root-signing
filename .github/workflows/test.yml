@@ -62,7 +62,7 @@ jobs:
     steps:
       - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
       - name: Check workflow files
-        uses: reviewdog/action-actionlint@51bfb044ddaed55059d16f14daedbe05a9937dc1 # v1.45.0
+        uses: reviewdog/action-actionlint@4797143fa54b2306fe78646b48cfa10395506635 # v1.47.0
         # TODO(asraa): Re-enable shellcheck from actionlint
         with:
           actionlint_flags: -color -shellcheck=

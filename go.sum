@@ -25,10 +25,10 @@ github.com/AliyunContainerService/ack-ram-tool/pkg/credentials/alibabacloudsdkgo
 github.com/AliyunContainerService/ack-ram-tool/pkg/credentials/alibabacloudsdkgo/helper v0.2.0/go.mod h1:GgeIE+1be8Ivm7Sh4RgwI42aTtC9qrcj+Y9Y6CjJhJs=
 github.com/Azure/azure-sdk-for-go v68.0.0+incompatible h1:fcYLmCpyNYRnvJbPerq7U0hS+6+I79yEDJBqVNcqUzU=
 github.com/Azure/azure-sdk-for-go v68.0.0+incompatible/go.mod h1:9XXNKU+eRnpl9moKnB4QOLf1HestfXbmab5FXxiDBjc=
-github.com/Azure/azure-sdk-for-go/sdk/azcore v1.10.0 h1:n1DH8TPV4qqPTje2RcUBYwtrTWlabVp4n46+74X2pn4=
-github.com/Azure/azure-sdk-for-go/sdk/azcore v1.10.0/go.mod h1:HDcZnuGbiyppErN6lB+idp4CKhjbc8gwjto6OPpyggM=
-github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.5.1 h1:sO0/P7g68FrryJzljemN+6GTssUXdANk6aJ7T1ZxnsQ=
-github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.5.1/go.mod h1:h8hyGFDsU5HMivxiS2iYFZsgDbU9OnnJ163x5UGVKYo=
+github.com/Azure/azure-sdk-for-go/sdk/azcore v1.11.1 h1:E+OJmp2tPvt1W+amx48v1eqbjDYsgN+RzP4q16yV5eM=
+github.com/Azure/azure-sdk-for-go/sdk/azcore v1.11.1/go.mod h1:a6xsAQUZg+VsS3TJ05SRp524Hs4pZ/AeFSr5ENf0Yjo=
+github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.5.2 h1:FDif4R1+UUR+00q6wquyX90K7A8dN+R5E8GEadoP7sU=
+github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.5.2/go.mod h1:aiYBYui4BJ/BJCAIKs92XiPyQfTaBWqvHujDwKb6CBU=
 github.com/Azure/azure-sdk-for-go/sdk/internal v1.5.2 h1:LqbJ/WzJUwBf8UiaSzgX7aMclParm9/5Vgp+TY51uBQ=
 github.com/Azure/azure-sdk-for-go/sdk/internal v1.5.2/go.mod h1:yInRyqWXAuaPrgI7p70+lDDgh3mlBohis29jGMISnmc=
 github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys v1.1.0 h1:DRiANoJTiW6obBQe3SqZizkuV1PEgfiiGivmVocDy64=
@@ -504,8 +504,8 @@ github.com/sigstore/sigstore v1.8.3 h1:G7LVXqL+ekgYtYdksBks9B38dPoIsbscjQJX/MGWk
 github.com/sigstore/sigstore v1.8.3/go.mod h1:mqbTEariiGA94cn6G3xnDiV6BD8eSLdL/eA7bvJ0fVs=
 github.com/sigstore/sigstore/pkg/signature/kms/aws v1.8.3 h1:LTfPadUAo+PDRUbbdqbeSl2OuoFQwUFTnJ4stu+nwWw=
 github.com/sigstore/sigstore/pkg/signature/kms/aws v1.8.3/go.mod h1:QV/Lxlxm0POyhfyBtIbTWxNeF18clMlkkyL9mu45y18=
-github.com/sigstore/sigstore/pkg/signature/kms/azure v1.8.3 h1:xgbPRCr2npmmsuVVteJqi/ERw9+I13Wou7kq0Yk4D8g=
-github.com/sigstore/sigstore/pkg/signature/kms/azure v1.8.3/go.mod h1:G4+I83FILPX6MtnoaUdmv/bRGEVtR3JdLeJa/kXdk/0=
+github.com/sigstore/sigstore/pkg/signature/kms/azure v1.8.4 h1:1G6uLTZaqvu867DbgH7p75L6Y7Tu8LLnYJGZnWsTUu8=
+github.com/sigstore/sigstore/pkg/signature/kms/azure v1.8.4/go.mod h1:QtKKb8DChi1mRi9xSNr8ImSQu6m+0MZAV0sYIoPOta0=
 github.com/sigstore/sigstore/pkg/signature/kms/gcp v1.8.4 h1:fjnDR5Lw9ElfOSRUGKkgwjaynqj93nLu0twAw+QxhHE=
 github.com/sigstore/sigstore/pkg/signature/kms/gcp v1.8.4/go.mod h1:9KFn5MwelyNoFXu3gNyVzvN/yAhcL6FE053oxih9+vM=
 github.com/sigstore/sigstore/pkg/signature/kms/hashivault v1.8.3 h1:h9G8j+Ds21zqqulDbA/R/ft64oQQIyp8S7wJYABYSlg=

@@ -48,9 +48,6 @@ jobs:
     permissions:
       id-token: 'write' # for authenticating with OIDC
     uses: ./.github/workflows/deploy-to-gcs.yml
-    with:
-      gcp_workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
-      gcp_service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
 
   test-deployed-gcs:
     needs: [deploy-to-gcs]

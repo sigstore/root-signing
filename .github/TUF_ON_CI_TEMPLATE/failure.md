@@ -1,1 +1,1 @@
-CC @sigstore/tuf-root-signing-staging-codeowners, please have a look.
+CC @sigstore/tuf-root-signing-codeowners, please have a look.

@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       metadata_url:
-        description: "URL of the sigstore staging TUF repository to test"
+        description: "URL of the sigstore TUF repository to test"
         required: true
         type: string
 
@@ -12,7 +12,7 @@ permissions:
   id-token: 'write' # For signing with the GitHub workflow identity
 
 env:
-  STAGING_URL: ${{ inputs.metadata_url }}
+  METADATA_URL: ${{ inputs.metadata_url }}
   IDENTITY: ${{ github.server_url }}/${{ github.repository }}/.github/workflows/custom-test.yml@${{ github.ref }}
 
 jobs:
@@ -32,14 +32,14 @@ jobs:
           SITE_PACKAGES=$(pip show sigstore | sed -n "s/^Location: //p")
           TUF_PY="$SITE_PACKAGES/sigstore/_internal/tuf.py"
 
-          sed -ie "s#^STAGING_TUF_URL = .*#STAGING_TUF_URL = \"$STAGING_URL\"#" "$TUF_PY"
+          sed -ie "s#^DEFAULT_TUF_URL = .*#DEFAULT_TUF_URL = \"$METADATA_URL\"#" "$TUF_PY"
 
       - name: Test published repository with sigstore-python
         run: |
           touch artifact
           # sign, then verify using this workflows oidc identity
-          python -m sigstore -vv --staging sign --bundle artifact.sigstore.json artifact
-          python -m sigstore --staging verify github --cert-identity $IDENTITY --bundle artifact.sigstore.json artifact
+          python -m sigstore -vv sign --bundle artifact.sigstore.json artifact
+          python -m sigstore verify github --cert-identity $IDENTITY --bundle artifact.sigstore.json artifact
 
       - name: Upload the bundle for other clients to verify
         uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
@@ -54,21 +54,18 @@ jobs:
       - uses: sigstore/cosign-installer@59acb6260d9c0ba8f4a2f9d9b48431a222b68e20 # v3.5.0
 
       - name: Download initial root
-        run: curl -o root.json ${STAGING_URL}/1.root.json
+        run: curl -o root.json ${METADATA_URL}/1.root.json
 
       - name: Test published repository with cosign
         run: |
           touch artifact
 
           # initialize from the published repository
-          cosign initialize --root root.json --mirror ${STAGING_URL}
+          cosign initialize --root root.json --mirror ${METADATA_URL}
 
           # sign, then verify using this workflows oidc identity
           cosign sign-blob \
               --yes \
-              --fulcio-url https://fulcio.sigstage.dev \
-              --oidc-issuer https://oauth2.sigstage.dev/auth \
-              --rekor-url https://rekor.sigstage.dev \
               --bundle bundle.json \
               artifact
 
@@ -91,7 +88,7 @@ jobs:
         run: go install github.com/sigstore/sigstore-go/cmd/sigstore-go@latest
 
       - name: Download initial root
-        run: curl -o root.json ${STAGING_URL}/1.root.json
+        run: curl -o root.json ${METADATA_URL}/1.root.json
 
       - name: Download bundle to verify
         uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e # v4.1.7
@@ -103,7 +100,7 @@ jobs:
           touch artifact
 
           ~/go/bin/sigstore-go \
-              -tufRootURL $STAGING_URL \
+              -tufRootURL $METADATA_URL \
               -tufTrustedRoot root.json \
               -expectedSAN $IDENTITY \
               -expectedIssuer https://token.actions.githubusercontent.com \
@@ -120,7 +117,7 @@ jobs:
         run: npm install -g @sigstore/cli
 
       - name: Download initial root
-        run: curl -o root.json ${STAGING_URL}/1.root.json
+        run: curl -o root.json ${METADATA_URL}/1.root.json
 
       - name: Download bundle to verify
         uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e # v4.1.7
@@ -132,7 +129,7 @@ jobs:
           touch artifact
 
           sigstore verify \
-              --tuf-mirror-url $STAGING_URL \
+              --tuf-mirror-url $METADATA_URL \
               --tuf-root-path root.json \
               --certificate-identity-uri $IDENTITY \
               --certificate-issuer https://token.actions.githubusercontent.com \

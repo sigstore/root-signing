@@ -12,10 +12,15 @@ jobs:
   smoke-test:
     runs-on: ubuntu-latest
     steps:
-      - name: Smoke test Sigstore staging repository with a TUF client
+      - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
+
+      - name: Set initial root for the smoke test
+        run: cp metadata/root_history/5.root.json ./root.json
+
+      - name: Smoke test Sigstore TUF repository with a TUF client
         uses: theupdateframework/tuf-on-ci/actions/test-repository@a486e2d6fcf93af4cb0f479e6a280f34125647d6 # v0.10.0
         with:
-          metadata_url: https://tuf-repo-cdn.sigstage.dev/
+          metadata_url: https://tuf-repo-cdn.sigstore.dev/
           valid_days: 3
           offline_valid_days: 30
 
@@ -24,7 +29,7 @@ jobs:
       id-token: 'write' # For signing with the GitHub workflow identity
     uses: ./.github/workflows/custom-test.yml
     with:
-      metadata_url: https://tuf-repo-cdn.sigstage.dev/
+      metadata_url: https://tuf-repo-cdn.sigstore.dev/
 
   update-issue:
     runs-on: ubuntu-latest

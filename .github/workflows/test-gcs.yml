@@ -3,8 +3,9 @@ name: root-signing GCS repository tests
 on:
   workflow_call:
   workflow_dispatch:
-  schedule:
-    - cron: '17 4,10,16,22 * * *'
+  # disabled during migration
+  #schedule:
+  #  - cron: '17 4,10,16,22 * * *'
 
 permissions: {}
 

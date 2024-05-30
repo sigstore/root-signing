@@ -40,7 +40,7 @@ func Snapshot() *ffcli.Command {
 	# snapshot staged repository at ceremony/YYYY-MM-DD
 	tuf snapshot -repository ceremony/YYYY-MM-DD`,
 		FlagSet: flagset,
-		Exec: func(ctx context.Context, args []string) error {
+		Exec: func(ctx context.Context, _ []string) error {
 			if *repository == "" {
 				return flag.ErrHelp
 			}

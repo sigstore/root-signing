@@ -31,14 +31,14 @@ func TestGetSigningKeyIDs(t *testing.T) {
 		name           string
 		dir            string
 		role           string
-		expectedKeyIds []string
+		expectedKeyIDs []string
 		shouldErr      bool
 	}{
 		{
 			name: "root role - initial root",
 			dir:  "./testdata/single_root",
 			role: "root",
-			expectedKeyIds: []string{
+			expectedKeyIDs: []string{
 				"2f64fb5eac0cf94dd39bb45308b98920055e9a0d8e012a7220787834c60aef97",
 				"bdde902f5ec668179ff5ca0dabf7657109287d690bf97e230c21d65f99155c62",
 				"eaf22372f417dd618a46f6c627dbc276e9fd30a004fc94f9be946e73f8bd090b",
@@ -51,7 +51,7 @@ func TestGetSigningKeyIDs(t *testing.T) {
 			name: "rotated root keys role",
 			dir:  "./testdata/multiple_root",
 			role: "root",
-			expectedKeyIds: []string{
+			expectedKeyIDs: []string{
 				"2f64fb5eac0cf94dd39bb45308b98920055e9a0d8e012a7220787834c60aef97",
 				"bdde902f5ec668179ff5ca0dabf7657109287d690bf97e230c21d65f99155c62",
 				"eaf22372f417dd618a46f6c627dbc276e9fd30a004fc94f9be946e73f8bd090b",
@@ -71,7 +71,7 @@ func TestGetSigningKeyIDs(t *testing.T) {
 			name: "delegated role",
 			dir:  "./testdata/multiple_root",
 			role: "revocation",
-			expectedKeyIds: []string{
+			expectedKeyIDs: []string{
 				"9e7d813e8e16062e60a4540346aa8e7c7782afb7098af0b944ea80a4033a176f",
 			},
 			shouldErr: false,
@@ -95,13 +95,13 @@ func TestGetSigningKeyIDs(t *testing.T) {
 				return
 			}
 
-			for _, key := range tt.expectedKeyIds {
+			for _, key := range tt.expectedKeyIDs {
 				if _, ok := keys[key]; !ok {
 					t.Errorf("expected key %s in signing keys for role %s", key, tt.role)
 				}
 			}
-			if len(keys) != len(tt.expectedKeyIds) {
-				t.Errorf("expected %d signing keys, got %d", len(tt.expectedKeyIds), len(keys))
+			if len(keys) != len(tt.expectedKeyIDs) {
+				t.Errorf("expected %d signing keys, got %d", len(tt.expectedKeyIDs), len(keys))
 			}
 		})
 	}

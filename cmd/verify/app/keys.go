@@ -130,13 +130,13 @@ var keyCmd = &cobra.Command{
 	Use:   "keys",
 	Short: "Root verify keys command",
 	Long:  `Verifies hardware keys for a repository`,
-	PreRunE: func(cmd *cobra.Command, args []string) error {
+	PreRunE: func(cmd *cobra.Command, _ []string) error {
 		if err := viper.BindPFlags(cmd.Flags()); err != nil {
 			return fmt.Errorf("error initializing cmd line args: %s", err)
 		}
 		return nil
 	},
-	RunE: func(cmd *cobra.Command, args []string) error {
+	RunE: func(_ *cobra.Command, _ []string) error {
 		log.SetFlags(0)
 
 		rootBytes, err := os.ReadFile(rootFile.String())

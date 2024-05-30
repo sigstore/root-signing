@@ -1,6 +1,6 @@
 module github.com/sigstore/root-signing
 
-go 1.21
+go 1.22
 
 require (
 	github.com/go-piv/piv-go v1.11.0

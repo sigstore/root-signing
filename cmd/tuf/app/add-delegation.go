@@ -77,7 +77,7 @@ but will default to the name if unspecified.
 	# add-delegation repository at ceremony/YYYY-MM-DD
 	tuf add-delegation -repository ceremony/YYYY-MM-DD -name $NAME -key $KEY_A -key $KEY_B`,
 		FlagSet: flagset,
-		Exec: func(ctx context.Context, args []string) error {
+		Exec: func(ctx context.Context, _ []string) error {
 			if *repository == "" {
 				return flag.ErrHelp
 			}

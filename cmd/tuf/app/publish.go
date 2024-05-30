@@ -44,7 +44,7 @@ func Publish() *ffcli.Command {
 	# publish staged repository at ceremony/YYYY-MM-DD
 	tuf publish -repository ceremony/YYYY-MM-DD`,
 		FlagSet: flagset,
-		Exec: func(ctx context.Context, args []string) error {
+		Exec: func(ctx context.Context, _ []string) error {
 			if *repository == "" {
 				return flag.ErrHelp
 			}

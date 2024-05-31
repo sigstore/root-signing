@@ -135,3 +135,43 @@ jobs:
               --certificate-issuer https://token.actions.githubusercontent.com \
               --blob-file=artifact \
               artifact.sigstore.json
+
+  sigstore-java:
+    runs-on: ubuntu-latest
+    needs: [sigstore-python]
+    steps:
+      - name: Set up JDK
+        uses: actions/setup-java@99b8673ff64fbf99d8d325f52d9a5bdedb8483e9 # v4.2.1
+        with:
+          java-version: 17
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+        with:
+          repository: "sigstore/sigstore-java"
+          fetch-tags: true
+
+      - name: Build cli from latest release tag, unpack distribution
+        run: |
+          git checkout $(git describe --tags --match="v[0-9]*" HEAD)
+          ./gradlew :sigstore-cli:build
+          tar -xvf sigstore-cli/build/distributions/sigstore-cli-*.tar --strip-components 1
+
+      - name: Download bundle to verify
+        uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e # v4.1.7
+        with:
+          name: bundle
+
+      - name: Test published repository with sigstore-java
+        run: |
+          touch artifact
+
+          bin/sigstore-cli verify-bundle \
+              --staging-with-tuf-url-override $STAGING_URL \
+              --bundle artifact.sigstore.json \
+              --certificate-identity $IDENTITY \
+              --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+              artifact

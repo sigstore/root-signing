@@ -1,0 +1,22 @@
+{
+  "root": {
+    "x-tuf-on-ci-signing-period": 31,
+    "x-tuf-on-ci-expiry-period": 182,
+    "1e1d65ce98b10addad4764febf7dda2d0436b3d3a3893579c0dddaea20e54849": "@santiagotorres",
+    "230e212616274a4195cdc28e9fce782c20e6c720f1a811b40f98228376bdd3ac": "@-replace-me-with-timestamp-key",
+    "3c344aa068fd4cc4e87dc50b612c02431fbc771e95003993683a2b0bf260cf0e": "@dlorenc",
+    "923bb39e60dd6fa2c31e6ea55473aa93b64dd4e53e16fbe42f6a207d3f97de2d": "gcpkms://projects/sigstore-root-signing/locations/global/keyRings/root/cryptoKeys/timestamp",
+    "e2f59acb9488519407e18cbfc9329510be03c04aca9929d2f0301343fec85523": "@bobcallaway",
+    "ec81669734e017996c5b85f3d02c3de1dd4637a152019fe1af125d2f9368b95e": "@mnm678",
+    "fdfa83a07b5a83589b87ded41f77f39d232ad91f7cce52868dacd06ba089849f": "@joshuagl"
+  },
+  "targets": {
+    "x-tuf-on-ci-expiry-period": 3650,
+    "x-tuf-on-ci-signing-period": 31,
+    "3b60e337a003f0465d881e34051b1350f0041b931bd68d95ce2066c81d36de1b": "@-npm-signer"
+  },
+  "registry.npmjs.org": {
+    "x-tuf-on-ci-expiry-period": 182,
+    "x-tuf-on-ci-signing-period": 31
+  }
+}

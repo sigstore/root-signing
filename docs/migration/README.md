@@ -7,7 +7,7 @@ tuf-on-ci actions.
 
 ## Summary
 
-Roughly he migration steps are
+Roughly the migration steps are
 1. Prepare the GitHub project, workflows, cloud services and the data
    _without disrupting the current operations_
 2. Run the initial signing event with tuf-on-ci, do the necessary changes to metadata _without disrupting
@@ -22,6 +22,9 @@ The complication here is that starting step 2 (making a copy of the current meta
 the online signing machinery will modify metadata every three days. Within that time we need to either:
 * Decide the signing event was not successful and restart step 2 at a later date or
 * complete steps 2 and 3
+
+The deadline can be extended by a couple of days (as the actual expiry period is ~7 days) but this requires
+additional communication with on-call.
 
 ## Detailed playbook
 
@@ -66,7 +69,8 @@ This playbook and manuals for signers and maintainers.
 
 #### Signer orientation
 
-Make sure signers have installed and tested the software, and understand what will be requested during the signing event
+Make sure signers have installed and tested the software, and understand what will be requested during the signing
+event -- especially with regards ~3 day timeline to evaluate and make a go/no-go decision.
 
 #### General outreach
 

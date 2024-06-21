@@ -63,7 +63,7 @@ if [[ -n "${UPDATE_PR}" ]]; then
     /repos/"${GITHUB_REPOSITORY}"/pulls/"${PULL_NUMBER}"/merge \
     -f commit_title="${TITLE} (#${PULL_NUMBER})" \
     -f commit_message="Signed-off-by: ${LOGIN} <${LOGIN}@users.noreply.github.com>" \
-    -f merge_method='squash'
+    -f merge_method='merge'
 
 else
     echo "No open snapshot/timestamp pull request found"

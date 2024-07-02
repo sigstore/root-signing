@@ -1,4 +1,4 @@
-name: TUF-on-CI repository tests
+name: root-signing GCS repository tests
 
 on:
   workflow_call:
@@ -18,11 +18,10 @@ jobs:
       - name: Set initial root for the smoke test
         run: cp metadata/root_history/5.root.json ./root.json
 
-      - name: Smoke test TUF-on-CI repository with a TUF client
+      - name: Smoke test Sigstore TUF repository with a TUF client
         uses: theupdateframework/tuf-on-ci/actions/test-repository@a486e2d6fcf93af4cb0f479e6a280f34125647d6 # v0.10.0
         with:
-          metadata_url: https://sigstore.github.io/root-signing/
-          update_base_url: https://tuf-repo-cdn.sigstore.dev/
+          metadata_url: https://tuf-repo-cdn.sigstore.dev/
           valid_days: 3
           offline_valid_days: 30
 
@@ -31,13 +30,13 @@ jobs:
       id-token: 'write' # For signing with the GitHub workflow identity
     uses: ./.github/workflows/custom-test.yml
     with:
-      metadata_url: https://sigstore.github.io/root-signing/
+      metadata_url: https://tuf-repo-cdn.sigstore.dev/
 
   update-issue:
     runs-on: ubuntu-latest
     needs: [smoke-test, custom-smoke-test]
     # During workflow_call, caller updates issue
-    if: always() && !cancelled() && github.workflow == 'TUF-on-CI repository tests'
+    if: always() && !cancelled() && github.workflow == 'root-signing GCS repository tests'
     permissions:
       issues: 'write' # for modifying Issues
     steps:

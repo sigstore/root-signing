@@ -1,0 +1,177 @@
+name: root-signing repository tests with a Sigstore client
+
+on:
+  workflow_call:
+    inputs:
+      metadata_url:
+        description: "URL of the sigstore TUF repository to test"
+        required: true
+        type: string
+
+permissions:
+  id-token: 'write' # For signing with the GitHub workflow identity
+
+env:
+  METADATA_URL: ${{ inputs.metadata_url }}
+  IDENTITY: ${{ github.server_url }}/${{ github.repository }}/.github/workflows/custom-test.yml@${{ github.ref }}
+
+jobs:
+  sigstore-python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d # v5.1.0
+        with:
+          python-version: '3.11'
+
+      - name: Install sigstore-python, tweak it to use the published TUF repository
+        run: |
+          pip install sigstore
+
+          # tweak sigstore sources to use our publish URL
+          # TODO: remove this once sigstore-python supports "--tuf-url" or similar
+          SITE_PACKAGES=$(pip show sigstore | sed -n "s/^Location: //p")
+          TUF_PY="$SITE_PACKAGES/sigstore/_internal/tuf.py"
+
+          sed -ie "s#^DEFAULT_TUF_URL = .*#DEFAULT_TUF_URL = \"$METADATA_URL\"#" "$TUF_PY"
+
+      - name: Test published repository with sigstore-python
+        run: |
+          touch artifact
+          # sign, then verify using this workflows oidc identity
+          python -m sigstore -vv sign --bundle artifact.sigstore.json artifact
+          python -m sigstore verify github --cert-identity $IDENTITY --bundle artifact.sigstore.json artifact
+
+      - name: Upload the bundle for other clients to verify
+        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
+        with:
+          name: bundle
+          path: artifact.sigstore.json
+          overwrite: true
+
+  cosign:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: sigstore/cosign-installer@59acb6260d9c0ba8f4a2f9d9b48431a222b68e20 # v3.5.0
+
+      - name: Download initial root
+        run: curl -o root.json ${METADATA_URL}/1.root.json
+
+      - name: Test published repository with cosign
+        run: |
+          touch artifact
+
+          # initialize from the published repository
+          cosign initialize --root root.json --mirror ${METADATA_URL}
+
+          # sign, then verify using this workflows oidc identity
+          cosign sign-blob \
+              --yes \
+              --bundle bundle.json \
+              artifact
+
+          cosign verify-blob \
+              --certificate-identity $IDENTITY \
+              --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+              --bundle bundle.json \
+              artifact
+
+  sigstore-go:
+    runs-on: ubuntu-latest
+    needs: [sigstore-python]
+    steps:
+      - uses: actions/setup-go@cdcb36043654635271a94b9a6d1392de5bb323a7 # v5.0.1
+        with:
+          go-version: '1.22'
+          check-latest: true
+
+      - name: Install sigstore-go
+        run: go install github.com/sigstore/sigstore-go/cmd/sigstore-go@latest
+
+      - name: Download initial root
+        run: curl -o root.json ${METADATA_URL}/1.root.json
+
+      - name: Download bundle to verify
+        uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e # v4.1.7
+        with:
+          name: bundle
+
+      - name: Test published repository with sigstore-go
+        run: |
+          touch artifact
+
+          ~/go/bin/sigstore-go \
+              -tufRootURL $METADATA_URL \
+              -tufTrustedRoot root.json \
+              -expectedSAN $IDENTITY \
+              -expectedIssuer https://token.actions.githubusercontent.com \
+              -artifact artifact \
+              artifact.sigstore.json
+
+  sigstore-js:
+    runs-on: ubuntu-latest
+    needs: [sigstore-python]
+    steps:
+      - uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
+
+      - name: Install sigstore-js
+        run: npm install -g @sigstore/cli
+
+      - name: Download initial root
+        run: curl -o root.json ${METADATA_URL}/1.root.json
+
+      - name: Download bundle to verify
+        uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e # v4.1.7
+        with:
+          name: bundle
+
+      - name: Test published repository with sigstore-js
+        run: |
+          touch artifact
+
+          sigstore verify \
+              --tuf-mirror-url $METADATA_URL \
+              --tuf-root-path root.json \
+              --certificate-identity-uri $IDENTITY \
+              --certificate-issuer https://token.actions.githubusercontent.com \
+              --blob-file=artifact \
+              artifact.sigstore.json
+
+  sigstore-java:
+    runs-on: ubuntu-latest
+    needs: [sigstore-python]
+    steps:
+      - name: Set up JDK
+        uses: actions/setup-java@99b8673ff64fbf99d8d325f52d9a5bdedb8483e9 # v4.2.1
+        with:
+          java-version: 17
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+        with:
+          repository: "sigstore/sigstore-java"
+          fetch-tags: true
+
+      - name: Build cli from latest release tag, unpack distribution
+        run: |
+          git checkout $(git describe --tags --match="v[0-9]*" HEAD)
+          ./gradlew :sigstore-cli:build
+          tar -xvf sigstore-cli/build/distributions/sigstore-cli-*.tar --strip-components 1
+
+      - name: Download bundle to verify
+        uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e # v4.1.7
+        with:
+          name: bundle
+
+      - name: Test published repository with sigstore-java
+        run: |
+          touch artifact
+
+          bin/sigstore-cli verify-bundle \
+              --public-good-with-tuf-url-override $METADATA_URL \
+              --bundle artifact.sigstore.json \
+              --certificate-identity $IDENTITY \
+              --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+              artifact

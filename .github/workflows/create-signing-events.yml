@@ -1,0 +1,34 @@
+name: TUF-on-CI create Signing events
+
+on:
+  # disabled during migration
+  #schedule:
+  #  - cron:  '17 1,7,13,19 * * *'
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  create-signing-events:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: 'write' # for committing to signing event branch
+      actions: 'write' # for dispatching signing event workflow
+    steps:
+      - name: Create signing events for offline version bumps
+        uses: theupdateframework/tuf-on-ci/actions/create-signing-events@a486e2d6fcf93af4cb0f479e6a280f34125647d6 # v0.10.0
+        with:
+          token: ${{ secrets.TUF_ON_CI_TOKEN || secrets.GITHUB_TOKEN }}
+
+  update-issue:
+    runs-on: ubuntu-latest
+    needs: [create-signing-events]
+    if: always() && !cancelled()
+    permissions:
+      issues: 'write' # for modifying Issues
+    steps:
+      - name: Update the issue for the workflow
+        uses: theupdateframework/tuf-on-ci/actions/update-issue@a486e2d6fcf93af4cb0f479e6a280f34125647d6 # v0.10.0
+        with:
+          token: ${{ secrets.TUF_ON_CI_TOKEN || secrets.GITHUB_TOKEN }}
+          success: ${{ !contains(needs.*.result, 'failure') }}

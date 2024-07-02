@@ -1,0 +1,110 @@
+#
+# Copyright 2021 The Sigstore Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: CI Test
+
+on:
+  push:
+    paths-ignore:
+      - 'ceremony/**'
+  pull_request:
+    paths-ignore:
+      - 'ceremony/**'
+
+jobs:
+  golangci:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+      - uses: actions/setup-go@cdcb36043654635271a94b9a6d1392de5bb323a7 # v5.0.1
+        with:
+          go-version-file: './go.mod'
+          check-latest: true
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@a4f60bb28d35aeee14e6880718e0c85ff1882e64 # v6.0.1
+        with:
+          version: v1.59
+
+  yamllint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+      - name: Set up Python
+        uses: actions/setup-python@0a5c61591373683505ea898e09a3ea4f39ef2b9c # v5.0.0
+        with:
+          python-version: 3.8
+      - env:
+          YAMLLINT_VERSION: "1.26.3"
+        run: |
+          set -euo pipefail
+          # Install yamllint
+          pip install "yamllint==${YAMLLINT_VERSION}"
+          # Run yamllint
+          make yamllint
+
+  actionlint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+      - name: Check workflow files
+        uses: reviewdog/action-actionlint@afad3b6ab835e5611bda8c8193377e2d5c21413d # v1.51.0
+        # TODO(asraa): Re-enable shellcheck from actionlint
+        with:
+          actionlint_flags: -color -shellcheck=
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+      - uses: actions/setup-go@cdcb36043654635271a94b9a6d1392de5bb323a7 # v5.0.1
+        with:
+          go-version-file: './go.mod'
+          check-latest: true
+      - name: install deps
+        run: |
+          sudo apt-get install libpcsclite-dev
+      - name: Test
+        run: go test -tags=pivkey -v ./...
+      - name: Ensure no files were modified as a result of the build
+        run: git update-index --refresh && git diff-index --quiet HEAD -- || git diff --exit-code
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+      - uses: actions/setup-go@cdcb36043654635271a94b9a6d1392de5bb323a7 # v5.0.1
+        with:
+          go-version-file: './go.mod'
+          check-latest: true
+      - name: install deps
+        run: |
+          sudo apt-get install libpcsclite-dev
+      - name: build verification
+        run: go build -o verify ./cmd/verify/
+      - name: build TUF script
+        run: go build -o tuf -tags=pivkey ./cmd/tuf
+      - name: build test script
+        run: go build -o keygen -tags=pivkey ./tests/keygen
+
+  shellcheck:
+    name: Shellcheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+      - name: Run ShellCheck
+        uses: ludeeus/action-shellcheck@00cae500b08a931fb5698e11e79bfbd38e612a38 # v2.0.0
+        env:
+          SHELLCHECK_OPTS: -x

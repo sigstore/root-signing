@@ -2,16 +2,16 @@
 	"signed": {
 		"_type": "snapshot",
 		"spec_version": "1.0",
-		"version": 132,
-		"expires": "2024-04-09T16:16:11Z",
+		"version": 131,
+		"expires": "2024-04-09T16:06:45Z",
 		"meta": {
 			"registry.npmjs.org.json": {
-				"length": 964,
+				"length": 717,
 				"hashes": {
-					"sha256": "0d0dce2402aa5edcd117269557f0f42a7a31cd89f481a305d9ef135592915a9e",
-					"sha512": "1f7ba405126482df160d35127937c7ed899b0e2a5b313ecc42044e4d2c0b4aab03c4ada0f07137051735dca33d4bb16f6718cff9e53779381984854ac15f86f6"
+					"sha256": "eb130d653ed6e4b3e6ea1d1cbdd1eb38da6067c8153a4ebfbd479b839cd762be",
+					"sha512": "b5667f9232900eb57fb3eac48a6b4e696eae07667b509d51d4f748347b54170a42269868df35bc02d56746fe25998ec18201391aaa1beb8ff40c9a867312ea3b"
 				},
-				"version": 3
+				"version": 2
 			},
 			"rekor.json": {
 				"length": 797,
@@ -46,19 +46,19 @@
 				"version": 2
 			},
 			"targets.json": {
-				"length": 5478,
+				"length": 5254,
 				"hashes": {
-					"sha256": "f48d24a391c67370e4da4888f856c7775e4e82171f4970b7b0baba61ede68297",
-					"sha512": "5c06931ca4873ebe5e6b04fa39b7dcd8c02d4e6f61912ae9a0cca6e7c2f1f4ab102871a1f0c08c5deab059b37960d45e78c16aacb8b8790247a5f42aed96f970"
+					"sha256": "5a3137bfb141c23bba733309e71260a020052def7443e76d7f97b807e72299bc",
+					"sha512": "d3285632920302399e89f853a47feaa63bfb3f82425a58f61d44d2def5198d23b6dd7b5541c5cdc4196db0188a22c484e03ef08b6773b543ec4c0df6d8c2df2f"
 				},
-				"version": 9
+				"version": 8
 			}
 		}
 	},
 	"signatures": [
 		{
-			"keyid": "230e212616274a4195cdc28e9fce782c20e6c720f1a811b40f98228376bdd3ac",
-			"sig": "304502202823b2d850a228b214897868750c8cf1b44843e004487e8e1b6aeb18b4891640022100a5ab08f546ccea836621c4f1567a242b3d769faf90a3a49a352bcb97172212c6"
+			"keyid": "45b283825eb184cabd582eb17b74fc8ed404f68cf452acabdad2ed6f90ce216b",
+			"sig": "30450220784eb3bd1b95bf11016707c7e597b4e9377da55e80f63d39b9b31e6783a7eb3d022100bf418cb74ee4cf4391a5f672cc8bd1593f3085ab1fd0f42de5df609de75de713"
 		}
 	]
 }

@@ -5,4 +5,5 @@ piv-attestation-ca.pem
 test-root.pem
 test-root-attestation.ca
 gha-creds-*.json
+.tuf-on-ci-sign.ini
 *~

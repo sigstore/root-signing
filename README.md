@@ -1,4 +1,11 @@
-This directory contains the programs needed to generate and verify Sigstore root keys and create signed TUF metadata.
+root-signing project maintains the TUF repository used to securely deliver the
+_Sigstore trust root (trusted_root.json)_ to Sigstore clients.
+
+> [!NOTE]
+> root-signing is currently undergoing a migration to new maintenance tooling, see
+> https://github.com/sigstore/root-signing/issues/929. Sigstore client operation
+> should not be disrupted but the information in this README may be momentarily
+> out of date.
 
 ## TUF Repository Structure
 The current published repository metadata lives in the [repository](/repository/repository) subfolder of this GitHub repository. In this repository, you will find the top-level TUF metadata files, delegations, and target files.

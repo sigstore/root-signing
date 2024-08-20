@@ -42,6 +42,21 @@ Another option is `cosign piv-tool`.
   push-remote = origin
   pull-remote = upstream
   ```
+  If you used an already existing checkout, please make sure the remote names make sense: `push-remote`
+  should be your fork, `pull-remote` should be the upstream root-signing repository.
+
+### Smoke test
+
+In your root-signing directory, try to sign in a non-existent signing event:
+```bash
+$ tuf-on-ci-sign sign/just-testing
+Remote branch not found: branching off from main
+Signing event sign/just-testing (commit xxxxxxx)
+Nothing to do.
+$
+```
+
+This verifies that `tuf-on-ci-sign` should be ready for signing.
 
 ## Signing
 
@@ -53,6 +68,6 @@ When a signing event asks you to sign or to accept an invite:
 * Enter your virtualenv if you use one: `source ~/.venvs/tuf-on-ci-sign/bin/activate`
 * Run signing tool: `tuf-on-ci-sign <SIGNING-EVENT>`
   * if you are accepting an invite, choose "Yubikey" as your key type
-  * if you are signing, review the changes
+  * if you are signing, review the changes (if needed, use GitHub UI or another terminal to see the signing event branch content)
   * Signing automatically commits the signature and pushes it to a branch on your fork
 * After signing, click the provided link to create a PR to the signing event branch

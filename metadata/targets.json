@@ -1,31 +1,31 @@
 {
  "signatures": [
   {
-   "keyid": "3c344aa068fd4cc4e87dc50b612c02431fbc771e95003993683a2b0bf260cf0e",
-   "sig": "30440220764f1edad367a55d340eb7a97c0c8f847c47fa3fd05cadf3e246ee8ced7e504002200ebe44b01d6f59a348041c3845dda0980754893ddc1a9c8bfaa98e6b1f0b4627"
+   "keyid": "6f260089d5923daf20166ca657c543af618346ab971884a99962b01988bbe0c3",
+   "sig": ""
   },
   {
-   "keyid": "ec81669734e017996c5b85f3d02c3de1dd4637a152019fe1af125d2f9368b95e",
-   "sig": "304502202d4955e47ab4a6ba6aaaa372bf50084e3cea0149da09f28807285fa306af38ae022100947cb4f41332f3f3215b78ccb897177e122f3de7e682ac19f8f3c835bbdc75f4"
+   "keyid": "e71a54d543835ba86adad9460379c7641fb8726d164ea766801a1c522aba7ea2",
+   "sig": ""
   },
   {
-   "keyid": "1e1d65ce98b10addad4764febf7dda2d0436b3d3a3893579c0dddaea20e54849",
-   "sig": "3045022015062f271a9cab84d5ffdbf878a42a4fc0754c1fa91822e38242af3546eaada8022100f0d766d4aca8ba675cf0b715104b765f81b4772cb53915db253fc437980e9e76"
+   "keyid": "22f4caec6d8e6f9555af66b3d4c3cb06a3bb23fdc7e39c916c61f462e6f52b06",
+   "sig": ""
   },
   {
-   "keyid": "e2f59acb9488519407e18cbfc9329510be03c04aca9929d2f0301343fec85523",
-   "sig": "3045022100cccbbbfa8a87a648f6cd18f881b6643bb2fcb5f812678af5f1ed676e574eae3902200faaf1083c5bc95471ba6d1c7da1d7fcbabfaa32cdc27c215ef9b58b4c3d41c0"
+   "keyid": "61643838125b440b40db6942f5cb5a31c0dc04368316eb2aaa58b95904a58222",
+   "sig": ""
   },
   {
-   "keyid": "fdfa83a07b5a83589b87ded41f77f39d232ad91f7cce52868dacd06ba089849f",
-   "sig": "304402203161c4a74acc63ea50af6f78e32248366bad10d823fe38ca190780ca70cf1124022051dd0734f33253304a814e10e0387a82770ee6905ace85c03b645df1109a6b38"
+   "keyid": "a687e5bf4fab82b0ee58d46e05c9535145a2c9afb458f43d42b45ca0fdce2a70",
+   "sig": ""
   }
  ],
  "signed": {
   "_type": "targets",
   "delegations": {
    "keys": {
-    "3b60e337a003f0465d881e34051b1350f0041b931bd68d95ce2066c81d36de1b": {
+    "fa6bb9bb553e568b85a0dc66bd36eeccb1625304ff30428bca79abedaef1632a": {
      "keyid_hash_algorithms": [
       "sha256",
       "sha512"
@@ -34,13 +34,14 @@
      "keyval": {
       "public": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEoLrh0jmOfHWLwsyo/4oGbldF91WV\nfXvxVlDhW8fZwP/3vTnliBkDp5sH8/Dpm1SBOHkqENVt1+4Un/sFtl2zAQ==\n-----END PUBLIC KEY-----\n"
      },
-     "scheme": "ecdsa-sha2-nistp256"
+     "scheme": "ecdsa-sha2-nistp256",
+     "x-tuf-on-ci-keyowner": "@-npm-signer"
     }
    },
    "roles": [
     {
      "keyids": [
-      "3b60e337a003f0465d881e34051b1350f0041b931bd68d95ce2066c81d36de1b"
+      "fa6bb9bb553e568b85a0dc66bd36eeccb1625304ff30428bca79abedaef1632a"
      ],
      "name": "registry.npmjs.org",
      "paths": [
@@ -51,7 +52,7 @@
     }
    ]
   },
-  "expires": "2024-09-12T06:13:15Z",
+  "expires": "2034-08-19T07:59:33Z",
   "spec_version": "1.0",
   "targets": {
    "artifact.pub": {
@@ -159,6 +160,8 @@
     "length": 7014
    }
   },
-  "version": 9
+  "version": 10,
+  "x-tuf-on-ci-expiry-period": 3650,
+  "x-tuf-on-ci-signing-period": 31
  }
 }

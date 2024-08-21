@@ -24,7 +24,7 @@
  "signed": {
   "_type": "root",
   "consistent_snapshot": true,
-  "expires": "2025-02-19T07:59:33Z",
+  "expires": "2025-02-19T08:04:32Z",
   "keys": {
    "22f4caec6d8e6f9555af66b3d4c3cb06a3bb23fdc7e39c916c61f462e6f52b06": {
     "keyid_hash_algorithms": [
@@ -37,18 +37,6 @@
     },
     "scheme": "ecdsa-sha2-nistp256",
     "x-tuf-on-ci-keyowner": "@santiagotorres"
-   },
-   "354c3d2d4fe1622a380037f6173f23337899e6e4e28d4187a9664a67d0a5be83": {
-    "keyid_hash_algorithms": [
-     "sha256",
-     "sha512"
-    ],
-    "keytype": "ecdsa",
-    "keyval": {
-     "public": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAELrWvNt94v4R085ELeeCMxHp7PldF\n0/T1GxukUh2ODuggLGJE0pc1e8CSBf6CS91Fwo9FUOuRsjBUld+VqSyCdQ==\n-----END PUBLIC KEY-----\n"
-    },
-    "scheme": "ecdsa-sha2-nistp256",
-    "x-tuf-on-ci-keyowner": "@-replace-me-with-timestamp-key"
    },
    "61643838125b440b40db6942f5cb5a31c0dc04368316eb2aaa58b95904a58222": {
     "keyid_hash_algorithms": [
@@ -124,11 +112,11 @@
    },
    "snapshot": {
     "keyids": [
-     "354c3d2d4fe1622a380037f6173f23337899e6e4e28d4187a9664a67d0a5be83"
+     "7247f0dbad85b147e1863bade761243cc785dcb7aa410e7105dd3d2b61a36d2c"
     ],
     "threshold": 1,
-    "x-tuf-on-ci-expiry-period": 182,
-    "x-tuf-on-ci-signing-period": 31
+    "x-tuf-on-ci-expiry-period": 3650,
+    "x-tuf-on-ci-signing-period": 365
    },
    "targets": {
     "keyids": [
@@ -145,8 +133,8 @@
      "7247f0dbad85b147e1863bade761243cc785dcb7aa410e7105dd3d2b61a36d2c"
     ],
     "threshold": 1,
-    "x-tuf-on-ci-expiry-period": 182,
-    "x-tuf-on-ci-signing-period": 31
+    "x-tuf-on-ci-expiry-period": 7,
+    "x-tuf-on-ci-signing-period": 4
    }
   },
   "spec_version": "1.0",

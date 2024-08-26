@@ -45,19 +45,19 @@ jobs:
 
   # disabled during migration
   # (when enabling remember to add to update-issue.needs)
-  #deploy-to-gcs:
-  #  needs: [test-deployed-pages]
-  #  permissions:
-  #    id-token: 'write' # for authenticating with OIDC
-  #  uses: ./.github/workflows/deploy-to-gcs.yml
+  # deploy-to-gcs:
+  #   needs: [test-deployed-pages]
+  #   permissions:
+  #     id-token: 'write' # for authenticating with OIDC
+  #   uses: ./.github/workflows/deploy-to-gcs.yml
 
-  #test-deployed-gcs:
-  #  needs: [deploy-to-gcs]
-  #  if: always() && !failure() && !cancelled()
-  #  permissions:
-  #    issues: 'write' # for modifying Issues
-  #    id-token: 'write' # for signing with the GitHub Actions workflow identity
-  #  uses: ./.github/workflows/test-gcs.yml
+  # test-deployed-gcs:
+  #   needs: [deploy-to-gcs]
+  #   if: always() && !failure() && !cancelled()
+  #   permissions:
+  #     issues: 'write' # for modifying Issues
+  #     id-token: 'write' # for signing with the GitHub Actions workflow identity
+  #   uses: ./.github/workflows/test-gcs.yml
 
   update-issue:
     runs-on: ubuntu-latest

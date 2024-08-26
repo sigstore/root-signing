@@ -25,23 +25,19 @@
   "_type": "targets",
   "delegations": {
    "keys": {
-    "fa6bb9bb553e568b85a0dc66bd36eeccb1625304ff30428bca79abedaef1632a": {
-     "keyid_hash_algorithms": [
-      "sha256",
-      "sha512"
-     ],
+    "5e3a4021b11a425fd0a444f1670457ce5b15bbe036144f2417426f7f4b9721da": {
      "keytype": "ecdsa",
      "keyval": {
-      "public": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEoLrh0jmOfHWLwsyo/4oGbldF91WV\nfXvxVlDhW8fZwP/3vTnliBkDp5sH8/Dpm1SBOHkqENVt1+4Un/sFtl2zAQ==\n-----END PUBLIC KEY-----\n"
+      "public": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEVfei1dXQRVeArCMcTDgxJtYg+Fs7\nV87DjhQbGlRJPyC7SW5TbNNkmvpmi4LeTv6moLVZ7T2nVqiRZbSkD+cf8w==\n-----END PUBLIC KEY-----\n"
      },
      "scheme": "ecdsa-sha2-nistp256",
-     "x-tuf-on-ci-keyowner": "@-npm-signer"
+     "x-tuf-on-ci-online-uri": "azurekms://npm-tuf-delegate.vault.azure.net/keys/npm-tuf-delegate-2024-08/e2772c1d01ca400da571096889f1660e"
     }
    },
    "roles": [
     {
      "keyids": [
-      "fa6bb9bb553e568b85a0dc66bd36eeccb1625304ff30428bca79abedaef1632a"
+      "5e3a4021b11a425fd0a444f1670457ce5b15bbe036144f2417426f7f4b9721da"
      ],
      "name": "registry.npmjs.org",
      "paths": [
@@ -52,7 +48,7 @@
     }
    ]
   },
-  "expires": "2034-08-19T07:59:33Z",
+  "expires": "2034-08-24T07:16:33Z",
   "spec_version": "1.0",
   "targets": {
    "artifact.pub": {

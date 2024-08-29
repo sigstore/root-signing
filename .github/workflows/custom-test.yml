@@ -153,10 +153,11 @@ jobs:
         with:
           repository: "sigstore/sigstore-java"
           fetch-tags: true
+          fetch-depth: 0
 
       - name: Build cli from latest release tag, unpack distribution
         run: |
-          git checkout $(git describe --tags --match="v[0-9]*" HEAD)
+          git checkout $(git describe --tags --match="v[0-9]*" --abbrev=0 HEAD)
           ./gradlew :sigstore-cli:build
           tar -xvf sigstore-cli/build/distributions/sigstore-cli-*.tar --strip-components 1
 

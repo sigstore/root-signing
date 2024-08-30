@@ -3,11 +3,12 @@ name: TUF-on-CI online signing
 permissions: {}
 
 on:
-  schedule:
-    - cron: '17 1,7,13,19 * * *'
-  push:
-    branches: [main]
-    paths: ['metadata/**', '!metadata/timestamp.json', '!metadata/snapshot.json']
+  # disabled during migration
+  #schedule:
+  #  - cron:  '17 1,7,13,19 * * *'
+  #push:
+  #  branches: [ main ]
+  #  paths: ['metadata/**', '!metadata/timestamp.json', '!metadata/snapshot.json']
   workflow_dispatch:
 
 jobs:

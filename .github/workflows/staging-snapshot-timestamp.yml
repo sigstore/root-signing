@@ -1,0 +1,44 @@
+#
+# Copyright 2021 The Sigstore Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: Staging Snapshot and Timestamp
+
+permissions: read-all
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'The branch where the staged repository is, e.g. ceremony/2022-10-18'
+        required: true
+        type: string
+
+jobs:
+  run_snapshot_timestamp_publish:
+    permissions:
+      id-token: 'write'
+      issues: 'write'
+      pull-requests: 'write'
+      contents: 'write'
+      actions: 'read'
+    uses: sigstore/root-signing/.github/workflows/reuseable-snapshot-timestamp.yml@main
+    with:
+      snapshot_key: 'gcpkms://projects/sigstore-root-signing/locations/global/keyRings/root/cryptoKeys/snapshot'
+      timestamp_key: 'gcpkms://projects/sigstore-root-signing/locations/global/keyRings/root/cryptoKeys/timestamp'
+      branch: ${{ inputs.branch }}
+      provider: 'projects/163070369698/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions-provider'
+      service_account: 'github-actions@sigstore-root-signing.iam.gserviceaccount.com'
+    secrets:
+      token: ${{ secrets.SIGSTORE_ROOT_SIGNING_FINE_GRAINED_PAT }}

@@ -3,9 +3,8 @@ name: TUF-on-CI repository tests
 on:
   workflow_call:
   workflow_dispatch:
-  # disabled during migration
-  #schedule:
-  #  - cron: '17 4,10,16,22 * * *'
+  schedule:
+    - cron: '17 4,10,16,22 * * *'
 
 permissions: {}
 

@@ -1,9 +1,8 @@
 name: TUF-on-CI create Signing events
 
 on:
-  # disabled during migration
-  #schedule:
-  #  - cron:  '17 1,7,13,19 * * *'
+  schedule:
+    - cron: '17 1,7,13,19 * * *'
   workflow_dispatch:
 
 permissions: {}

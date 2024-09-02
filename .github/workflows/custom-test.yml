@@ -54,7 +54,7 @@ jobs:
       - uses: sigstore/cosign-installer@4959ce089c160fddf62f7b42464195ba1a56d382 # v3.6.0
 
       - name: Download initial root
-        run: curl -o root.json ${METADATA_URL}/1.root.json
+        run: curl -o root.json ${METADATA_URL}/5.root.json
 
       - name: Test published repository with cosign
         run: |
@@ -88,7 +88,7 @@ jobs:
         run: go install github.com/sigstore/sigstore-go/cmd/sigstore-go@latest
 
       - name: Download initial root
-        run: curl -o root.json ${METADATA_URL}/1.root.json
+        run: curl -o root.json ${METADATA_URL}/5.root.json
 
       - name: Download bundle to verify
         uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8

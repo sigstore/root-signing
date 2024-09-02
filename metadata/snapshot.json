@@ -1,21 +1,16 @@
 {
  "signatures": [
   {
-   "keyid": "230e212616274a4195cdc28e9fce782c20e6c720f1a811b40f98228376bdd3ac",
-   "sig": "304402207d124d5711ca481ff5619728f51266593b8b937b570935514c1300d77aa777e20220051043196734dbd95af4e651ceeb7bb5c0fd00e04da5ebb0b67ba067b82ab32b"
+   "keyid": "7247f0dbad85b147e1863bade761243cc785dcb7aa410e7105dd3d2b61a36d2c",
+   "sig": "304402206566fd1ac98aae6c76e88d477201f8d6793d1df8655d5585f70cdfea16dfc46a022060fdeaafc754530606b4b78e2c273a8f6bed629345b8505e0380e722a8900450"
   }
  ],
  "signed": {
   "_type": "snapshot",
-  "expires": "2024-09-17T16:07:07Z",
+  "expires": "2034-08-31T13:31:34Z",
   "meta": {
    "registry.npmjs.org.json": {
-    "hashes": {
-     "sha256": "0d0dce2402aa5edcd117269557f0f42a7a31cd89f481a305d9ef135592915a9e",
-     "sha512": "1f7ba405126482df160d35127937c7ed899b0e2a5b313ecc42044e4d2c0b4aab03c4ada0f07137051735dca33d4bb16f6718cff9e53779381984854ac15f86f6"
-    },
-    "length": 964,
-    "version": 3
+    "version": 4
    },
    "rekor.json": {
     "hashes": {
@@ -50,15 +45,10 @@
     "version": 2
    },
    "targets.json": {
-    "hashes": {
-     "sha256": "f48d24a391c67370e4da4888f856c7775e4e82171f4970b7b0baba61ede68297",
-     "sha512": "5c06931ca4873ebe5e6b04fa39b7dcd8c02d4e6f61912ae9a0cca6e7c2f1f4ab102871a1f0c08c5deab059b37960d45e78c16aacb8b8790247a5f42aed96f970"
-    },
-    "length": 5478,
-    "version": 9
+    "version": 10
    }
   },
   "spec_version": "1.0",
-  "version": 155
+  "version": 156
  }
 }

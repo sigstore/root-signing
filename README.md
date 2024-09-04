@@ -20,6 +20,23 @@ All changes to artifacts or metadata require cryptographic signatures from Sigst
 keyholders, signature requirements and the signing schedule are documented in 
 [the published repository](https://tuf-repo-cdn.sigstore.dev/).
 
+#### Keyholders
+
+root-signing security relies on keyholders: they should be trusted community members who are willing and able to
+perform keyholder duties like verifying new trusted_root.json content and signing in signing events.
+
+| Keyholders | Term |
+| - | - |
+| Joshua Lock | July 2022 -  |
+| Bob Callaway | June 2021 -  |
+| Dan Lorenc | June 2021 -  |
+| Marina Moore | June 2021 - |
+| Santiago Torres-Arias | June 2021 - |
+
+| Emeritus keyholders | Term |
+| Luke Hinds | June 2021 - July 2022 |
+
+
 ### Operation
 
 The TUF repository is modified in two ways:

@@ -1,6 +1,22 @@
-# Signer manual for Sigstore root-signing
+# Keyholder manual for Sigstore root-signing
 
-## One-time setup for new signers
+## Keyholder requirements
+
+1. Keyholders MUST subscribe to the [Sigstore Maintainer Calendar](https://calendar.google.com/calendar/u/0?cid=Y19ydjIxcDJuMzJsbmJoYW5uaXFwOXIzNTJtb0Bncm91cC5jYWxlbmRhci5nb29nbGUuY29t) for upcoming root signing events.
+Root signing events are expected to occur about every 4-5 months. The next `v+1` version signing will be
+scheduled, and the `v+2` version will be tentatively scheduled.
+
+3. Obtaining a Yubikey for use as a signing key. If you need support to obtain one, please reach out to one of
+the maintainers or through Slack. Key configuration is described below.
+
+4. Participation in signing events! Keyholders are expected to participate in the scheduled root signing events.
+The steps will be announced in Slack and in the signing event PR. Typically keyholders are expected to review
+the signing event changes, sign and create a PR for their signature once per signing event. Additionally,
+keyholders should be "on-call" (available for quick pings during daytime hours) during the root signing window
+in case there is an issue.
+
+
+## One-time setup for new keyholders
 
 ### Yubikey configuration
 
@@ -60,7 +76,7 @@ This verifies that `tuf-on-ci-sign` should be ready for signing.
 
 ## Signing
 
-When a signing event asks you to sign or to accept an invite:
+When a signing event asks you to sign (or to accept an invite):
 * Read the signing event PR comments to find out the purpose and content of this signing event
 * If the artifacts in `targets/` (such as `targets/trusted_root.json`) are modified, verify
   that the proposed changes are sensible

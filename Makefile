@@ -1,6 +1,5 @@
 SHELL := /bin/bash
 OUTPUT_FORMAT = $(shell if [ "${GITHUB_ACTIONS}" == "true" ]; then echo "github"; else echo ""; fi)
-GOBIN ?= $(shell go env GOPATH)/bin
 
 .PHONY: help
 help: ## Shows all targets and help from the Makefile (this message).
@@ -18,20 +17,6 @@ help: ## Shows all targets and help from the Makefile (this message).
 			} \
 		}'
 
-## Linters
-#####################################################################
-
-lint: ## Run all linters.
-lint: golangci-lint yamllint
-
-golangci-lint: ## Runs the golangci-lint linter.
-	@set -e;\
-		extraargs=""; \
-		if [ "$(OUTPUT_FORMAT)" == "github" ]; then \
-			extraargs="--out-format github-actions"; \
-		fi; \
-		$(GOBIN)/golangci-lint run -c .golangci.yml ./... $$extraargs
-
 yamllint: ## Runs the yamllint linter.
 	@set -e;\
 		extraargs=""; \
@@ -39,19 +24,3 @@ yamllint: ## Runs the yamllint linter.
 			extraargs="-f github"; \
 		fi; \
 		yamllint -c .yamllint.yaml . $$extraargs
-
-.PHONY: keygen
-keygen:
-	@go build -tags=pivkey -o $@ ./tests/keygen
-
-.PHONY: tuf
-tuf:
-	@go build -tags=pivkey -o $@ ./cmd/tuf
-
-.PHONY: verify
-verify:
-	@go build -o verify ./cmd/verify
-
-.PHONY: test
-test:
-	@go test -tags=pivkey ./...

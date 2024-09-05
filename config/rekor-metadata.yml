@@ -1,5 +1,0 @@
-# Target files and metadata under rekor delegation
-targets/rekor.0.pub:
-  sigstore:
-    usage: Rekor
-    status: Active

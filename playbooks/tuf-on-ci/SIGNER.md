@@ -2,18 +2,17 @@
 
 ## Keyholder requirements
 
-1. Keyholders MUST subscribe to the [Sigstore Maintainer Calendar](https://calendar.google.com/calendar/u/0?cid=Y19ydjIxcDJuMzJsbmJoYW5uaXFwOXIzNTJtb0Bncm91cC5jYWxlbmRhci5nb29nbGUuY29t) for upcoming root signing events.
-Root signing events are expected to occur about every 4-5 months. The next `v+1` version signing will be
-scheduled, and the `v+2` version will be tentatively scheduled.
+1. Availability: keyholders are expected to be available for scheduled signing events
+(2-3 times a year) as well as unexpected signing events: if you go on longer travel,
+please make sure you either have your signing hardware with you or notify the
+sigstore-keyholders Slack channel beforehand.
 
-3. Obtaining a Yubikey for use as a signing key. If you need support to obtain one, please reach out to one of
-the maintainers or through Slack. Key configuration is described below.
+2. Obtaining a Yubikey for use as a signing key. If you need support to obtain one, please reach
+out to one of the maintainers or through Slack. Key configuration is described below.
 
-4. Participation in signing events! Keyholders are expected to participate in the scheduled root signing events.
-The steps will be announced in Slack and in the signing event PR. Typically keyholders are expected to review
-the signing event changes, sign and create a PR for their signature once per signing event. Additionally,
-keyholders should be "on-call" (available for quick pings during daytime hours) during the root signing window
-in case there is an issue.
+3. Participation in signing events! Signing events will be announced in sigstore-keyholders
+Slack channel and in the signing event PRs. Typically keyholders are expected to review the signing
+event changes, sign and create a PR for their signature once per signing event.
 
 
 ## One-time setup for new keyholders

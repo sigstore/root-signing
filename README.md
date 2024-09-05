@@ -1,3 +1,5 @@
+## Sigstore root-signing
+
 root-signing project maintains the TUF repository used to securely deliver the
 _Sigstore trust root (trusted_root.json)_ to Sigstore clients.
 
@@ -13,17 +15,17 @@ _Sigstore trust root (trusted_root.json)_ to Sigstore clients.
 
 The repository is published for sigstore client consumption at https://tuf-repo-cdn.sigstore.dev/.
 
-The metadata sources can be found in [metadata/] folder, artifacts (like trusted_root.json) in [targets/] folder.
-See [#Operation] for more details on how to modify these sources.
-
-All changes to artifacts or metadata require cryptographic signatures from Sigstore keyholders. Current
-keyholders, signature requirements and the signing schedule are documented in 
-[the published repository](https://tuf-repo-cdn.sigstore.dev/).
+The metadata sources can be found in [metadata/](metadata/) folder, artifacts (like trusted_root.json) in [targets/](targets/) folder.
+See [Operation](#operation) for more details on how to modify these sources.
 
 #### Keyholders
 
 root-signing security relies on keyholders: they should be trusted community members who are willing and able to
 perform keyholder duties like verifying new trusted_root.json content and signing in signing events.
+
+All changes to artifacts or metadata require cryptographic signatures from Sigstore keyholders. Current
+keyholders, signature requirements and the signing schedule are documented in
+[the published repository](https://tuf-repo-cdn.sigstore.dev/)
 
 | Keyholders | Term |
 | - | - |
@@ -34,8 +36,8 @@ perform keyholder duties like verifying new trusted_root.json content and signin
 | Santiago Torres-Arias | June 2021 - |
 
 | Emeritus keyholders | Term |
+| - | - |
 | Luke Hinds | June 2021 - July 2022 |
-
 
 ### Operation
 

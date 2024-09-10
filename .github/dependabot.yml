@@ -14,15 +14,6 @@
 
 version: 2
 updates:
-  - package-ecosystem: "gomod"
-    directory: "/"
-    schedule:
-      interval: "daily"
-    groups:
-      gomod:
-        update-types:
-          - "patch"
-
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:

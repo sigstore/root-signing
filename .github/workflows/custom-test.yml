@@ -75,6 +75,35 @@ jobs:
               --bundle bundle.json \
               artifact
 
+  cosign-old-version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: sigstore/cosign-installer@4959ce089c160fddf62f7b42464195ba1a56d382 # v3.6.0
+        with:
+          cosign-release: "v2.2.0"
+
+      - name: Download initial root
+        run: curl -o root.json ${METADATA_URL}/5.root.json
+
+      - name: Test published repository with cosign 2.2
+        run: |
+          touch artifact
+
+          # initialize from the published repository
+          cosign initialize --root root.json --mirror ${METADATA_URL}
+
+          # sign, then verify using this workflows oidc identity
+          cosign sign-blob \
+              --yes \
+              --bundle bundle.json \
+              artifact
+
+          cosign verify-blob \
+              --certificate-identity $IDENTITY \
+              --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+              --bundle bundle.json \
+              artifact
+
   sigstore-go:
     runs-on: ubuntu-latest
     needs: [sigstore-python]

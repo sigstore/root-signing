@@ -1,6 +1,21 @@
-# Signer manual for Sigstore root-signing
+# Keyholder manual for Sigstore root-signing
 
-## One-time setup for new signers
+## Keyholder requirements
+
+1. Availability: keyholders are expected to be available for scheduled signing events
+(2-3 times a year) as well as unexpected signing events: if you go on longer travel,
+please make sure you either have your signing hardware with you or notify the
+sigstore-keyholders Slack channel beforehand.
+
+2. Obtaining a Yubikey for use as a signing key. If you need support to obtain one, please reach
+out to one of the maintainers or through Slack. Key configuration is described below.
+
+3. Participation in signing events! Signing events will be announced in sigstore-keyholders
+Slack channel and in the signing event PRs. Typically keyholders are expected to review the signing
+event changes, sign and create a PR for their signature once per signing event.
+
+
+## One-time setup for new keyholders
 
 ### Yubikey configuration
 
@@ -60,7 +75,7 @@ This verifies that `tuf-on-ci-sign` should be ready for signing.
 
 ## Signing
 
-When a signing event asks you to sign or to accept an invite:
+When a signing event asks you to sign (or to accept an invite):
 * Read the signing event PR comments to find out the purpose and content of this signing event
 * If the artifacts in `targets/` (such as `targets/trusted_root.json`) are modified, verify
   that the proposed changes are sensible

@@ -7,7 +7,8 @@
                 "rawBytes": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE1Olb3zMAFFxXKHiIkQO5cJ3Yhl5i6UPp+IhuteBJbuHcA5UogKo0EWtlWwW6KSaKoTNEYL7JlCQiVnkhBktUgg==",
                 "keyDetails": "PKIX_ECDSA_P256_SHA_256",
                 "validFor": {
-                    "start": "1999-01-01T00:00:00.000Z"
+                    "start": "1999-01-01T00:00:00.000Z",
+                    "end": "2025-01-29T00:00:00.000Z"
                 }
             }
         },
@@ -18,7 +19,30 @@
                 "rawBytes": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE1Olb3zMAFFxXKHiIkQO5cJ3Yhl5i6UPp+IhuteBJbuHcA5UogKo0EWtlWwW6KSaKoTNEYL7JlCQiVnkhBktUgg==",
                 "keyDetails": "PKIX_ECDSA_P256_SHA_256",
                 "validFor": {
-                    "start": "2022-12-01T00:00:00.000Z"
+                    "start": "2022-12-01T00:00:00.000Z",
+                    "end": "2025-01-29T00:00:00.000Z"
+                }
+            }
+        },
+        {
+            "keyId": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U",
+            "keyUsage": "npm:signatures",
+            "publicKey": {
+                "rawBytes": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEY6Ya7W++7aUPzvMTrezH6Ycx3c+HOKYCcNGybJZSCJq/fd7Qa8uuAKtdIkUQtQiEKERhAmE5lMMJhP8OkDOa2g==",
+                "keyDetails": "PKIX_ECDSA_P256_SHA_256",
+                "validFor": {
+                    "start": "2025-01-13T00:00:00.000Z"
+                }
+            }
+        },
+        {
+            "keyId": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U",
+            "keyUsage": "npm:attestations",
+            "publicKey": {
+                "rawBytes": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEY6Ya7W++7aUPzvMTrezH6Ycx3c+HOKYCcNGybJZSCJq/fd7Qa8uuAKtdIkUQtQiEKERhAmE5lMMJhP8OkDOa2g==",
+                "keyDetails": "PKIX_ECDSA_P256_SHA_256",
+                "validFor": {
+                    "start": "2025-01-13T00:00:00.000Z"
                 }
             }
         }

@@ -1,0 +1,8 @@
+{
+  "mediaType": "application/vnd.dev.sigstore.signingconfig.v0.1+json",
+  "caUrl": "https://fulcio.sigstore.dev",
+  "oidcUrl": "https://oauth2.sigstore.dev/auth/",
+  "tlogUrls": [
+    "https://rekor.sigstore.dev"
+  ]
+}

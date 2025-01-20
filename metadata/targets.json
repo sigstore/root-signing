@@ -2,23 +2,23 @@
  "signatures": [
   {
    "keyid": "6f260089d5923daf20166ca657c543af618346ab971884a99962b01988bbe0c3",
-   "sig": "3045022100cffdd70aff94fab0127ac749c64449d5f644c7195971bfdca57879d5f645ab960220129ed6aeb07a57d9554af28941543bbb58f28c4c60d28a819f2294d290ff6cd9"
+   "sig": ""
   },
   {
    "keyid": "e71a54d543835ba86adad9460379c7641fb8726d164ea766801a1c522aba7ea2",
-   "sig": "30450220208c663d230a0ebb3a2b964020d019394112e216d4964c743ad2e61cebc43b52022100c2964f3fa7e77cd3abe13640d91b53d1a294470b65211a42f3f7764064c28ce4"
+   "sig": ""
   },
   {
    "keyid": "22f4caec6d8e6f9555af66b3d4c3cb06a3bb23fdc7e39c916c61f462e6f52b06",
-   "sig": "304502210093afa3a6d28f67f6aace8c6c5258282ec0784ce82da93589e2870b522c1b685502205374c8871e12e07f856f83e780b626dd5a00a032285d4436f615cdb9d637c3c3"
+   "sig": ""
   },
   {
    "keyid": "61643838125b440b40db6942f5cb5a31c0dc04368316eb2aaa58b95904a58222",
-   "sig": "3044022006b5eae637d0b66f4f72759f86e86840f6a9a580b3baf7303a046d8fac1c0872022053c1b8a6fbce7e37a7e46501019a160f4d833efb48e7ca5bd274df54b2bbce3f"
+   "sig": ""
   },
   {
    "keyid": "a687e5bf4fab82b0ee58d46e05c9535145a2c9afb458f43d42b45ca0fdce2a70",
-   "sig": "304502203d51eac2b34f6f06178e86e484d192f7a40b53df47e2ba0540d2e5a397d1e92b0221009833e3bb41c3bd28bc1adc06a74e5e7c73a6c9d9a1648ab558cfbdd380a2c4e2"
+   "sig": ""
   }
  ],
  "signed": {
@@ -48,7 +48,7 @@
     }
    ]
   },
-  "expires": "2034-08-24T07:16:33Z",
+  "expires": "2035-01-18T09:45:39Z",
   "spec_version": "1.0",
   "targets": {
    "artifact.pub": {
@@ -59,8 +59,7 @@
      }
     },
     "hashes": {
-     "sha256": "59ebf97a9850aecec4bc39c1f5c1dc46e6490a6b5fd2a6cacdcac0c3a6fc4cbf",
-     "sha512": "308fd1d1d95d7f80aa33b837795251cc3e886792982275e062409e13e4e236ffc34d676682aa96fdc751414de99c864bf132dde71581fa651c6343905e3bf988"
+     "sha256": "59ebf97a9850aecec4bc39c1f5c1dc46e6490a6b5fd2a6cacdcac0c3a6fc4cbf"
     },
     "length": 177
    },
@@ -73,8 +72,7 @@
      }
     },
     "hashes": {
-     "sha256": "7fcb94a5d0ed541260473b990b99a6c39864c1fb16f3f3e594a5a3cebbfe138a",
-     "sha512": "4b20747d1afe2544238ad38cc0cc3010921b177d60ac743767e0ef675b915489bd01a36606c0ff83c06448622d7160f0d866c83d20f0c0f44653dcc3f9aa0bd4"
+     "sha256": "7fcb94a5d0ed541260473b990b99a6c39864c1fb16f3f3e594a5a3cebbfe138a"
     },
     "length": 177
    },
@@ -87,8 +85,7 @@
      }
     },
     "hashes": {
-     "sha256": "270488a309d22e804eeb245493e87c667658d749006b9fee9cc614572d4fbbdc",
-     "sha512": "e83fa4f427b24ee7728637fad1b4aa45ebde2ba02751fa860694b1bb16059a490328f9985e51cc70e4d237545315a1bc866dc4fdeef2f6248d99cc7a6077bf85"
+     "sha256": "270488a309d22e804eeb245493e87c667658d749006b9fee9cc614572d4fbbdc"
     },
     "length": 178
    },
@@ -101,8 +98,7 @@
      }
     },
     "hashes": {
-     "sha256": "f360c53b2e13495a628b9b8096455badcb6d375b185c4816d95a5d746ff29908",
-     "sha512": "0713252a7fd17f7f3ab12f88a64accf2eb14b8ad40ca711d7fe8b4ecba3b24db9e9dffadb997b196d3867b8f9ff217faf930d80e4dab4e235c7fc3f07be69224"
+     "sha256": "f360c53b2e13495a628b9b8096455badcb6d375b185c4816d95a5d746ff29908"
     },
     "length": 744
    },
@@ -115,8 +111,7 @@
      }
     },
     "hashes": {
-     "sha256": "f8cbecf186db7714624a5f4e99da31a917cbef70a94dd6921f5c3ca969dfe30a",
-     "sha512": "0f99f47dbc26c5f1e3cba0bfd9af4245a26e5cb735d6ef005792ec7e603f66fdb897de985973a6e50940ca7eff5e1849719e967b5ad2dac74a29115a41cf6f21"
+     "sha256": "f8cbecf186db7714624a5f4e99da31a917cbef70a94dd6921f5c3ca969dfe30a"
     },
     "length": 789
    },
@@ -129,8 +124,7 @@
      }
     },
     "hashes": {
-     "sha256": "f989aa23def87c549404eadba767768d2a3c8d6d30a8b793f9f518a8eafd2cf5",
-     "sha512": "f2e33a6dc208cee1f51d33bbea675ab0f0ced269617497985f9a0680689ee7073e4b6f8fef64c91bda590d30c129b3070dddce824c05bc165ac9802f0705cab6"
+     "sha256": "f989aa23def87c549404eadba767768d2a3c8d6d30a8b793f9f518a8eafd2cf5"
     },
     "length": 740
    },
@@ -143,20 +137,24 @@
      }
     },
     "hashes": {
-     "sha256": "dce5ef715502ec9f3cdfd11f8cc384b31a6141023d3e7595e9908a81cb6241bd",
-     "sha512": "0ae7705e02db33e814329746a4a0e5603c5bdcd91c96d072158d71011a2695788866565a2fec0fe363eb72cbcaeda39e54c5fe8d416daf9f3101fdba4217ef35"
+     "sha256": "dce5ef715502ec9f3cdfd11f8cc384b31a6141023d3e7595e9908a81cb6241bd"
     },
     "length": 178
    },
+   "signing_config.json": {
+    "hashes": {
+     "sha256": "d358c75d032833f4193500f5b01b5760409410558fac962c599439adbb268b0f"
+    },
+    "length": 219
+   },
    "trusted_root.json": {
     "hashes": {
-     "sha256": "4364d7724c04cc912ce2a6c45ed2610e8d8d1c4dc857fb500292738d4d9c8d2c",
-     "sha512": "fdebade075c4840d40f1806a14d0660ae1d22f47c0516abc4141e09f4ddf6ee6f4dbfbf08a7025bea10a4b8794658a4cd8ebb1024b963f239a9bfe02c2057fc6"
+     "sha256": "f44a1b88128e55ebfb62189becbc0fa48d4ec9915c65ac54ba0e46a008b12d5b"
     },
-    "length": 7014
+    "length": 4537
    }
   },
-  "version": 10,
+  "version": 11,
   "x-tuf-on-ci-expiry-period": 3650,
   "x-tuf-on-ci-signing-period": 31
  }

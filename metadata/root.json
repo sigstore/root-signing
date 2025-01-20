@@ -24,7 +24,7 @@
  "signed": {
   "_type": "root",
   "consistent_snapshot": true,
-  "expires": "2025-07-20T13:24:13Z",
+  "expires": "2025-08-05T08:19:24Z",
   "keys": {
    "22f4caec6d8e6f9555af66b3d4c3cb06a3bb23fdc7e39c916c61f462e6f52b06": {
     "keyid_hash_algorithms": [
@@ -139,7 +139,7 @@
   },
   "spec_version": "1.0",
   "version": 11,
-  "x-tuf-on-ci-expiry-period": 182,
-  "x-tuf-on-ci-signing-period": 31
+  "x-tuf-on-ci-expiry-period": 197,
+  "x-tuf-on-ci-signing-period": 46
  }
 }

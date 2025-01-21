@@ -19,7 +19,7 @@ jobs:
       actions: 'write' # for dispatching publish workflow
     steps:
       - id: online-sign
-        uses: theupdateframework/tuf-on-ci/actions/online-sign@fffb59fa10497d72f0e3df531b88b3c5adf868fe # v0.15.1
+        uses: theupdateframework/tuf-on-ci/actions/online-sign@c7edc8057149b2cd9eef0340dd5fdd943550e05e # v0.15.2
         with:
           token: ${{ secrets.TUF_ON_CI_TOKEN || secrets.GITHUB_TOKEN }}
           gcp_workload_identity_provider: 'projects/163070369698/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions-provider'
@@ -34,7 +34,7 @@ jobs:
       issues: 'write' # for modifying Issues
     steps:
       - name: Update the issue for the workflow
-        uses: theupdateframework/tuf-on-ci/actions/update-issue@fffb59fa10497d72f0e3df531b88b3c5adf868fe # v0.15.1
+        uses: theupdateframework/tuf-on-ci/actions/update-issue@c7edc8057149b2cd9eef0340dd5fdd943550e05e # v0.15.2
         with:
           token: ${{ secrets.TUF_ON_CI_TOKEN || secrets.GITHUB_TOKEN }}
           success: ${{ !contains(needs.*.result, 'failure') }}

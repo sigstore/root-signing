@@ -26,6 +26,18 @@
   "consistent_snapshot": true,
   "expires": "2025-08-19T14:33:09Z",
   "keys": {
+   "0c87432c3bf09fd99189fdc32fa5eaedf4e4a5fac7bab73fa04a2e0fc64af6f5": {
+    "keyid_hash_algorithms": [
+     "sha256",
+     "sha512"
+    ],
+    "keytype": "ecdsa",
+    "keyval": {
+     "public": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEWRiGr5+j+3J5SsH+Ztr5nE2H2wO7\nBV+nO3s93gLca18qTOzHY1oWyAGDykMSsGTUBSt9D+An0KfKsD2mfSM42Q==\n-----END PUBLIC KEY-----\n"
+    },
+    "scheme": "ecdsa-sha2-nistp256",
+    "x-tuf-on-ci-online-uri": "gcpkms:projects/sigstore-root-signing/locations/global/keyRings/root/cryptoKeys/timestamp/cryptoKeyVersions/1"
+   },
    "22f4caec6d8e6f9555af66b3d4c3cb06a3bb23fdc7e39c916c61f462e6f52b06": {
     "keyid_hash_algorithms": [
      "sha256",
@@ -61,18 +73,6 @@
     },
     "scheme": "ecdsa-sha2-nistp256",
     "x-tuf-on-ci-keyowner": "@dlorenc"
-   },
-   "7247f0dbad85b147e1863bade761243cc785dcb7aa410e7105dd3d2b61a36d2c": {
-    "keyid_hash_algorithms": [
-     "sha256",
-     "sha512"
-    ],
-    "keytype": "ecdsa",
-    "keyval": {
-     "public": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEWRiGr5+j+3J5SsH+Ztr5nE2H2wO7\nBV+nO3s93gLca18qTOzHY1oWyAGDykMSsGTUBSt9D+An0KfKsD2mfSM42Q==\n-----END PUBLIC KEY-----\n"
-    },
-    "scheme": "ecdsa-sha2-nistp256",
-    "x-tuf-on-ci-online-uri": "gcpkms:projects/sigstore-root-signing/locations/global/keyRings/root/cryptoKeys/timestamp/cryptoKeyVersions/1"
    },
    "a687e5bf4fab82b0ee58d46e05c9535145a2c9afb458f43d42b45ca0fdce2a70": {
     "keyid_hash_algorithms": [
@@ -112,7 +112,7 @@
    },
    "snapshot": {
     "keyids": [
-     "7247f0dbad85b147e1863bade761243cc785dcb7aa410e7105dd3d2b61a36d2c"
+     "0c87432c3bf09fd99189fdc32fa5eaedf4e4a5fac7bab73fa04a2e0fc64af6f5"
     ],
     "threshold": 1,
     "x-tuf-on-ci-expiry-period": 3650,
@@ -130,7 +130,7 @@
    },
    "timestamp": {
     "keyids": [
-     "7247f0dbad85b147e1863bade761243cc785dcb7aa410e7105dd3d2b61a36d2c"
+     "0c87432c3bf09fd99189fdc32fa5eaedf4e4a5fac7bab73fa04a2e0fc64af6f5"
     ],
     "threshold": 1,
     "x-tuf-on-ci-expiry-period": 7,

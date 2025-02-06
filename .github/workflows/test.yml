@@ -25,7 +25,7 @@ jobs:
           metadata_url: https://sigstore.github.io/root-signing/
           update_base_url: https://tuf-repo-cdn.sigstore.dev/
           # when workflow is reused in publish.yml, do not require future validity
-          valid_days: ${{ github.workflow == 'TUF-on-CI repository tests' && 3 || 0 }}
+          valid_days: ${{ github.workflow == 'TUF-on-CI repository tests' && 5 || 0 }}
           offline_valid_days: ${{ github.workflow == 'TUF-on-CI repository tests' && 30 || 0 }}
 
   custom-smoke-test:

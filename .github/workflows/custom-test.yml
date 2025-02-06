@@ -216,10 +216,12 @@ jobs:
     runs-on: ubuntu-latest
     needs: [sigstore-python]
     steps:
+      # checkout branch of sigstore-rs with root v12 embedded
+      # TODO: Just use a released sigstore-rs when possible
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
-          repository: "sigstore/sigstore-rs"
-          ref: "7769a0c81d53b0174d4e1558108844be439705a4"
+          repository: "jku/sigstore-rs"
+          ref: "15400a3456163433a5aba1e10918324471c73f25"
           persist-credentials: false
 
       - name: tweak sigstore-rs to use the published TUF repository

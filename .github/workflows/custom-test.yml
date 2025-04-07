@@ -133,7 +133,7 @@ jobs:
         run: |
           touch artifact
 
-          ~/go/bin/sigstore-go \
+          ~/go/bin/sigstore-go-verification \
               -tufRootURL $METADATA_URL \
               -tufTrustedRoot root.json \
               -expectedSAN $IDENTITY \

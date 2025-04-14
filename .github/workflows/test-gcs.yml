@@ -21,7 +21,7 @@ jobs:
         run: cp metadata/root_history/5.root.json ./root.json
 
       - name: Smoke test Sigstore TUF repository with a TUF client
-        uses: theupdateframework/tuf-on-ci/actions/test-repository@5105c4bd73fae36f089dd4848fd1fd81a20a3df8 # v0.16.0
+        uses: theupdateframework/tuf-on-ci/actions/test-repository@fcf52739fe9ef1002494fd7e958d0d4901921a4e # v0.16.1
         with:
           metadata_url: https://tuf-repo-cdn.sigstore.dev/
           # when workflow is reused in publish.yml, do not require future validity
@@ -44,7 +44,7 @@ jobs:
       issues: 'write' # for modifying Issues
     steps:
       - name: Update the issue for the workflow
-        uses: theupdateframework/tuf-on-ci/actions/update-issue@5105c4bd73fae36f089dd4848fd1fd81a20a3df8 # v0.16.0
+        uses: theupdateframework/tuf-on-ci/actions/update-issue@fcf52739fe9ef1002494fd7e958d0d4901921a4e # v0.16.1
         with:
           token: ${{ secrets.TUF_ON_CI_TOKEN || secrets.GITHUB_TOKEN }}
           success: ${{ !contains(needs.*.result, 'failure') }}

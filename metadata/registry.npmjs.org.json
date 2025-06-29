@@ -2,12 +2,12 @@
  "signatures": [
   {
    "keyid": "5e3a4021b11a425fd0a444f1670457ce5b15bbe036144f2417426f7f4b9721da",
-   "sig": "30450220128cfa9d5b5fb8583f296cccc7c0f3765d6b6d6b053ad395751918541d4f2bf20221008caeec6fdcd1ced9fbb15d9161e31158cb28d2b5fd31bd94d7c5f20fe2521014"
+   "sig": ""
   }
  ],
  "signed": {
   "_type": "targets",
-  "expires": "2025-07-17T09:40:03Z",
+  "expires": "2025-12-15T13:28:57Z",
   "spec_version": "1.0",
   "targets": {
    "registry.npmjs.org/keys.json": {
@@ -17,7 +17,7 @@
     "length": 2121
    }
   },
-  "version": 5,
+  "version": 6,
   "x-tuf-on-ci-expiry-period": 182,
   "x-tuf-on-ci-signing-period": 31
  }

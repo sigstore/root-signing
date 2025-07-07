@@ -1,7 +1,8 @@
 {
   "invites": {
     "@lance": [
-      "root"
+      "root",
+      "targets"
     ]
   }
 }

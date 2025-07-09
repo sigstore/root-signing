@@ -19,12 +19,16 @@
   {
    "keyid": "a687e5bf4fab82b0ee58d46e05c9535145a2c9afb458f43d42b45ca0fdce2a70",
    "sig": ""
+  },
+  {
+   "keyid": "183e64f37670dc13ca0d28995a3053f3740954ddce44321a41e46534cf44e632",
+   "sig": "3046022100d8179439c2e73eb0c1733abee7faf832dcaea7263edcb4919891c3a247f05923022100e1a437e0797e803f9b72dc9d2d92155b0a2270c24efdd5f4b3a5d8f0b0f431a7"
   }
  ],
  "signed": {
   "_type": "root",
   "consistent_snapshot": true,
-  "expires": "2026-01-20T08:51:41Z",
+  "expires": "2026-01-22T13:05:59Z",
   "keys": {
    "0c87432c3bf09fd99189fdc32fa5eaedf4e4a5fac7bab73fa04a2e0fc64af6f5": {
     "keyid_hash_algorithms": [
@@ -37,6 +41,14 @@
     },
     "scheme": "ecdsa-sha2-nistp256",
     "x-tuf-on-ci-online-uri": "gcpkms:projects/sigstore-root-signing/locations/global/keyRings/root/cryptoKeys/timestamp/cryptoKeyVersions/1"
+   },
+   "183e64f37670dc13ca0d28995a3053f3740954ddce44321a41e46534cf44e632": {
+    "keytype": "ecdsa",
+    "keyval": {
+     "public": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEMxpPOJCIZ5otG4106fGJseEQi3V9\npkMYQ4uyV9Tj1M7WHXIyLG+jkfvuG0glQ1JZbRZZBV3gAR4sojdGHISeow==\n-----END PUBLIC KEY-----\n"
+    },
+    "scheme": "ecdsa-sha2-nistp256",
+    "x-tuf-on-ci-keyowner": "@lance"
    },
    "22f4caec6d8e6f9555af66b3d4c3cb06a3bb23fdc7e39c916c61f462e6f52b06": {
     "keyid_hash_algorithms": [
@@ -93,7 +105,8 @@
      "e71a54d543835ba86adad9460379c7641fb8726d164ea766801a1c522aba7ea2",
      "22f4caec6d8e6f9555af66b3d4c3cb06a3bb23fdc7e39c916c61f462e6f52b06",
      "61643838125b440b40db6942f5cb5a31c0dc04368316eb2aaa58b95904a58222",
-     "a687e5bf4fab82b0ee58d46e05c9535145a2c9afb458f43d42b45ca0fdce2a70"
+     "a687e5bf4fab82b0ee58d46e05c9535145a2c9afb458f43d42b45ca0fdce2a70",
+     "183e64f37670dc13ca0d28995a3053f3740954ddce44321a41e46534cf44e632"
     ],
     "threshold": 3
    },
@@ -110,7 +123,8 @@
      "e71a54d543835ba86adad9460379c7641fb8726d164ea766801a1c522aba7ea2",
      "22f4caec6d8e6f9555af66b3d4c3cb06a3bb23fdc7e39c916c61f462e6f52b06",
      "61643838125b440b40db6942f5cb5a31c0dc04368316eb2aaa58b95904a58222",
-     "a687e5bf4fab82b0ee58d46e05c9535145a2c9afb458f43d42b45ca0fdce2a70"
+     "a687e5bf4fab82b0ee58d46e05c9535145a2c9afb458f43d42b45ca0fdce2a70",
+     "183e64f37670dc13ca0d28995a3053f3740954ddce44321a41e46534cf44e632"
     ],
     "threshold": 3
    },

@@ -20,6 +20,6 @@ jobs:
     steps:
       - name: Signing event
         if: github.repository_owner == 'sigstore' # avoid running in forks
-        uses: theupdateframework/tuf-on-ci/actions/signing-event@fcf52739fe9ef1002494fd7e958d0d4901921a4e # v0.16.1
+        uses: theupdateframework/tuf-on-ci/actions/signing-event@c9dd13e6f46ec03f7c81cd4e1afeb7d674be24fa # v0.17.0
         with:
           token: ${{ secrets.TUF_ON_CI_TOKEN || secrets.GITHUB_TOKEN }}

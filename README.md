@@ -29,15 +29,16 @@ keyholders, signature requirements and the signing schedule are documented in
 
 | Keyholders | Term |
 | - | - |
+| Lance Ball | July 2025 -  |
 | Joshua Lock | July 2022 -  |
 | Bob Callaway | June 2021 -  |
-| Dan Lorenc | June 2021 -  |
 | Marina Moore | June 2021 - |
 | Santiago Torres-Arias | June 2021 - |
 
 | Emeritus keyholders | Term |
 | - | - |
 | Luke Hinds | June 2021 - July 2022 |
+| Dan Lorenc | June 2021 - July 2025 |
 
 ### Operation
 

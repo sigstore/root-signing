@@ -26,7 +26,7 @@ jobs:
 
       - name: Install sigstore-python, tweak it to use the published TUF repository
         run: |
-          pip install sigstore
+          pip install sigstore==3.6.5
 
           # tweak sigstore sources to use our publish URL
           # TODO: remove this once sigstore-python supports "--tuf-url" or similar

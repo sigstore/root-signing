@@ -22,14 +22,6 @@
   ],
   "rekorTlogUrls": [
     {
-      "url": "https://log2025-1.rekor.sigstore.dev",
-      "majorApiVersion": 2,
-      "validFor": {
-        "start": "2025-10-06T00:00:00Z"
-      },
-      "operator": "sigstore.dev"
-    },
-    {
       "url": "https://rekor.sigstore.dev",
       "majorApiVersion": 1,
       "validFor": {

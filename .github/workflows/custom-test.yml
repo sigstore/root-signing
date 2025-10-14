@@ -22,31 +22,34 @@ jobs:
     steps:
       - uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c # v6.0.0
         with:
-          python-version: '3.11'
+          python-version: '3.x'
 
-      - name: Install sigstore-python, tweak it to use the published TUF repository
+      - name: Install sigstore-python
+        run: pip install sigstore
+
+      - name: Trust the Sigstore instance
         run: |
-          pip install sigstore==3.6.5
-
-          # tweak sigstore sources to use our publish URL
-          # TODO: remove this once sigstore-python supports "--tuf-url" or similar
-          SITE_PACKAGES=$(pip show sigstore | sed -n "s/^Location: //p")
-          TUF_PY="$SITE_PACKAGES/sigstore/_internal/tuf.py"
-
-          sed -ie "s#^DEFAULT_TUF_URL = .*#DEFAULT_TUF_URL = \"$METADATA_URL\"#" "$TUF_PY"
+          curl -o root.json ${METADATA_URL}/5.root.json
+          python -m sigstore --instance ${METADATA_URL} trust-instance root.json
 
       - name: Test published repository with sigstore-python
         run: |
           touch artifact
           # sign, then verify using this workflows oidc identity
-          python -m sigstore -vv sign --bundle artifact.sigstore.json artifact
-          python -m sigstore verify github --cert-identity $IDENTITY --bundle artifact.sigstore.json artifact
+          python -m sigstore -vv --instance ${METADATA_URL} \
+              sign --bundle artifact.sigstore.json artifact
+          python -m sigstore --instance ${METADATA_URL} \
+              verify github --cert-identity $IDENTITY --bundle artifact.sigstore.json artifact
+
+          # sign again with rekor v1 for sigstore-js
+          python -m sigstore -vv --instance ${METADATA_URL} \
+              sign --rekor-version=1 --bundle artifact-rekor1.sigstore.json artifact
 
       - name: Upload the bundle for other clients to verify
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: bundle
-          path: artifact.sigstore.json
+          path: artifact*.sigstore.json
           overwrite: true
 
   cosign:
@@ -165,7 +168,7 @@ jobs:
               --certificate-identity-uri $IDENTITY \
               --certificate-issuer https://token.actions.githubusercontent.com \
               --blob-file=artifact \
-              artifact.sigstore.json
+              artifact-rekor1.sigstore.json
 
   sigstore-java:
     runs-on: ubuntu-latest

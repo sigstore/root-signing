@@ -125,7 +125,7 @@ jobs:
         run: curl -o root.json ${METADATA_URL}/5.root.json
 
       - name: Download bundle to verify
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
         with:
           name: bundle
 
@@ -154,7 +154,7 @@ jobs:
         run: curl -o root.json ${METADATA_URL}/1.root.json
 
       - name: Download bundle to verify
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
         with:
           name: bundle
 
@@ -197,7 +197,7 @@ jobs:
           tar -xvf sigstore-cli/build/distributions/sigstore-cli-*.tar --strip-components 1
 
       - name: Download bundle to verify
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
         with:
           name: bundle
 

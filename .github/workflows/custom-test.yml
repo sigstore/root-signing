@@ -57,7 +57,7 @@ jobs:
       id-token: 'write' # For signing with the GitHub workflow identity
     runs-on: ubuntu-latest
     steps:
-      - uses: sigstore/cosign-installer@d7543c93d881b35a8faa02e8e3605f69b7a1ce62 # v3.10.0
+      - uses: sigstore/cosign-installer@faadad0cce49287aee09b3a48701e75088a2c6ad # v4.0.0
 
       - name: Download initial root
         run: curl -o root.json ${METADATA_URL}/5.root.json
@@ -76,6 +76,7 @@ jobs:
               artifact
 
           cosign verify-blob \
+              --use-signed-timestamps=true \
               --certificate-identity $IDENTITY \
               --certificate-oidc-issuer https://token.actions.githubusercontent.com \
               --bundle bundle.json \
@@ -86,7 +87,7 @@ jobs:
       id-token: 'write' # For signing with the GitHub workflow identity
     runs-on: ubuntu-latest
     steps:
-      - uses: sigstore/cosign-installer@d7543c93d881b35a8faa02e8e3605f69b7a1ce62 # v3.10.0
+      - uses: sigstore/cosign-installer@faadad0cce49287aee09b3a48701e75088a2c6ad # v4.0.0
         with:
           cosign-release: "v2.2.0"
 

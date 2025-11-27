@@ -230,7 +230,7 @@ jobs:
       - name: Download and configure initial root
         run: |
           curl -o root.json ${METADATA_URL}/1.root.json
-          METADATA_DIR=$(mktemp -d -t sigstore)
+          METADATA_DIR=$(mktemp -d -t root-signing-ruby-test.XXXXXX)
           sigstore-cli tuf init root.json --metadata-dir=${METADATA_DIR}
           sigstore-cli tuf refresh --metadata-dir=${METADATA_DIR} --metadata-url=${METADATA_URL}
 

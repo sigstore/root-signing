@@ -118,6 +118,8 @@ jobs:
     needs: [sigstore-python]
     steps:
       - uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c # v6.1.0
+        with:
+          go-version: 'stable'
 
       - name: Install sigstore-go
         run: go install github.com/sigstore/sigstore-go/examples/sigstore-go-verification@latest

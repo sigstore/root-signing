@@ -24,7 +24,7 @@ Metadata can be modified with two ways: Modifying delegations by running
 
 Signers, thresholds, expiry periods and online keys can be modified with the
 `tuf-on-ci-delegate <signing-event> <role>` command.
-* This will create a commit with the changes, pushes this to a branch on the upstream repo
+* This will create a commit with the changes, pushes this to a branch *in the upstream repository*
 * GitHub will suggest to "Create a pull request by visiting URL" but this is not required:
   a signing event PR is automatically opened by the signing-event workflow
 * The signing event argument must start with "sign/" but can be otherwise freely chosen:
@@ -78,7 +78,8 @@ Signers, thresholds, expiry periods and online keys can be modified with the
 
 Artifact modifications can be done with plain git:
 * make a commit that modifies a file in `targets/`, push this change to a signing
-  event branch. Branch name must start with "sign/" but can be otherwise freely chosen
+  event branch *in the upstream repository*. Branch name must start with "sign/" but can be
+  otherwise freely chosen
 * GitHub will suggest to "Create a pull request by visiting URL" but this is not required:
   a signing event PR is automatically opened by the signing-event workflow. This PR
   will include the required metadata changes

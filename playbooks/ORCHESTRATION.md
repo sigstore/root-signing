@@ -52,9 +52,9 @@ You will need the following variables for the online signer references described
 | SNAPSHOT_KEY  | The GCP KMS online key for snapshotting. | `projects/sigstore-root-signing/locations/global/keyRings/root/cryptoKeys/snapshot`  |
 | TIMESTAMP_KEY | The GCP KMS online key for timestamping. | `projects/sigstore-root-signing/locations/global/keyRings/root/cryptoKeys/timestamp` |
 
-Ensure that these are the values reflected in the staging snapshot and timestamp [workflow](../.github/workflows/staging-snapshot-timestamp.yml).
+Ensure that these are the values reflected in the staging snapshot and timestamp workflow.
 
-**NOTE** Ensure that the automated [snapshot and timestamp job](../.github/workflows/stable-snapshot-timestamp.yml) has triggered within the last 5 days. During the week of the ceremony, the job will not push automated updates, and expects the ceremony to be completed within one week. This is to ensure that snapshotting the main ceremony branch does not result in a merge conflict with the new ceremony event. See [693](https://github.com/sigstore/root-signing/issues/693).
+**NOTE** Ensure that the automated [snapshot and timestamp job](../.github/workflows/scorecard.yml) has triggered within the last 5 days. During the week of the ceremony, the job will not push automated updates, and expects the ceremony to be completed within one week. This is to ensure that snapshotting the main ceremony branch does not result in a merge conflict with the new ceremony event. See [693](https://github.com/sigstore/root-signing/issues/693).
 
 ## Step 1: Root Key Updates (Optional)
 
@@ -62,7 +62,7 @@ Like mentioned in [Key configuration](#key-configuration), each root key corresp
 
 ### Adding a Root Key
 
-Instruct any new root keyholder to follow [Registering a new root key](keyholders/NEW_SIGNER.md#registration).
+Instruct any new root keyholder to follow [Registering a new root key](tuf-on-ci/SIGNER.md#one-time-setup-for-new-keyholders).
 
 This will create the following structure.
 

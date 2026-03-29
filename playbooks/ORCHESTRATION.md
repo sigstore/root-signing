@@ -62,7 +62,7 @@ Like mentioned in [Key configuration](#key-configuration), each root key corresp
 
 ### Adding a Root Key
 
-Instruct any new root keyholder to follow [Registering a new root key](tuf-on-ci/SIGNER.md#one-time-setup-for-new-keyholders).
+Instruct any new root keyholder to follow [One-time setup for new keyholders](tuf-on-ci/SIGNER.md#one-time-setup-for-new-keyholders).
 
 This will create the following structure.
 

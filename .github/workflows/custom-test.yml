@@ -268,7 +268,7 @@ jobs:
         run: rustup toolchain install
 
       - name: Download initial root
-        run: curl -o root.json ${METADATA_URL}/1.root.json
+        run: curl -o root.json ${METADATA_URL}/5.root.json
 
       - name: Build required examples
         run: |

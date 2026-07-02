@@ -248,3 +248,43 @@ jobs:
               --certificate-identity=$IDENTITY \
               --certificate-oidc-issuer=https://token.actions.githubusercontent.com \
               artifact
+
+  sigstore-rust:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          repository: "sigstore/sigstore-rust"
+          fetch-tags: true
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Checkout latest release tag
+        run: |
+          # examples are not available on crates.io: use git checkout
+          git checkout $(git describe --tags --match="sigstore-verify-v[0-9]*" --abbrev=0 HEAD)
+
+      - name: Install Rust toolchain
+        run: rustup toolchain install
+
+      - name: Download initial root
+        run: curl -o root.json ${METADATA_URL}/1.root.json
+
+      - name: Build required examples
+        run: |
+          cargo build -p sigstore-trust-root --example trust-instance -p sigstore-sign --example sign_blob -p sigstore-verify --example verify_bundle
+
+      - name: Trust the Sigstore instance
+        run: |
+          ./target/debug/examples/trust-instance --instance ${METADATA_URL} root.json
+
+      - name: Test published repository (sign and verify)
+        run: |
+          touch artifact
+          ./target/debug/examples/sign_blob --instance ${METADATA_URL} -o artifact.sigstore.json artifact
+          ./target/debug/examples/verify_bundle \
+              --instance ${METADATA_URL} \
+              --certificate-identity $IDENTITY \
+              --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+              artifact \
+              artifact.sigstore.json

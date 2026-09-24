@@ -274,18 +274,19 @@ jobs:
 
       - name: Build required examples
         run: |
-          cargo build -p sigstore-trust-root --example trust-instance -p sigstore-sign --example sign_blob -p sigstore-verify --example verify_bundle
-
-      - name: Trust the Sigstore instance
-        run: |
-          ./target/debug/examples/trust-instance --instance ${METADATA_URL} root.json
+          cargo build -p sigstore-sign --example sign_blob -p sigstore-verify --example verify_bundle
 
       - name: Test published repository (sign and verify)
         run: |
           touch artifact
-          ./target/debug/examples/sign_blob --instance ${METADATA_URL} -o artifact.sigstore.json artifact
+          ./target/debug/examples/sign_blob \
+              --instance ${METADATA_URL} \
+              --tuf-root root.json \
+              -o artifact.sigstore.json \
+              artifact
           ./target/debug/examples/verify_bundle \
               --instance ${METADATA_URL} \
+              --tuf-root root.json \
               --certificate-identity $IDENTITY \
               --certificate-oidc-issuer https://token.actions.githubusercontent.com \
               artifact \

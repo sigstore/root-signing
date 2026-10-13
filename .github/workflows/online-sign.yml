@@ -14,14 +14,22 @@ jobs:
   online-sign:
     runs-on: ubuntu-latest
     permissions:
-      id-token: 'write' # for OIDC identity access
-      contents: 'write' # for commiting snapshot/timestamp changes
-      actions: 'write' # for dispatching publish workflow
+      id-token: write # for OIDC identity access
     steps:
+      - name: Create GitHub App token
+        id: app-token
+        if: vars.TUF_ON_CI_APP_ID != ''
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.TUF_ON_CI_APP_ID }}
+          private-key: ${{ secrets.TUF_ON_CI_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-actions: write
+
       - id: online-sign
         uses: theupdateframework/tuf-on-ci/actions/online-sign@662382a8295b89a9d538390ce8b9bb85b207a93d # v0.21.0
         with:
-          token: ${{ secrets.TUF_ON_CI_TOKEN || secrets.GITHUB_TOKEN }}
+          token: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
           gcp_workload_identity_provider: 'projects/163070369698/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions-provider'
           gcp_service_account: 'github-actions@sigstore-root-signing.iam.gserviceaccount.com'
 
@@ -36,5 +44,5 @@ jobs:
       - name: Update the issue for the workflow
         uses: theupdateframework/tuf-on-ci/actions/update-issue@662382a8295b89a9d538390ce8b9bb85b207a93d # v0.21.0
         with:
-          token: ${{ secrets.TUF_ON_CI_TOKEN || secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           success: ${{ !contains(needs.*.result, 'failure') }}

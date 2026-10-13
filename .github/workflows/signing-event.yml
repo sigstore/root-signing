@@ -12,14 +12,19 @@ jobs:
   handle-signing-event:
     name: TUF-on-CI signing event
     runs-on: ubuntu-latest
-    permissions:
-      contents: write # for making commits in signing event and for modifying draft state
-      pull-requests: write # for modifying signing event pull requests
-      actions: write # for dispatching another signing-event workflow
-
     steps:
+      - name: Create GitHub App token
+        id: app-token
+        if: vars.TUF_ON_CI_APP_ID != ''
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.TUF_ON_CI_APP_ID }}
+          private-key: ${{ secrets.TUF_ON_CI_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+
       - name: Signing event
         if: github.repository_owner == 'sigstore' # avoid running in forks
         uses: theupdateframework/tuf-on-ci/actions/signing-event@662382a8295b89a9d538390ce8b9bb85b207a93d # v0.21.0
         with:
-          token: ${{ secrets.TUF_ON_CI_TOKEN || secrets.GITHUB_TOKEN }}
+          token: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}

@@ -8,6 +8,8 @@ _Sigstore trust root (trusted_root.json)_ to Sigstore clients.
 * [signer manual](playbooks/tuf-on-ci/SIGNER.md) documents the process and requirements from
   keyholder perspective
 * [maintainer manual](playbooks/tuf-on-ci/MAINTAINER.md) documents some maintenance aspects
+* [infrastructure doc](docs/infrastructure.md) goes into detail about the required
+  services and configuration
 * More technical documentation is included in the [tuf-on-ci](https://github.com/theupdateframework/tuf-on-ci/)
   project that is the software used to run root-signing
 

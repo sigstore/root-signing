@@ -52,6 +52,6 @@ jobs:
         with:
           persist-credentials: false
       - name: Check workflow files
-        uses: reviewdog/action-actionlint@cfa6a621f27735ccc88d35af9d0608692fd9b9f7 # v1.80.8
+        uses: reviewdog/action-actionlint@5d802a8ebdcb24d712925118c3a4596f571d8fcd # v1.81.0
         with:
           actionlint_flags: -color

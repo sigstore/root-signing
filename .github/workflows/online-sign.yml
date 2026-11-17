@@ -19,7 +19,7 @@ jobs:
       - name: Create GitHub App token
         id: app-token
         if: vars.TUF_ON_CI_APP_ID != ''
-        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        uses: actions/create-github-app-token@v3.3.0
         with:
           client-id: ${{ vars.TUF_ON_CI_APP_ID }}
           private-key: ${{ secrets.TUF_ON_CI_APP_PRIVATE_KEY }}
@@ -27,7 +27,7 @@ jobs:
           permission-actions: write
 
       - id: online-sign
-        uses: theupdateframework/tuf-on-ci/actions/online-sign@662382a8295b89a9d538390ce8b9bb85b207a93d # v0.21.0
+        uses: theupdateframework/tuf-on-ci/actions/online-sign@v0.21.0
         with:
           token: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
           gcp_workload_identity_provider: 'projects/163070369698/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions-provider'
@@ -42,7 +42,7 @@ jobs:
       issues: 'write' # for modifying Issues
     steps:
       - name: Update the issue for the workflow
-        uses: theupdateframework/tuf-on-ci/actions/update-issue@662382a8295b89a9d538390ce8b9bb85b207a93d # v0.21.0
+        uses: theupdateframework/tuf-on-ci/actions/update-issue@v0.21.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           success: ${{ !contains(needs.*.result, 'failure') }}

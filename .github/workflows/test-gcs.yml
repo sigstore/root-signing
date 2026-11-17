@@ -12,7 +12,7 @@ jobs:
   smoke-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@v7.0.1
         with:
           persist-credentials:
             false
@@ -21,7 +21,7 @@ jobs:
         run: cp metadata/root_history/5.root.json ./root.json
 
       - name: Smoke test Sigstore TUF repository with a TUF client
-        uses: theupdateframework/tuf-on-ci/actions/test-repository@662382a8295b89a9d538390ce8b9bb85b207a93d # v0.21.0
+        uses: theupdateframework/tuf-on-ci/actions/test-repository@v0.21.0
         with:
           metadata_url: https://tuf-repo-cdn.sigstore.dev/
           # when workflow is reused in publish.yml, do not require future validity
@@ -44,7 +44,7 @@ jobs:
       issues: 'write' # for modifying Issues
     steps:
       - name: Update the issue for the workflow
-        uses: theupdateframework/tuf-on-ci/actions/update-issue@662382a8295b89a9d538390ce8b9bb85b207a93d # v0.21.0
+        uses: theupdateframework/tuf-on-ci/actions/update-issue@v0.21.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           success: ${{ !contains(needs.*.result, 'failure') }}

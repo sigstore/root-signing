@@ -14,7 +14,7 @@ jobs:
       - name: Create GitHub App token
         id: app-token
         if: vars.TUF_ON_CI_APP_ID != ''
-        uses: actions/create-github-app-token@v3.3.0
+        uses: actions/create-github-app-token@v3.4.0
         with:
           client-id: ${{ vars.TUF_ON_CI_APP_ID }}
           private-key: ${{ secrets.TUF_ON_CI_APP_PRIVATE_KEY }}
